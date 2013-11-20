@@ -40,9 +40,11 @@ class createAccount extends BasicPage {
 	}
 
 	var $entries;
+	private $msgs = '';
 
 	function main_content(){
 		global $IS4C_PATH;
+		echo $this->msgs;
 		?>
 		<div id="loginTitle">Create an Account<br />
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
@@ -100,33 +102,33 @@ class createAccount extends BasicPage {
 			$errors = False;
 
 			if (!isEmail($this->entries['email'],FILTER_VALIDATE_EMAIL)){
-				echo '<div class="errorMsg">';
-				echo 'Not a valid e-mail address: '.$this->entries['email'];
-				echo '</div>';
+				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= 'Not a valid e-mail address: '.$this->entries['email'];
+				$this->msgs .= '</div>';
 				$this->entries['email'] = '';
 				$errors = True;
 			}
 
 			if ($_REQUEST['passwd'] !== $_REQUEST['passwd2']){
-				echo '<div class="errorMsg">';
-				echo 'Passwords do not match';
-				echo '</div>';
+				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= 'Passwords do not match';
+				$this->msgs .= '</div>';
 				$this->entries['passwd'] = '';
 				$errors = True;
 			}
 
 			if (empty($_REQUEST['passwd'])){
-				echo '<div class="errorMsg">';
-				echo 'Password is required';
-				echo '</div>';
+				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= 'Password is required';
+				$this->msgs .= '</div>';
 				$this->entries['passwd'] = '';
 				$errors = True;
 			}
 
 			if (empty($this->entries['name'])){
-				echo '<div class="errorMsg">';
-				echo 'Name is required';
-				echo '</div>';
+				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= 'Name is required';
+				$this->msgs .= '</div>';
 				$this->entries['name'] = '';
 				$errors = True;
 			}
@@ -143,18 +145,19 @@ class createAccount extends BasicPage {
                     $num = str_pad($num,13,'0',STR_PAD_LEFT);
                 }
                 $query = 'SELECT c.CardNo, c.personNum FROM custdata AS c
-                        LEFT JOIN memberCards AS m ON c.CardNo=m.card_no
+                        LEFT JOIN membercards AS m ON c.CardNo=m.card_no
                         WHERE (c.CardNo=? OR m.upc=?) AND c.LastName=?
                         AND Type=\'PC\' ORDER BY personNum';
                 $prep = $dbc->prepare_statement($query);
                 $result = $dbc->exec_statement($prep, array($num, $num, $lastname));
-                if ($dbc->num_rows($result) == 0) {
-                    echo '<div class="errorMsg">';
-                    echo 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
-                    echo '<br />';
-                    echo 'You may omit Owner information and update your account\'s
+                if ($result === false || $dbc->num_rows($result) == 0) {
+                    $this->msgs .= '<div class="errorMsg">';
+                    $this->msgs .= 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
+                    $this->msgs .= '<br />';
+                    $this->msgs .= 'You may omit Owner information and update your account\'s
                         status later.';
-                    echo '</div>';
+                    $this->msgs .= '</div>';
+		    $errors = True;
                 } else {
                     $row = $dbc->fetch_row($result);
 
@@ -174,9 +177,9 @@ class createAccount extends BasicPage {
 					return False;
 				}
 				else {
-					echo '<div class="errorMsg">';
-					echo 'Account already exists: '.$this->entries['email'];
-					echo '</div>';
+					$this->msgs .= '<div class="errorMsg">';
+					$this->msgs .= 'Account already exists: '.$this->entries['email'];
+					$this->msgs .= '</div>';
 					$this->entries['email'] = '';
 				}
 			}

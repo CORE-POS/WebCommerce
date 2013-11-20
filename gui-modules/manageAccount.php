@@ -42,9 +42,11 @@ class manageAccount extends BasicPage {
 
 	var $entries;
 	var $logged_in_user;
+	private $msgs = '';
 
 	function main_content(){
 		global $IS4C_PATH;
+		echo $this->msgs;
 		?>
 		<div id="loginTitle">Manage your Account<br />
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
@@ -116,9 +118,9 @@ class manageAccount extends BasicPage {
 
 			if ($_REQUEST['email'] != $this->entries['email']){
 				if (!isEmail($_REQUEST['email'],FILTER_VALIDATE_EMAIL)){
-					echo '<div class="errorMsg">';
-					echo 'Not a valid e-mail address: '.$_REQUEST['email'];
-					echo '</div>';
+					$this->msgs .= '<div class="errorMsg">';
+					$this->msgs .= 'Not a valid e-mail address: '.$_REQUEST['email'];
+					$this->msgs .= '</div>';
 				} else {
 					$newemail = $_REQUEST['email'];
 					$upP = $dbc->prepare_statement('UPDATE Users SET name=? WHERE name=?');
@@ -126,49 +128,49 @@ class manageAccount extends BasicPage {
 					doLogin($newemail);
 					$this->logged_in_user = $newemail;
 					$this->entries['email'] = $newemail;
-					echo '<div class="successMsg">';
-					echo 'E-mail address has been updated';
-					echo '</div>';
+					$this->msgs .= '<div class="successMsg">';
+					$this->msgs .= 'E-mail address has been updated';
+					$this->msgs .= '</div>';
 				}
 			}
 
 			if ($_REQUEST['fn'] != $this->entries['name']){
 				if (empty($_REQUEST['fn'])){
-					echo '<div class="errorMsg">';
-					echo 'Name is required';
-					echo '</div>';
+					$this->msgs .= '<div class="errorMsg">';
+					$this->msgs .= 'Name is required';
+					$this->msgs .= '</div>';
 				}
 				else {
 					$upP = $dbc->prepare_statement('UPDATE Users SET real_name=? WHERE name=?');
 					$dbc->exec_statement($upP,array($_REQUEST['fn'],$this->logged_in_user));
 					$this->entries['name'] = $_REQUEST['fn'];
-					echo '<div class="successMsg">';
-					echo 'Name has been updated';
-					echo '</div>';
+					$this->msgs .= '<div class="successMsg">';
+					$this->msgs .= 'Name has been updated';
+					$this->msgs .= '</div>';
 				}
 			}
 
 			if (isset($_REQUEST['vln']) && !empty($_REQUEST['vln']) && isset($_REQUEST['vnum']) && !empty($_REQUEST['vnum'])) {
-                $lastname = $_REQUSET['vln'];
-                $num = $_REQUEST['vnum'];
-                $num = str_replace(' ','',$num);
-                if (strlen($num)>=10){ // likely a card
-                    if ($num[0] == '2')  // add lead digit
+		$lastname = $_REQUEST['vln'];
+		$num = $_REQUEST['vnum'];
+		$num = str_replace(' ','',$num);
+		if (strlen($num)>=10){ // likely a card
+		    if ($num[0] == '2')  // add lead digit
                         $num = '4'.$num;
                     if (strlen($num) >= 12) // remove check digit
                         $num = substr($num,0,11);
                     $num = str_pad($num,13,'0',STR_PAD_LEFT);
                 }
                 $query = 'SELECT c.CardNo, c.personNum FROM custdata AS c
-                        LEFT JOIN memberCards AS m ON c.CardNo=m.card_no
+                        LEFT JOIN membercards AS m ON c.CardNo=m.card_no
                         WHERE (c.CardNo=? OR m.upc=?) AND c.LastName=?
                         AND Type=\'PC\' ORDER BY personNum';
                 $prep = $dbc->prepare_statement($query);
                 $result = $dbc->exec_statement($prep, array($num, $num, $lastname));
-                if ($dbc->num_rows($result) == 0) {
-                    echo '<div class="errorMsg">';
-                    echo 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
-                    echo '</div>';
+                if ($result === false || $dbc->num_rows($result) == 0) {
+                    $this->msgs .= '<div class="errorMsg">';
+                    $this->msgs .= 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
+                    $this->msgs .= '</div>';
                 } else {
                     $row = $dbc->fetch_row($result);
 
@@ -177,9 +179,9 @@ class manageAccount extends BasicPage {
                     $upP = $dbc->prepare_statement('UPDATE Users SET owner=? WHERE name=?');
                     $dbc->exec_statement($upP,array($owner, $this->logged_in_user));
                     $this->entries['owner'] = $owner;
-                    echo '<div class="successMsg">';
-                    echo 'Owner status has been updated';
-                    echo '</div>';
+                    $this->msgs .= '<div class="successMsg">';
+                    $this->msgs .= 'Owner status has been updated';
+                    $this->msgs .= '</div>';
                 }
 			}
 
