@@ -81,7 +81,8 @@ class storefront extends BasicPage {
 				ELSE 0
 				END as sale_price,
 			u.description,u.brand,
-			CASE WHEN l.upc IS NULL THEN 0 ELSE 1 END AS inCart
+			CASE WHEN l.upc IS NULL THEN 0 ELSE 1 END AS inCart,
+            p.special_price, p.discounttype
 			FROM products AS p INNER JOIN productUser
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
 			AS l ON p.upc=l.upc AND l.emp_no=? 
@@ -125,7 +126,7 @@ class storefront extends BasicPage {
 					($w['sale_price']==0?$w['normal_price']:$w['sale_price']),
 					($w['sale_price']==0?'&nbsp;':'ON SALE!')
 			);
-			if ($w['inCart'] == 0 && $empno != -999){
+			if ($w['inCart'] == 0 && $empno != -999 && !($w['discounttype'] == 2 && $w['special_price'] == 0)){
 					$ret .= sprintf('<td id="btn%s">
 						<input type="submit" value="Add to cart" onclick="addItem(\'%s\');" />
 						</td></tr>',

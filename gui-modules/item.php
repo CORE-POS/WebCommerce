@@ -53,7 +53,7 @@ class itemPage extends BasicPage {
 		$upc = str_pad($upc,13,'0',STR_PAD_LEFT);
 
 		$empno = getUID(checkLogin());
-                if ($empno===False) $empno=-999;
+        if ($empno===false) $empno=-999;
 
 		$dbc = pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
@@ -99,8 +99,10 @@ class itemPage extends BasicPage {
 			echo '<a href="loginPage.php">Login</a> or ';
 			echo '<a href="createAccount.php">Create an Account</a> ';
 			echo 'to add items to your cart.';
-		}
-		else {
+		} else if (!getOwner(checkLogin()) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
+            echo 'This item is only available to owners. ';
+            echo '<a href="manageAccount.php">Update your Account status</a>';
+		} else {
 			$chkP = $dbc->prepare_statement("SELECT upc FROM localtemptrans WHERE
 				upc=? AND emp_no=?");
 			$chkR = $dbc->exec_statement($chkP,array($w['upc'],$empno));
