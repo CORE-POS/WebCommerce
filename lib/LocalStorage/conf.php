@@ -36,5 +36,6 @@ if (!class_exists($LOCAL_STORAGE_MECHANISM)){
 
 $IS4C_LOCAL = new $LOCAL_STORAGE_MECHANISM();
 global $IS4C_LOCAL;
+include($IS4C_PATH."ini.php");
 
 ?>

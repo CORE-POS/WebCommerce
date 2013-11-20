@@ -61,6 +61,10 @@ $TYPE_MYSQL = 'MYSQL';
 $TYPE_MSSQL = 'MSSQL'; 
 $TYPE_PGSQL = 'PGSQL';
 
+$TYPE_PDOMY = 'PDOMYSQL';
+$TYPE_PDOMS = 'PDOMSSQL';
+$TYPE_PDOPG = 'PDOPGSQL';
+
 class SQLManager {
 
 	var $connections;
@@ -70,6 +74,9 @@ class SQLManager {
 	var $TYPE_MYSQL = 'MYSQL';
 	var $TYPE_MSSQL = 'MSSQL'; 
 	var $TYPE_PGSQL = 'PGSQL';
+	var $TYPE_PDOMY = 'PDOMYSQL';
+	var $TYPE_PDOMS = 'PDOMSSQL';
+	var $TYPE_PDOPG = 'PDOPGSQL';
 
 	function SQLManager($server,$type,$database,$username,$password='',$persistent=False){
 		$this->connections=array();
@@ -124,6 +131,15 @@ class SQLManager {
 				return pg_pconnect($conStr);
 			else
 				return pg_connect($conStr);
+		case $this->TYPE_PDOMY:
+			$dsn = 'mysql:host='.$server;
+			return new PDO($dsn, $username, $password);
+		case $this->TYPE_PDOMS:
+			$dsn = 'mssql:host='.$server;
+			return new PDO($dsn, $username, $password);
+		case $this->TYPE_PDOPG:
+			$dsn = 'pgsql:host='.$server;
+			return new PDO($dsn, $username, $password);
 		}	
 		return -1;
 	}
@@ -153,6 +169,10 @@ class SQLManager {
 			return mssql_select_db($db_name,$this->connections[$which_connection]);
 		case $this->TYPE_PGSQL:
 			return True;
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			return $this->query('use '.$db_name,$which_connection);
 		}
 		return -1;
 	}
@@ -180,8 +200,71 @@ class SQLManager {
 			return $result;
 		case $this->TYPE_PGSQL:
 			return pg_query($this->connections[$which_connection],$query_text);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			$obj = $this->connections[$which_connection];
+			$result = $obj->query($query_text);
+			if (!$result && DEBUG_MYSQL_QUERIES != "" && is_writable(DEBUG_MYSQL_QUERIES)){
+				$fp = fopen(DEBUG_MYSQL_QUERIES,"a");
+				fwrite($fp,date('r').": ".$query_text."\n\n");
+				fclose($fp);
+			}
+			if ($result === False) var_Dump($query_text);
+			return $result;
 		}	
 		return -1;
+	}
+
+	/**
+	  Prepared statement: non-PDO types just return the query_text
+	  without modification
+	*/
+	function prepare_statement($query_text,$which_connection=''){
+		if ($which_connection == '')
+			$which_connection=$this->default_db;
+		switch($this->db_types[$which_connection]){
+		case $this->TYPE_MYSQL:
+		case $this->TYPE_MSSQL:
+			return $query_text;
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			$obj = $this->connections[$which_connection];
+			return $obj->prepare($query_text);
+		}
+		return False;
+	}
+
+	/**
+	  execute statement: exec is emulated for non-PDO types
+	*/
+	function exec_statement($stmt,$args=array(),$which_connection=''){
+		if ($which_connection == '')
+			$which_connection=$this->default_db;
+		switch($this->db_types[$which_connection]){
+		case $this->TYPE_MYSQL:
+		case $this->TYPE_MSSQL:
+			$query = "";
+			$parts = explode('?',$stmt);
+			foreach($parts as $p){
+				$query .= $p;
+				if (count($args)>0){
+					$val = array_shift($args);
+					$query .= is_numeric($val) ? $val : $this->escape($val,$which_connection);
+				}
+			}
+			return $this->query($query,$which_connection);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			$success = False;
+			if (is_object($stmt)){
+				$success = $stmt->execute($args);
+			}
+			return $success ? $stmt : False;
+		}
+		return False;
 	}
 	
 	function num_rows($result_object,$which_connection=''){
@@ -194,6 +277,10 @@ class SQLManager {
 			return mssql_num_rows($result_object);
 		case $this->TYPE_PGSQL:
 			return pg_num_rows($result_object);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			return $result_object->rowCount();
 		}
 		return -1;
 	}
@@ -208,6 +295,10 @@ class SQLManager {
 			return mssql_num_fields($result_object);
 		case $this->TYPE_PGSQL:
 			return pg_num_fields($result_object);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			return $result_object->columnCount();
 		}
 		return -1;
 	}
@@ -222,6 +313,11 @@ class SQLManager {
 			return mssql_fetch_array($result_object);
 		case $this->TYPE_PGSQL:
 			return pg_fetch_array($result_object);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			if (!is_object($result_object)) return False;
+			return $result_object->fetch();
 		}
 		return -1;
 	}
@@ -239,6 +335,10 @@ class SQLManager {
 			return mysql_fetch_field($result_object,$index);
 		case $this->TYPE_MSSQL:
 			return mssql_fetch_field($result_object,$index);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			return $result_object->fetchColumn($index);
 		}
 		return -1;
 	}
@@ -253,6 +353,12 @@ class SQLManager {
 			return mssql_field_type($result_object,$index);
 		case $this->TYPE_PGSQL:
 			return pg_field_type($result_object,$index);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			$info = $result_object->getColumnMeta($index);
+			if (!isset($info['native_type'])) return 'bit';	
+			else return strtolower($info['native_type']);
 		}
 		return -1;
 	}
@@ -268,6 +374,10 @@ class SQLManager {
 			return mssql_close($this->connections[$which_connection]);
 		case $this->TYPE_PGSQL:
 			return pg_close($this->connections[$which_connection]);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			return True;
 		}
 		return -1;
 	}
@@ -404,14 +514,23 @@ class SQLManager {
                         $which_connection=$this->default_db;
                 switch($this->db_types[$which_connection]){
                 case $this->TYPE_MYSQL:
+		case $this->TYPE_PDOMY:
 			$result = $this->query("SHOW TABLES FROM $which_connection 
 						LIKE '$table_name'",$which_connection);
                         if ($this->num_rows($result) > 0) return True;
                         else return False;
                 case $this->TYPE_MSSQL:
+		case $this->TYPE_PDOMS:
 			$result = $this->query("SELECT name FROM sysobjects 
 						WHERE name LIKE '$table_name'",
 						$which_connection);
+                        if ($this->num_rows($result) > 0) return True;
+                        else return False;
+		case $this->TYPE_PGSQL:
+		case $this->TYPE_PDOPG:
+			$result = $this->query("SELECT relname FROM pg_class
+					WHERE relname LIKE '$tablename'",
+					$which_connection);
                         if ($this->num_rows($result) > 0) return True;
                         else return False;
                 }
@@ -431,6 +550,7 @@ class SQLManager {
                         $which_connection=$this->default_db;
                 switch($this->db_types[$which_connection]){
                 case $this->TYPE_MYSQL:
+		case $this->TYPE_PDOMY:
                         $return = array();
                         $result = $this->query("SHOW COLUMNS FROM $table_name",$which_connection);
                         while($row = $this->fetch_row($result,$which_connection)){
@@ -442,6 +562,7 @@ class SQLManager {
                         if (count($return) == 0) return False;
                         else return $return;
                 case $this->TYPE_MSSQL:
+		case $this->TYPE_PDOMS:
                         $return = array();
                         $result = $this->query("SELECT c.name,t.name,c.length,
 						CASE WHEN c.autoval IS NULL
@@ -456,6 +577,18 @@ class SQLManager {
 				$auto = False;
 				if ($row[3] == 1) $auto = True;
 				$return[$row[0]] = array($row[1]."(".$row[2].")",$auto,$row[0]);
+			}
+                        if (count($return) == 0) return False;
+                        else return $return;
+		case $this->TYPE_PDOPG:
+                case $this->TYPE_PGSQL:
+			$return = array();
+			$result = $this->query("SELECT a.attname,t.typname FROM pg_class AS c
+					LEFT JOIN pg_attribute AS a ON a.attrelid = c.oid
+					LEFT JOIN pg_type AS t ON a.atttypid = t.oid	
+					WHERE c.relname='$table_name'", $which_connection);
+			while($row = $this->fetch_row($result,$which_connection)){
+				$return[$row[0]] = array($row[1],False);
 			}
                         if (count($return) == 0) return False;
                         else return $return;
@@ -535,9 +668,14 @@ class SQLManager {
                         $which_connection = $this->default_db;
                 switch($this->db_types[$which_connection]){
                 case $this->TYPE_MYSQL:
+		case $this->TYPE_PDOMY:
                         return "datediff($date1,$date2)";
                 case $this->TYPE_MSSQL:
+		case $this->TYPE_PDOMS:
                         return "datediff(dd,$date2,$date1)";
+		case $this->TYPE_PGSQL:
+		case $this->TYPE_PDOPG:
+			return "extract(day from ($date2 - $date1))";
                 }
         }
 
@@ -546,10 +684,13 @@ class SQLManager {
                         $which_connection = $this->default_db;
                 switch($this->db_types[$which_connection]){
                 case $this->TYPE_MYSQL:
+		case $this->TYPE_PDOMY:
                         return "now()";
                 case $this->TYPE_MSSQL:
+		case $this->TYPE_PDOMS:
                         return "getdate()";
                 case $this->TYPE_PGSQL:
+		case $this->TYPE_PDOPG:
                         return "now()";
                 }
         }
@@ -562,6 +703,12 @@ class SQLManager {
 			return mysql_real_escape_string($str);
 		case $this->TYPE_MSSQL:
 			return str_replace("'","''",$str);
+		case $this->TYPE_PDOMY:
+		case $this->TYPE_PDOMS:
+		case $this->TYPE_PDOPG:
+			$obj = $this->connections[$which_connection];
+			$quoted = $obj->quote($str);
+			return ($quoted == "''" ? '' : substr($quoted, 1, strlen($quoted)-2));
 		}
 		return $str;
 	}

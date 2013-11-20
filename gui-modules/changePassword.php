@@ -84,9 +84,8 @@ class changePassword extends UserPage {
 
 		$dbc = pDataConnect();
 
-		$q = sprintf("SELECT name FROM Users WHERE name='%s'",
-			$dbc->escape($this->logged_in_user));
-		$r = $dbc->query($q);
+		$q = $dbc->prepare_statement('SELECT name FROM Users WHERE name=?');
+		$r = $dbc->exec_statement($q, array($this->logged_in_user));
 		if ($dbc->num_rows($r) == 0){
 			// sanity check; shouldn't ever happen
 			header("Location: {$IS4C_PATH}gui-modules/loginPage.php");

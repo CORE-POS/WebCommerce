@@ -72,8 +72,6 @@ class storefront extends BasicPage {
 		$page = isset($_REQUEST['pg'])?((int)$_REQUEST['pg']):0;
 		$offset = $page*$limit;
 
-		$sort = "u.brand,u.description";
-
 		$dbc = pDataConnect();
 		$empno = getUID(checkLogin());
 		if ($empno===False) $empno=-999;
@@ -86,26 +84,37 @@ class storefront extends BasicPage {
 			CASE WHEN l.upc IS NULL THEN 0 ELSE 1 END AS inCart
 			FROM products AS p INNER JOIN productUser
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
-			AS l ON p.upc=l.upc AND l.emp_no=$empno 
+			AS l ON p.upc=l.upc AND l.emp_no=? 
 			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc ";
+		$args = array($empno);
 		if ($super != -1)
 			$q .= "INNER JOIN superdepts AS s ON p.department=s.dept_ID ";
 		if ($sub != -1)
 			$q .= "INNER JOIN subdepts AS b ON p.department=b.dept_ID ";
 		$q .= "WHERE p.inUse=1 AND u.enableOnline=1 AND (o.available IS NULL or o.available > 0) ";
-		if ($super != -1)
-			$q .= sprintf("AND s.superID=%d ",$super);
-		if ($d != -1)
-			$q .= sprintf("AND p.department=%d ",$d);
-		if ($sub != -1)
-			$q .= sprintf("AND b.subdept_no=%d ",$sub);
-		if ($brand != -1)
-			$q .= sprintf("AND u.brand='%s' ",$dbc->escape($brand));
-		$q .= "ORDER BY $sort LIMIT $offset,$limit";
-		
+		if ($super != -1){
+			$q .= "AND s.superID=? ";
+			$args[] = $super;
+		}
+		if ($d != -1){
+			$q .= "AND p.department=? ";
+			$args[] = $d;
+		}
+		if ($sub != -1){
+			$q .= "AND b.subdept_no=? ";
+			$args[] = $sub;
+		}
+		if ($brand != -1){
+			$q .= "AND u.brand=? ";
+			$args[] = $brand;
+		}
+		$q .= "ORDER BY u.brand,u.description";
+
+		$p = $dbc->prepare_statement($q);
+		$r = $dbc->exec_statement($p, $args);
+				
 		$ret = '<table cellspacing="4" cellpadding="4" id="browsetable">';
 		$ret .= '<tr><th>Brand</th><th>Product</th><th>Price</th><th>&nbsp;</th></tr>';
-		$r = $dbc->query($q);
 		while($w = $dbc->fetch_row($r)){
 			$ret .= sprintf('<tr><td>%s</td>
 					<td><a href="item.php?upc=%s">%s</a></td>
@@ -156,18 +165,18 @@ class storefront extends BasicPage {
 		}
 		else if ($d != -1 && $super != -1){
 			// browsing dept
-			$q = sprintf("SELECT subdept_no,subdept_name FROM subdepts
-				WHERE dept_ID=%d",$d);
-			$r = $dbc->query($q);
+			$q = $dbc->prepare_statement("SELECT subdept_no,subdept_name FROM subdepts
+				WHERE dept_ID=?");
+			$r = $dbc->exec_statement($q, array($d));
 			$subs = True;
 			if ($dbc->num_rows($r) == 0){
 				// no subdepts; skip straight to brands
 				$subs = False;
-				$q = sprintf("SELECT u.brand FROM products AS p
+				$q = $dbc->prepare_statement("SELECT u.brand FROM products AS p
 					INNER JOIN productUser AS u ON p.upc=u.upc
-					WHERE p.department=%d AND u.brand <> ''
-					AND u.brand IS NOT NULL GROUP BY u.brand",$d);
-				$r = $dbc->query($q);
+					WHERE p.department=? AND u.brand <> ''
+					AND u.brand IS NOT NULL GROUP BY u.brand");
+				$r = $dbc->exec_statement($q, array($d));
 			}
 
 			foreach($sids as $id=>$name){
@@ -175,9 +184,10 @@ class storefront extends BasicPage {
 					$_SERVER['PHP_SELF'],$id,$name);
 				if ($id == $super){
 					$ret .= '<ul id="deptlist">';
-					$dR = $dbc->query(sprintf("SELECT dept_no,dept_name FROM departments
+					$dP = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
-						WHERE s.superID=%d",$super));
+						WHERE s.superID=?");
+					$dR = $dbc->exec_statement($dP, array($super));
 					while($w = $dbc->fetch_row($dR)){
 						$ret .= sprintf('<li><a href="%s?sup=%d&d=%d">%s</a>',
 							$_SERVER['PHP_SELF'],$id,$w['dept_no'],$w['dept_name']);
@@ -212,9 +222,10 @@ class storefront extends BasicPage {
 					$_SERVER['PHP_SELF'],$id,$name);
 				if ($id == $super){
 					$ret .= '<ul id="deptlist">';
-					$r = $dbc->query(sprintf("SELECT dept_no,dept_name FROM departments
+					$p = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
-						WHERE s.superID=%d",$super));
+						WHERE s.superID=?");
+					$r = $dbc->exec_statement($p, array($super));
 					while($w = $dbc->fetch_row($r)){
 						$ret .= sprintf('<li><a href="%s?sup=%d&d=%d">%s</a></li>',
 							$_SERVER['PHP_SELF'],$id,$w['dept_no'],$w['dept_name']);

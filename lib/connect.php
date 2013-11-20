@@ -150,18 +150,20 @@ function gettransno($CashierNo) {
 	global $IS4C_LOCAL;
 
 	$register_no = $IS4C_LOCAL->get("laneno");
-	$query1 = "SELECT max(trans_no) as maxtransno from localtemptrans where emp_no = '"
-		.$CashierNo."' and register_no = '"
-		.$register_no."' GROUP by register_no, emp_no";
-	$query2 = "SELECT max(trans_no) as maxtransno from localtranstoday where emp_no = '"
-		.$CashierNo."' and register_no = '"
-		.$register_no."' GROUP by register_no, emp_no";
+	$query1 = "SELECT max(trans_no) as maxtransno from localtemptrans 
+		where emp_no = ? AND register_no=?
+		GROUP BY register_no, emp_no";
+	$query2 = "SELECT max(trans_no) as maxtransno from localtranstoday 
+		where emp_no = ? AND register_no=?
+		GROUP BY register_no, emp_no";
 	$connection = tDataConnect();
-	$result = $connection->query($query1);
+	$prep1 = $connection->prepare_statement($query1);
+	$result = $connection->exec_statement($prep1,array($CashierNo,$register_no));
 	$row = $connection->fetch_array($result);
 	if ($row) return $row['maxtransno'];
 
-	$result = $connection->query($query2);
+	$prep2 = $connection->prepare_statement($query2);
+	$result = $connection->exec_statement($prep2,array($CashierNo,$register_no));
 	$row = $connection->fetch_array($result);
 	if (!$row || !$row["maxtransno"]) {
 		$trans_no = 1;

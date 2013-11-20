@@ -56,15 +56,14 @@ class itemPage extends BasicPage {
                 if ($empno===False) $empno=-999;
 
 		$dbc = pDataConnect();
-		$q = sprintf("SELECT p.upc,p.normal_price,p.special_price,
+		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
 			p.inUse,
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o
-			ON p.upc=o.upc WHERE p.upc='%s'",
-			$dbc->escape($upc));
-		$r = $dbc->query($q);
+			ON p.upc=o.upc WHERE p.upc=?");
+		$r = $dbc->exec_statement($q,array($upc));
 
 		if ($dbc->num_rows($r)==0){
 			echo "Item not found";
@@ -102,9 +101,9 @@ class itemPage extends BasicPage {
 			echo 'to add items to your cart.';
 		}
 		else {
-			$chkQ = sprintf("SELECT upc FROM localtemptrans WHERE
-				upc='%s' AND emp_no=%d",$dbc->escape($w['upc']),$empno);
-			$chkR = $dbc->query($chkQ);
+			$chkP = $dbc->prepare_statement("SELECT upc FROM localtemptrans WHERE
+				upc=? AND emp_no=?");
+			$chkR = $dbc->exec_statement($chkP,array($w['upc'],$empno));
 			if ($dbc->num_rows($chkR) == 0){
 				printf('<span id="btn%s">
 					<input type="submit" value="Add to cart" onclick="addItem(\'%s\');" />

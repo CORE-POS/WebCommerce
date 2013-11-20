@@ -77,9 +77,8 @@ class manageAccount extends BasicPage {
 
 		$dbc = pDataConnect();
 
-		$q = sprintf("SELECT name,real_name,owner FROM Users WHERE
-			name='%s'",$dbc->escape($this->logged_in_user));
-		$r = $dbc->query($q);
+		$q = $dbc->prepare_statement('SELECT name,real_name,owner FROM Users WHERE name=?');
+		$r = $dbc->exec_statement($q, array($this->logged_in_user));
 		if ($dbc->num_rows($r) == 0){
 			// sanity check; shouldn't ever happen
 			header("Location: {$IS4C_PATH}gui-modules/loginPage.php");
@@ -104,10 +103,8 @@ class manageAccount extends BasicPage {
 				}
 				else {
 					$newemail = $_REQUEST['email'];
-					$upQ = sprintf("UPDATE Users SET name='%s' WHERE name='%s'",
-						$dbc->escape($newemail),
-						$dbc->escape($this->logged_in_user));
-					$dbc->query($upQ);
+					$upP = $dbc->prepare_statement('UPDATE Users SET name=? WHERE name=?');
+					$dbc->exec_statement($upP,array($newemail,$this->logged_in_user));
 					doLogin($newemail);
 					$this->logged_in_user = $newemail;
 					$this->entries['email'] = $newemail;
@@ -124,10 +121,8 @@ class manageAccount extends BasicPage {
 					echo '</div>';
 				}
 				else {
-					$upQ = sprintf("UPDATE Users SET real_name='%s' WHERE name='%s'",
-						$dbc->escape($_REQUEST['fn']),
-						$dbc->escape($this->logged_in_user));
-					$dbc->query($upQ);
+					$upP = $dbc->prepare_statement('UPDATE Users SET real_name=? WHERE name=?');
+					$dbc->exec_statement($upP,array($_REQUEST['fn'],$this->logged_in_user));
 					$this->entries['name'] = $_REQUEST['fn'];
 					echo '<div class="successMsg">';
 					echo 'Name has been updated';
@@ -136,10 +131,8 @@ class manageAccount extends BasicPage {
 			}
 
 			if ($_REQUEST['owner'] != $this->entries['owner']){
-				$upQ = sprintf("UPDATE Users SET owner=%d WHERE name='%s'",
-					$dbc->escape($_REQUEST['owner']),
-					$dbc->escape($this->logged_in_user));
-				$dbc->query($upQ);
+				$upP = $dbc->prepare_statement('UPDATE Users SET owner=? WHERE name=?');
+				$dbc->exec_statement($upP,array($_REQUEST['owner'],$this->logged_in_user));
 				$this->entries['owner'] = $_REQUEST['owner'];
 				echo '<div class="successMsg">';
 				echo 'Owner status has been updated';

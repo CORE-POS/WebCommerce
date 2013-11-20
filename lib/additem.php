@@ -153,7 +153,20 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 		$values["isStaff"] = nullwrap($staff);
 	}
 
-	$db->smart_insert("localtemptrans",$values);
+	// translate column/value array to build prepared statement
+	$cols = '(';
+	$vals = '(';
+	$args = array();
+	foreach($values as $col => $val){
+		$cols .= $col.',';
+		$vals .= '?,';
+		$args[] = $val;
+	}
+	$cols = substr($cols,0,strlen($cols)-1).')';
+	$vals = substr($vals,0,strlen($vals)-1).')';
+	$query = "INSERT INTO localtemptrans $cols VALUES $vals";
+	$prep = $db->prepare_statement($qeruy);
+	$db->exec_statement($prep, $args);
 
 	$IS4C_LOCAL->set("toggletax",0);
 	$IS4C_LOCAL->set("togglefoodstamp",0);
@@ -171,10 +184,10 @@ function addUPC($upc,$quantity=1.0){
 
 	$db = pDataConnect();
 	$upc = $db->escape($upc);
-	$query = "SELECT description, department, normal_price, special_price, pricemethod, specialpricemethod,
+	$lookP = $db->prepare_statement("SELECT description, department, normal_price, special_price, pricemethod, specialpricemethod,
 		tax, foodstamp, scale, discount, discounttype, cost, local FROM products
-		WHERE upc='$upc'";
-	$result = $db->query($query);
+		WHERE upc=?");
+	$result = $db->exec_statement($lookP,array($upc));
 	if ($db->num_rows($result) == 0) return False;
 
 	$row = $db->fetch_row($result);
@@ -390,8 +403,8 @@ function addMadCoup() {
 function addVirtualCoupon($id){
 	global $IS4C_LOCAL;
 	$sql = pDataConnect();
-	$fetchQ = "select name,type,value,max from VirtualCoupon WHERE flag=$id";
-	$fetchR = $sql->query($fetchQ);
+	$fetchP = $sql->prepare_statement("select name,type,value,max from VirtualCoupon WHERE flag=?");
+	$fetchR = $sql->exec_statement($fetchP,array($id));
 	$coupW = $sql->fetch_row($fetchR);
 
 	$val = (double)$coupW["value"];
@@ -456,7 +469,8 @@ function addactivity($activity) {
 
 
 	$db = tDataConnect();
-	$result = $db->query($strqtime);
+	$prep = $db->prepare_statement($strqtime);
+	$result = $db->exec_statement($strqtime);
 
 
 	$row = $db->fetch_array($result);
@@ -485,7 +499,21 @@ function addactivity($activity) {
 		unset($values['Interval']);
 		$values['`Interval`'] = nullwrap($interval);
 	}
-	$result = $db->smart_insert("activitytemplog",$values);
+
+	// translate column/value array to build prepared statement
+	$cols = '(';
+	$vals = '(';
+	$args = array();
+	foreach($values as $col => $val){
+		$cols .= $col.',';
+		$vals .= '?,';
+		$args[] = $val;
+	}
+	$cols = substr($cols,0,strlen($cols)-1).')';
+	$vals = substr($vals,0,strlen($vals)-1).')';
+	$query = "INSERT INTO activitytemplog $cols VALUES $vals";
+	$prep = $db->prepare_statement($qeruy);
+	$db->exec_statement($prep, $args);
 
 	$db->close();
 

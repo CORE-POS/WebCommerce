@@ -52,8 +52,8 @@ function addAuth($name,$auth_class,$sub_start='all',$sub_end='all'){
     return false;
   }
 
-  $addQ = "insert into userPrivs values ('$uid','$auth_class','$sub_start','$sub_end')";
-  $addR = $sql->query($addQ);
+  $addP = $sql->prepare_statement('INSERT INTO userPrivs VALUES (?, ?, ?, ?)');
+  $addR = $sql->exec_statement($addP,array($uid,$auth_class,$sub_start,$sub_end));
   return true;
 }
 
@@ -71,8 +71,8 @@ function deleteAuth($name,$auth_class){
     return false;
   }
   $sql = dbconnect();
-  $delQ = "delete from userPrivs where uid='$uid' and auth_class='$auth_class'";
-  $delR = $sql->query($delQ);
+  $delP = $sql->prepare_statement("delete from userPrivs where uid=? and auth_class=?");
+  $delR = $sql->exec_statement($delP,array($uid,$auth_class));
   return true;
 }
 
@@ -96,8 +96,8 @@ function showAuths($name){
   echo "<th>Authorization class</th><th>Subclass start</th><th>Subclass end</th>";
   echo "</tr>";
   $sql = dbconnect();
-  $fetchQ = "select auth_class,sub_start,sub_end from userPrivs where uid='$uid'";
-  $fetchR = $sql->query($fetchQ);
+  $fetchP = $sql->prepare_statement("select auth_class,sub_start,sub_end from userPrivs where uid=?");
+  $fetchR = $sql->exec_statement($fetchP, array($uid));
   while ($row = $sql->fetch_array($fetchR)){
     echo "<tr>";
     echo "<td>$row[0]</td><td>$row[1]</td><td>$row[2]</td>";
@@ -123,9 +123,9 @@ function checkAuth($name,$auth_class,$sub='all'){
     return false;
   }
   $sql = dbconnect();
-  $checkQ = "select * from userPrivs where uid='$uid' and auth_class='$auth_class' and
-             (('$sub' between sub_start and sub_end) or (sub_start='all' and sub_end='all'))";
-  $checkR = $sql->query($checkQ);
+  $checkP = $sql->prepare_statement("select * from userPrivs where uid=? and auth_class=? and
+             ((? between sub_start and sub_end) or (sub_start='all' and sub_end='all'))");
+  $checkR = $sql->exec_statement($checkP,array($uid,$auth_class,$sub));
   if ($sql->num_rows($checkR) == 0){
     return false;
   }

@@ -58,8 +58,8 @@ class confirm extends BasicPage {
 		$db = tDataConnect();
 		$empno = getUID(checkLogin());
 
-		$q = "SELECT * FROM cart WHERE emp_no=$empno";
-		$r = $db->query($q);
+		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
+		$r = $db->exec_statement($q, array($empno));
 		
 		if (!$receiptMode){
 			echo '<form action="confirm.php" method="post">';
@@ -90,8 +90,8 @@ class confirm extends BasicPage {
 		}
 		printf('<tr><th colspan="3" align="right">Subtotal</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
-		$taxQ = "SELECT taxes FROM taxTTL WHERE emp_no=$empno";
-		$taxR = $db->query($taxQ);
+		$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+		$taxR = $db->exec_statement($taxP,array($empno));
 		$taxes = round(array_pop($db->fetch_row($taxR)),2);
 		printf('<tr><th colspan="3" align="right">Taxes</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
@@ -117,15 +117,15 @@ class confirm extends BasicPage {
 			/* refactor idea: clear in preprocess()
 			   and print receipt from a different script
 			*/
-			$endQ = "INSERT INTO localtrans SELECT l.* FROM
-				localtemptrans AS l WHERE emp_no=$empno";
-			$endR = $db->query($endQ);
-			$endQ = "INSERT INTO pendingtrans SELECT l.* FROM
-				localtemptrans AS l WHERE emp_no=$empno";
-			$endR = $db->query($endQ);
+			$endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
+				localtemptrans AS l WHERE emp_no=?");
+			$endR = $db->exec_statement($endP,array($empno));
+			$endQ = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
+				localtemptrans AS l WHERE emp_no=?");
+			$endR = $db->exec_statement($endP,array($empno));
 			if ($endR !== False){
-				$clearQ = "DELETE FROM localtemptrans WHERE emp_no=$empno";
-				$db->query($clearQ);
+				$clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
+				$db->exec_statement($clearP,array($empno));
 			}
 		}
 	}
@@ -166,8 +166,8 @@ class confirm extends BasicPage {
 					$db = tDataConnect();
 					$email = checkLogin();
 					$empno = getUID($email);
-					$taxQ = "SELECT taxes FROM taxTTL WHERE emp_no=$empno";
-					$taxR = $db->query($taxQ);
+					$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+					$taxR = $db->exec_statement($taxP,array($empno));
 					$taxes = round(array_pop($db->fetch_row($taxR)),2);
 					addtax($taxes);
 					
@@ -178,16 +178,17 @@ class confirm extends BasicPage {
 					$cart = customer_confirmation($empno,$email,$pp1['PAYMENTREQUEST_0_AMT']);
 					admin_notification($empno,$email,$ph,$pp1['PAYMENTREQUEST_0_AMT'],$cart);
 
-					$addrQ = sprintf("SELECT e.email_address FROM localtemptrans
+					$addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
 						as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
 						INNER JOIN superDeptEmails AS e ON s.superID=e.superID
-						WHERE l.emp_no=%d GROUP BY e.email_address",$empno);
-					$addrR = $db->query($addrQ);
+						WHERE l.emp_no=? GROUP BY e.email_address");
+					$addrR = $db->exec_statement($addrP,array($empno));
 					$addr = array();
 					while($addrW = $db->fetch_row($addrR))
 						$addr[] = $addrW[0];
 					if (count($addr) > 0)
 						mgr_notification($addr,$email,$ph,$pp1['PAYMENTREQUEST_0_AMT'],$attend,$cart);
+
 				}
 			}
 		}

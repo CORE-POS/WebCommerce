@@ -50,8 +50,8 @@ class cart extends BasicPage {
 		$db = tDataConnect();
 		$empno = getUID(checkLogin());
 
-		$q = "SELECT * FROM cart WHERE emp_no=$empno";
-		$r = $db->query($q);
+		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
+		$r = $db->exec_statement($q, array($empno));
 
 		if (!PAYPAL_LIVE){
 			echo '<h2>This store is in test mode; orders will not be processed</h2>';
@@ -82,8 +82,8 @@ class cart extends BasicPage {
 		}
 		printf('<tr><th colspan="4" align="right">Subtotal</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
-		$taxQ = "SELECT taxes FROM taxTTL WHERE emp_no=$empno";
-		$taxR = $db->query($taxQ);
+		$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+		$taxR = $db->exec_statement($taxP,array($empno));
 		$taxes = 0;
 		if ($db->num_rows($taxR) > 0)
 			$taxes = round(array_pop($db->fetch_row($taxR)),2);
@@ -118,9 +118,8 @@ class cart extends BasicPage {
 					$qty = number_format(round($_REQUEST['qtys'][$i]*4)/4,2);
 				if ($qty == $_REQUEST['orig'][$i]) continue;
 
-				$availQ = sprintf("SELECT available FROM productOrderLimits WHERE upc='%s'",
-						$upc);
-				$availR = $db->query($availQ);
+				$availP = $db->prepare_statement("SELECT available FROM productOrderLimits WHERE upc=?");
+				$availR = $db->exec_statement($availP,array($upc));
 				$limit = 999;
 				if ($db->num_rows($availR) > 0)
 					$limit = array_pop($db->fetch_row($availR));
@@ -131,9 +130,9 @@ class cart extends BasicPage {
 						cannot be provided";
 				}
 
-				$q1 = sprintf("DELETE FROM localtemptrans WHERE
-					upc='%s' AND emp_no=%d",$upc,$empno);
-				$db->query($q1);
+				$q1 = $db->prepare_statement("DELETE FROM localtemptrans WHERE
+					upc=? AND emp_no=?");
+				$db->exec_statement($q1,array($upc,$empno));
 				if ($qty > 0)
 					addUPC($upc,$qty);
 			}
@@ -142,9 +141,9 @@ class cart extends BasicPage {
 			if (isset($_REQUEST['selections'])){
 				foreach($_REQUEST['selections'] as $upc){
 					$upc = $db->escape($upc);
-					$q1 = sprintf("DELETE FROM localtemptrans WHERE
-						upc='%s' AND emp_no=%d",$upc,$empno);
-					$db->query($q1);
+					$q1 = $db->prepare_statement("DELETE FROM localtemptrans WHERE
+						upc=? AND emp_no=?");
+					$db->exec_statement($q1,array($upc,$empno));
 				}
 			}
 		}
@@ -152,9 +151,11 @@ class cart extends BasicPage {
 			$dbc = tDataConnect();
 			$email = checkLogin();
 			$empno = getUID($email);
-			$sub = $dbc->query("SELECT sum(total) FROM cart WHERE emp_no=".$empno);
+			$subP = $dbc->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
+			$sub = $dbc->exec_statement($subP,array($empno));
 			$sub = array_pop($dbc->fetch_row($sub));
-			$tax = $dbc->query("SELECT taxes FROM taxTTL WHERE emp_no=$empno");
+			$taxP = $dbc->prepare_statement("SELECT sum(total) FROM taxTTL WHERE emp_no=?");
+			$tax = $dbc->exec_statement($taxP,array($empno));
 			$tax = array_pop($dbc->fetch_row($tax));
 	
 			return SetExpressCheckout(round($sub+$tax,2),

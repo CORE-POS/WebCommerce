@@ -85,8 +85,8 @@ function getUID($name){
 
   $sql = dbconnect();
   $name = $sql->escape($name);
-  $fetchQ = "select uid from Users where name='$name'";
-  $fetchR = $sql->query($fetchQ);
+  $fetchP = $sql->prepare_statement("select uid from Users where name=?");
+  $fetchR = $sql->exec_statement($fetchP,array($name));
   if ($sql->num_rows($fetchR) == 0){
     return false;
   }
@@ -100,8 +100,8 @@ function getRealName($name){
 
   $sql = dbconnect();
   $name = $sql->escape($name);
-  $fetchQ = "select real_name from Users where name='$name'";
-  $fetchR = $sql->query($fetchQ);
+  $fetchP = $sql->prepare_statement("select real_name from Users where name=?");
+  $fetchR = $sql->exec_statement($fetchP,array($name));
   if ($sql->num_rows($fetchR) == 0){
     return false;
   }
@@ -113,8 +113,8 @@ function getRealName($name){
 function getOwner($name){
 	$sql = dbconnect();
 	$name = $sql->escape($name);
-	$fetchQ = "select owner from Users where name='$name'";
-	$fetchR = $sql->query($fetchQ);
+	$fetchP = $sql->prepare_statement("select owner from Users where name=?");
+	$fetchR = $sql->exec_statement($fetchP,array($name));
 	if ($sql->num_rows($fetchR) == 0)
 		return false;
 	return array_pop($sql->fetch_array($fetchR));
@@ -125,8 +125,8 @@ function getGID($group){
     return false;
   $sql = dbconnect();
 
-  $gidQ = "select top 1 gid from userGroups where name='$group'";
-  $gidR = $sql->query($gidQ);
+  $gidP = $sql->prepare_statement('SELECT git FROM userGroups WHERE name=?');
+  $gidR = $sql->exec_statement($gidP, array($group));
 
   if ($sql->num_rows($gidR) == 0)
     return false;
@@ -153,8 +153,8 @@ function doLogin($name){
 
 	$sql = dbconnect();
 	$name = $sql->escape($name);
-	$sessionQ = "update Users set session_id = '$session_id' where name='$name'";
-	$sessionR = $sql->query($sessionQ);
+	$sessionP = $sql->prepare_statement("update Users set session_id = ? where name=?");
+	$sessionR = $sql->exec_statement($sessionP,array($session_id,$name));
 
 	$session_data = array("name"=>$name,"session_id"=>$session_id);
 	$cookie_data = serialize($session_data);
@@ -171,17 +171,15 @@ function syncUserShadow($name){
 	$sql = dbconnect();	
 
 	if (!$currentUID){
-		$addQ = sprintf("INSERT INTO Users 
+		$addP = $sql->prepare_statement("INSERT INTO Users 
 			(name,password,salt,uid,session_id,real_name)
-			VALUES ('%s','','','%s','','%s')",
-			$name,$posixUID,$realname);
-		$sql->query($addQ);
+			VALUES (?,'','',?,'',?)");
+		$sql->exec_statement($addP,array($name,$posixUID,$realname));
 	}
 	else {
-		$upQ1 = sprintf("UPDATE Users SET real_name='%s'
-				WHERE name='%s'",
-				$realname,$name);
-		$sql->query($upQ1);
+		$upP1 = $sql->prepare_statement("UPDATE Users SET real_name=?
+				WHERE name=?");
+		$sql->exec_statement($upP1,array($realname,$name));
 	}
 }
 
@@ -190,17 +188,15 @@ function syncUserLDAP($name,$uid,$fullname){
 	$sql = dbconnect();
 
 	if (!$currentUID){
-		$addQ = sprintf("INSERT INTO Users 
+		$addP = $sql->prepare_statement("INSERT INTO Users 
 			(name,password,salt,uid,session_id,real_name)
-			VALUES ('%s','','','%s','','%s')",
-			$name,$uid,$fullname);
-		$sql->query($addQ);
+			VALUES (?,'','',?,'',?)");
+		$sql->exec_statement($addP,array($name,$uid,$realname));
 	}
 	else {
-		$upQ1 = sprintf("UPDATE Users SET real_name='%s'
-				WHERE name='%s'",
-				$fullname,$name);
-		$sql->query($upQ1);
+		$upP1 = $sql->prepare_statement("UPDATE Users SET real_name=?
+				WHERE name=?");
+		$sql->exec_statement($upP1,array($realname,$name));
 	}
 }
 

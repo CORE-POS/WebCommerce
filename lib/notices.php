@@ -85,9 +85,9 @@ function mgr_notification($addresses,$email,$ph,$total,$notes="",$cart=""){
 
 function getcart($empno){
 	$db = tDataConnect();
-	$q = "SELECT description,quantity,total FROM
-		cart WHERE emp_no=$empno";
-	$r = $db->query($q);
+	$q = $db->prepare_statement("SELECT description,quantity,total FROM
+		cart WHERE emp_no=?");
+	$r = $db->exec_statement($q, array($empno));
 	$ret = "";
 	while($w = $db->fetch_row($r)){
 		$ret .= $w['description']."\t\tx";
@@ -97,8 +97,8 @@ function getcart($empno){
 
 	$ret .= "\n";
 
-	$taxQ = "SELECT taxes FROM taxTTL WHERE emp_no=$empno";
-	$taxR = $db->query($taxQ);
+	$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+	$taxR = $db->exec_statement($taxP, array($empno));
 	$taxes = round(array_pop($db->fetch_row($taxR)),2);
 	$ret .= sprintf("Sales tax: \$%.2f\n",$taxes);
 
