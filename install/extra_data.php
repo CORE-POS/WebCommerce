@@ -1,4 +1,5 @@
 <?php
+return;
 include('../ini.php');
 include('util.php');
 if(!class_exists('SQLManager'))
