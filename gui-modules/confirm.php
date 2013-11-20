@@ -138,8 +138,7 @@ class confirm extends BasicPage {
 		if (isset($_REQUEST['backbtn'])){
 			header("Location: cart.php");
 			return False;
-		}
-		else if (isset($_REQUEST['confbtn'])){
+		} else if (isset($_REQUEST['confbtn'])){
 			/* confirm payment with paypal
 			   if it succeeds, add tax and tender
 			   shuffle order to pendingtrans table
@@ -152,6 +151,15 @@ class confirm extends BasicPage {
 				return True;
 			}
 			$attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
+
+            $db = tDataConnect();
+            $email = checkLogin();
+            $empno = getUID($email);
+			$subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
+			$sub = $db->exec_statement($subP,array($empno));
+			$sub = array_pop($dbc->fetch_row($sub));
+
+            $final_amount = $sub;
 			if (isset($_REQUEST['token'])){
 				$pp1 = GetExpressCheckoutDetails($_REQUEST['token']);
 
@@ -163,9 +171,6 @@ class confirm extends BasicPage {
 					$this->mode=1;
 
 					/* get tax from db and add */
-					$db = tDataConnect();
-					$email = checkLogin();
-					$empno = getUID($email);
 					$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
 					$taxR = $db->exec_statement($taxP,array($empno));
 					$taxes = round(array_pop($db->fetch_row($taxR)),2);
@@ -173,24 +178,30 @@ class confirm extends BasicPage {
 					
 					/* add paypal tender */
 					addtender("Paypal","PP",-1*$pp1['PAYMENTREQUEST_0_AMT']);
-
-					/* send notices */
-					$cart = customer_confirmation($empno,$email,$pp1['PAYMENTREQUEST_0_AMT']);
-					admin_notification($empno,$email,$ph,$pp1['PAYMENTREQUEST_0_AMT'],$cart);
-
-					$addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
-						as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
-						INNER JOIN superDeptEmails AS e ON s.superID=e.superID
-						WHERE l.emp_no=? GROUP BY e.email_address");
-					$addrR = $db->exec_statement($addrP,array($empno));
-					$addr = array();
-					while($addrW = $db->fetch_row($addrR))
-						$addr[] = $addrW[0];
-					if (count($addr) > 0)
-						mgr_notification($addr,$email,$ph,$pp1['PAYMENTREQUEST_0_AMT'],$attend,$cart);
-
+                    $final_amount = $pp1['PAYMENTREQUEST_0_AMT'];
 				}
-			}
+			} else if (floor($sub * 100) == 0) {
+                // items totalled $0. No paypal to process.
+                $this->mode=1;
+                $final_amount = '0.00';
+            }
+
+            if ($this->mode == 1) {
+                /* purchase succeeded - send notices */
+                $cart = customer_confirmation($empno,$email,$final_amount);
+                admin_notification($empno,$email,$ph,$final_amount,$cart);
+
+                $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
+                    as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
+                    INNER JOIN superDeptEmails AS e ON s.superID=e.superID
+                    WHERE l.emp_no=? GROUP BY e.email_address");
+                $addrR = $db->exec_statement($addrP,array($empno));
+                $addr = array();
+                while($addrW = $db->fetch_row($addrR))
+                    $addr[] = $addrW[0];
+                if (count($addr) > 0)
+                    mgr_notification($addr,$email,$ph,$final_amount,$attend,$cart);
+            }
 		}
 
 		return True;

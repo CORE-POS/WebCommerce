@@ -157,9 +157,15 @@ class cart extends BasicPage {
 			$taxP = $dbc->prepare_statement("SELECT sum(total) FROM taxTTL WHERE emp_no=?");
 			$tax = $dbc->exec_statement($taxP,array($empno));
 			$tax = array_pop($dbc->fetch_row($tax));
-	
-			return SetExpressCheckout(round($sub+$tax,2),
-				round($tax,2),$email);
+
+            $ttl = round($sub + $tax, 2);
+            if (floor($ttl*100) == 0) {
+                header('Location: confirm.php');
+                return false;
+            } else {
+                return SetExpressCheckout(round($sub+$tax,2),
+                    round($tax,2),$email);
+            }
 		}
 
 		return True;
