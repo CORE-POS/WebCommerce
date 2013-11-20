@@ -56,12 +56,31 @@ class manageAccount extends BasicPage {
 		<th>E-mail address</th>
 		<td><input type="text" name="email" value="<?php echo $this->entries['email']; ?>" /></td>
 		</tr><tr>
-		<th>Member-Owner</th>
-		<td><select name="owner">
-			<option value="0" <?php echo $this->entries['owner']==0?'selected':''?>>No</option>
-			<option value="1" <?php echo $this->entries['owner']==1?'selected':''?>>Yes</option>
-		</select></td>
+		<th>Owner</th>
+		<td>
+        <?php
+        if ($this->entries['owner'] == 0) {
+            echo 'No';
+        } else if ($this->entries['owner'] == 9) {
+            echo 'Yes';
+        } else {
+            echo '#'.$this->entries['owner'];
+        }
+        ?>
+		</td>
 		</tr><tr>
+        <tr>
+        <td colspan="2"><i>Enter Last name &amp; Number to update Owner status (optional)</i></td>
+        </tr>
+        <tr>
+        <th>Last Name</th>
+        <td><input type="text" id="vln" name="vln" /></td>
+        </tr>
+        <tr> 
+        <th>Owner # or Barcode</th>
+        <td><input type="text" id="vnum" name="vnum" /></td>
+        </tr>
+        <tr> 
 		<th><input type="submit" value="Update Account" name="submit" /></th>
 		<td><a href="<?php echo $IS4C_PATH;?>gui-modules/changePassword.php">Change Password</a></td>
 		</tr>
@@ -100,8 +119,7 @@ class manageAccount extends BasicPage {
 					echo '<div class="errorMsg">';
 					echo 'Not a valid e-mail address: '.$_REQUEST['email'];
 					echo '</div>';
-				}
-				else {
+				} else {
 					$newemail = $_REQUEST['email'];
 					$upP = $dbc->prepare_statement('UPDATE Users SET name=? WHERE name=?');
 					$dbc->exec_statement($upP,array($newemail,$this->logged_in_user));
@@ -130,14 +148,41 @@ class manageAccount extends BasicPage {
 				}
 			}
 
-			if ($_REQUEST['owner'] != $this->entries['owner']){
-				$upP = $dbc->prepare_statement('UPDATE Users SET owner=? WHERE name=?');
-				$dbc->exec_statement($upP,array($_REQUEST['owner'],$this->logged_in_user));
-				$this->entries['owner'] = $_REQUEST['owner'];
-				echo '<div class="successMsg">';
-				echo 'Owner status has been updated';
-				echo '</div>';
+			if (isset($_REQUEST['vln']) && !empty($_REQUEST['vln']) && isset($_REQUEST['vnum']) && !empty($_REQUEST['vnum'])) {
+                $lastname = $_REQUSET['vln'];
+                $num = $_REQUEST['vnum'];
+                $num = str_replace(' ','',$num);
+                if (strlen($num)>=10){ // likely a card
+                    if ($num[0] == '2')  // add lead digit
+                        $num = '4'.$num;
+                    if (strlen($num) >= 12) // remove check digit
+                        $num = substr($num,0,11);
+                    $num = str_pad($num,13,'0',STR_PAD_LEFT);
+                }
+                $query = 'SELECT c.CardNo, c.personNum FROM custdata AS c
+                        LEFT JOIN memberCards AS m ON c.CardNo=m.card_no
+                        WHERE (c.CardNo=? OR m.upc=?) AND c.LastName=?
+                        AND Type=\'PC\' ORDER BY personNum';
+                $prep = $dbc->prepare_statement($query);
+                $result = $dbc->exec_statement($prep, array($num, $num, $lastname));
+                if ($dbc->num_rows($result) == 0) {
+                    echo '<div class="errorMsg">';
+                    echo 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
+                    echo '</div>';
+                } else {
+                    $row = $dbc->fetch_row($result);
+
+                    $owner = $row['personNum'] == 1 ? $row['CardNo'] : 9;
+
+                    $upP = $dbc->prepare_statement('UPDATE Users SET owner=? WHERE name=?');
+                    $dbc->exec_statement($upP,array($owner, $this->logged_in_user));
+                    $this->entries['owner'] = $owner;
+                    echo '<div class="successMsg">';
+                    echo 'Owner status has been updated';
+                    echo '</div>';
+                }
 			}
+
 
 		}
 

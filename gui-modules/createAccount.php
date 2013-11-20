@@ -60,12 +60,23 @@ class createAccount extends BasicPage {
 		<th>Re-Type Password</th>
 		<td><input type="password" name="passwd2" value="<?php echo $this->entries['passwd']; ?>" /></td>
 		</tr><tr>
-		<th>Member-Owner</th>
-		<td><select name="owner">
-			<option value="0" <?php echo $this->entries['owner']==0?'selected':''?>>No</option>
-			<option value="1" <?php echo $this->entries['owner']==1?'selected':''?>>Yes</option>
-		</select></td>
-		</tr><tr>
+		<th>Owner</th>
+		<td>
+        No
+		</td>
+		</tr>
+        <tr>
+        <td colspan="2"><i>Enter Last name &amp; Number to update Owner status (optional)</i></td>
+        </tr>
+        <tr>
+        <th>Owner Last Name</th>
+        <td><input type="text" id="vln" name="vln" /></td>
+        </tr>
+        <tr> 
+        <th>Owner # or Barcode</th>
+        <td><input type="text" id="vnum" name="vnum" /></td>
+        </tr>
+        <tr>
 		<th><input type="submit" value="Create Account" name="submit" /></th>
 		<td>&nbsp;</td>
 		</tr>
@@ -81,7 +92,7 @@ class createAccount extends BasicPage {
 			'name'=>(isset($_REQUEST['fn'])?$_REQUEST['fn']:''),
 			'email'=>(isset($_REQUEST['email'])?$_REQUEST['email']:''),
 			'passwd'=>(isset($_REQUEST['passwd'])?$_REQUEST['passwd']:''),
-			'owner'=>(isset($_REQUEST['owner'])?$_REQUEST['owner']:0)
+			'owner'=>0
 		);
 
 		if (isset($_REQUEST['submit'])){
@@ -119,6 +130,37 @@ class createAccount extends BasicPage {
 				$this->entries['name'] = '';
 				$errors = True;
 			}
+
+			if (isset($_REQUEST['vln']) && !empty($_REQUEST['vln']) && isset($_REQUEST['vnum']) && !empty($_REQUEST['vnum'])) {
+                $lastname = $_REQUSET['vln'];
+                $num = $_REQUEST['vnum'];
+                $num = str_replace(' ','',$num);
+                if (strlen($num)>=10){ // likely a card
+                    if ($num[0] == '2')  // add lead digit
+                        $num = '4'.$num;
+                    if (strlen($num) >= 12) // remove check digit
+                        $num = substr($num,0,11);
+                    $num = str_pad($num,13,'0',STR_PAD_LEFT);
+                }
+                $query = 'SELECT c.CardNo, c.personNum FROM custdata AS c
+                        LEFT JOIN memberCards AS m ON c.CardNo=m.card_no
+                        WHERE (c.CardNo=? OR m.upc=?) AND c.LastName=?
+                        AND Type=\'PC\' ORDER BY personNum';
+                $prep = $dbc->prepare_statement($query);
+                $result = $dbc->exec_statement($prep, array($num, $num, $lastname));
+                if ($dbc->num_rows($result) == 0) {
+                    echo '<div class="errorMsg">';
+                    echo 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
+                    echo '<br />';
+                    echo 'You may omit Owner information and update your account\'s
+                        status later.';
+                    echo '</div>';
+                } else {
+                    $row = $dbc->fetch_row($result);
+
+                    $this->entries['owner'] = $row['personNum'] == 1 ? $row['CardNo'] : 9;
+                }
+            }
 
 			if (!$errors){
 				$created = createLogin($this->entries['email'],
