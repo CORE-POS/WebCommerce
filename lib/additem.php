@@ -165,7 +165,7 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 	$cols = substr($cols,0,strlen($cols)-1).')';
 	$vals = substr($vals,0,strlen($vals)-1).')';
 	$query = "INSERT INTO localtemptrans $cols VALUES $vals";
-	$prep = $db->prepare_statement($qeruy);
+	$prep = $db->prepare_statement($query);
 	$db->exec_statement($prep, $args);
 
 	$IS4C_LOCAL->set("toggletax",0);

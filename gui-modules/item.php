@@ -99,9 +99,9 @@ class itemPage extends BasicPage {
 			echo '<a href="loginPage.php">Login</a> or ';
 			echo '<a href="createAccount.php">Create an Account</a> ';
 			echo 'to add items to your cart.';
-		} else if (!getOwner(checkLogin()) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
+		} else if ((!getOwner(checkLogin()) || getOwner(checkLogin()) == 9) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
             echo 'This item is only available to owners. ';
-            echo '<a href="manageAccount.php">Update your Account status</a>';
+            echo '<a href="manageAccount.php">Verify your Account status</a>';
 		} else {
 			$chkP = $dbc->prepare_statement("SELECT upc FROM localtemptrans WHERE
 				upc=? AND emp_no=?");

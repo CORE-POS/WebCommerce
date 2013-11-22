@@ -64,7 +64,7 @@ class manageAccount extends BasicPage {
         if ($this->entries['owner'] == 0) {
             echo 'No';
         } else if ($this->entries['owner'] == 9) {
-            echo 'Yes';
+            echo 'Yes (Unverified)';
         } else {
             echo '#'.$this->entries['owner'];
         }

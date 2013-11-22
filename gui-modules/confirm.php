@@ -120,7 +120,7 @@ class confirm extends BasicPage {
 			$endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
 				localtemptrans AS l WHERE emp_no=?");
 			$endR = $db->exec_statement($endP,array($empno));
-			$endQ = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
+			$endP = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
 				localtemptrans AS l WHERE emp_no=?");
 			$endR = $db->exec_statement($endP,array($empno));
 			if ($endR !== False){
@@ -160,7 +160,7 @@ class confirm extends BasicPage {
 			$sub = array_pop($dbc->fetch_row($sub));
 
             $final_amount = $sub;
-			if (isset($_REQUEST['token'])){
+			if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
 				$pp1 = GetExpressCheckoutDetails($_REQUEST['token']);
 
 				$pp2 = DoExpressCheckoutPayment($pp1['TOKEN'],
