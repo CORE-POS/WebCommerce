@@ -65,7 +65,7 @@ class itemPage extends BasicPage {
 		$dbc = Database::pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
-			p.inUse,
+			p.inUse,u.soldOut
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o
@@ -98,7 +98,7 @@ class itemPage extends BasicPage {
 			printf('Owner price: $%.2f',$w['special_price']);
 		echo '</span>';
 		echo '<br /><br />';
-		if ($w['inUse'] == 0 || $w['available'] <= 0){
+		if ($w['inUse'] == 0 || $w['available'] <= 0 || $w['soldOut'] == 1){
 			echo 'This product is expired, out of stock, or otherwise
 				no longer available to order';
 		}

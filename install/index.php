@@ -627,6 +627,8 @@ function create_op_dbs($db,$type){
 		sizing varchar(255),
 		photo varchar(255),
 		long_text text,
+        enableOnline TINYINT DEFAULT 1,
+        soldOut TINYINT DEFAULT 0,
 		primary key (upc)
 		)";
 	if (!$db->table_exists('productUser',$name)){
