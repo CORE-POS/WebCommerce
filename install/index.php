@@ -927,12 +927,6 @@ function create_trans_dbs($db,$type){
 		$db->query($taxTtlQ,$name);	
 	}
 
-	/* lttsummary, lttsubtotals, and subtotals
-	 * always get rebuilt to account for tax rate
-	 * changes */
-	include('buildLTTViews.php');
-	//buildLTTViews($db,$type);
-
 	$efsrq = "CREATE TABLE efsnetRequest (
 		date int ,
 		cashierNo int ,
