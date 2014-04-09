@@ -29,7 +29,12 @@ include($IS4C_PATH.'ini.php');
 
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
 class forgotPassword extends BasicPage {
 
@@ -78,13 +83,13 @@ class forgotPassword extends BasicPage {
 		$this->errors = '';
 
 		if (isset($_REQUEST['email'])){
-			if (!isEmail($_REQUEST['email'])){
+			if (!AuthUtilities::isEmail($_REQUEST['email'])){
 				$this->errors .= '<div class="errorMsg">';
 				$this->errors .= 'Not a valid e-mail address: '.$_REQUEST['email'];
 				$this->errors .= '</div>';
 				return True;
 			}
-			else if (!getUID($_REQUEST['email'])){
+			else if (!AuthUtilities::getUID($_REQUEST['email'])){
 				$this->errors .= '<div class="errorMsg">';
 				$this->errors .= 'No account found with e-mail address: '.$_REQUEST['email'];
 				$this->errors .= '</div>';
@@ -100,7 +105,7 @@ class forgotPassword extends BasicPage {
 					if ($i != 96) $pw .= chr($i);
 				}
 				
-				changeAnyPassword($_REQUEST['email'],$pw);
+				AuthLogin::changeAnyPassword($_REQUEST['email'],$pw);
 				$this->reset = True;
 				$msg = "Your password has been reset\n";
 				$msg .= "Your new password is: {$pw}\n";

@@ -20,6 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 *********************************************************************************/
+return;
 
 include('../../config.php');
 require('../login.php');
@@ -61,9 +62,6 @@ else {
 
     if (!$login)
 	$login = ldap_login($name,$password);
-
-    if (!$login)
-        $login = shadow_login($name,$password);
 
     if ($login){
       header("Location: $redirect");

@@ -29,7 +29,12 @@ include($IS4C_PATH.'ini.php');
 
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
 class loginPage extends BasicPage {
 
@@ -68,18 +73,18 @@ class loginPage extends BasicPage {
 	function preprocess(){
 		global $IS4C_PATH;
 		if (isset($_REQUEST['logout'])){
-			logout();
+			AuthLogin::logout();
 			return True;
 		}
 
 		if (isset($_REQUEST['email'])){
-			if (!isEmail($_REQUEST['email'])){
+			if (!AuthUtilities::isEmail($_REQUEST['email'])){
 				echo '<div class="errorMsg">';
 				echo 'Not a valid e-mail address: '.$_REQUEST['email'];
 				echo '</div>';
 				return True;
 			}
-			else if (!login($_REQUEST['email'],$_REQUEST['passwd'])){
+			else if (!AuthLogin::login($_REQUEST['email'],$_REQUEST['passwd'])){
 				echo '<div class="errorMsg">';
 				echo 'Incorrect e-mail address or password';
 				echo '</div>';

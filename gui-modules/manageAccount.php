@@ -27,8 +27,15 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('UserPage')) include($IS4C_PATH.'gui-class-lib/UserPage.php');
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
-if (!function_exists('pDataConnect')) include($IS4C_PATH.'lib/connect.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
 
 class manageAccount extends BasicPage {
 
@@ -94,9 +101,9 @@ class manageAccount extends BasicPage {
 
 	function preprocess(){
 		global $IS4C_PATH;
-		$this->logged_in_user = checkLogin();
+		$this->logged_in_user = AuthLogin::checkLogin();
 
-		$dbc = pDataConnect();
+		$dbc = Database::pDataConnect();
 
 		$q = $dbc->prepare_statement('SELECT name,real_name,owner FROM Users WHERE name=?');
 		$r = $dbc->exec_statement($q, array($this->logged_in_user));
@@ -117,7 +124,7 @@ class manageAccount extends BasicPage {
 			// validate
 
 			if ($_REQUEST['email'] != $this->entries['email']){
-				if (!isEmail($_REQUEST['email'],FILTER_VALIDATE_EMAIL)){
+				if (!AuthUtilities::isEmail($_REQUEST['email'])){
 					$this->msgs .= '<div class="errorMsg">';
 					$this->msgs .= 'Not a valid e-mail address: '.$_REQUEST['email'];
 					$this->msgs .= '</div>';
@@ -125,7 +132,7 @@ class manageAccount extends BasicPage {
 					$newemail = $_REQUEST['email'];
 					$upP = $dbc->prepare_statement('UPDATE Users SET name=? WHERE name=?');
 					$dbc->exec_statement($upP,array($newemail,$this->logged_in_user));
-					doLogin($newemail);
+					AuthUtilities::doLogin($newemail);
 					$this->logged_in_user = $newemail;
 					$this->entries['email'] = $newemail;
 					$this->msgs .= '<div class="successMsg">';

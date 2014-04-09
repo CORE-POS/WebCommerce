@@ -27,10 +27,21 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('pDataConnect')) include($IS4C_PATH.'lib/connect.php');
-if (!function_exists('getUID')) include($IS4C_PATH.'auth/login.php');
-if (!function_exists('addUPC')) include($IS4C_PATH.'lib/additem.php');
-if (!function_exists('SetExpressCheckout')) include($IS4C_PATH.'lib/paypal.php');
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
+if (!class_exists('TransRecord')) {
+    include_once(dirname(__FILE__) . '/../lib/TransRecord.php');
+}
+if (!class_exists('PayPal')) {
+    include_once(dirname(__FILE__) . '/../lib/PayPal.php');
+}
 
 class cart extends BasicPage {
 
@@ -47,13 +58,13 @@ class cart extends BasicPage {
 
 	function main_content(){
 		global $IS4C_PATH,$IS4C_LOCAL;
-		$db = tDataConnect();
-		$empno = getUID(checkLogin());
+		$db = Database::tDataConnect();
+		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 
 		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
 		$r = $db->exec_statement($q, array($empno));
 
-		if (!PAYPAL_LIVE){
+		if (!PayPal::PAYPAL_LIVE){
 			echo '<h2>This store is in test mode; orders will not be processed</h2>';
 		}
 
@@ -104,8 +115,8 @@ class cart extends BasicPage {
 
 	function preprocess(){
 		global $IS4C_LOCAL;
-		$db = tDataConnect();
-		$empno = getUID(checkLogin());
+		$db = Database::tDataConnect();
+		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 
 		if (isset($_REQUEST['qtybtn'])){
 			for($i=0; $i<count($_REQUEST['qtys']);$i++){
@@ -133,8 +144,9 @@ class cart extends BasicPage {
 				$q1 = $db->prepare_statement("DELETE FROM localtemptrans WHERE
 					upc=? AND emp_no=?");
 				$db->exec_statement($q1,array($upc,$empno));
-				if ($qty > 0)
-					addUPC($upc,$qty);
+				if ($qty > 0) {
+					TransRecord::addUPC($upc,$qty);
+                }
 			}
 		}
 		if (isset($_REQUEST['delbtn'])){
@@ -148,9 +160,9 @@ class cart extends BasicPage {
 			}
 		}
 		if (isset($_REQUEST['cobtn_x'])){
-			$dbc = tDataConnect();
-			$email = checkLogin();
-			$empno = getUID($email);
+			$dbc = Database::tDataConnect();
+			$email = AuthLogin::checkLogin();
+			$empno = AuthUtilities::getUID($email);
 			$subP = $dbc->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
 			$sub = $dbc->exec_statement($subP,array($empno));
 			$sub = array_pop($dbc->fetch_row($sub));
@@ -163,7 +175,7 @@ class cart extends BasicPage {
                 header('Location: confirm.php');
                 return false;
             } else {
-                return SetExpressCheckout(round($sub+$tax,2),
+                return PayPal::SetExpressCheckout(round($sub+$tax,2),
                     round($tax,2),$email);
             }
 		}

@@ -1,11 +1,18 @@
+<?php
+if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
+    return;
+}
+?>
 <html>
 <head></head>
 <body>
 <?php
 include('../ini.php');
-if (!function_exists("pDataConnect")) include($IS4C_PATH."lib/connect.php");
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
 
-$db = tDataConnect();
+$db = Database::tDataConnect();
 /*
 $oldCartsQ = "DELETE FROM localtemptrans WHERE datediff(curdate(),datetime) > 1";
 $db->query($oldCartsQ);

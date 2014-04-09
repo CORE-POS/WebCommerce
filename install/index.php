@@ -28,7 +28,6 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 ini_set('display_errors','1');
 
 include($IS4C_PATH.'ini.php');
-include($IS4C_PATH.'lib/lib.php');
 include('util.php');
 ?>
 <html>
@@ -159,7 +158,7 @@ else {
 	$gotDBs++;
 	include('../lib/connect.php');
 	//include('../auth/utilities.php');
-	table_check();
+	AuthUtilities::table_check();
 }
 ?>
 <br />

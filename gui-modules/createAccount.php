@@ -27,7 +27,12 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
 class createAccount extends BasicPage {
 
@@ -101,7 +106,7 @@ class createAccount extends BasicPage {
 			// validate
 			$errors = False;
 
-			if (!isEmail($this->entries['email'],FILTER_VALIDATE_EMAIL)){
+			if (!AuthUtilities::isEmail($this->entries['email'])){
 				$this->msgs .= '<div class="errorMsg">';
 				$this->msgs .= 'Not a valid e-mail address: '.$this->entries['email'];
 				$this->msgs .= '</div>';
@@ -166,13 +171,13 @@ class createAccount extends BasicPage {
             }
 
 			if (!$errors){
-				$created = createLogin($this->entries['email'],
+				$created = AuthLogin::createLogin($this->entries['email'],
 					$this->entries['passwd'],
 					$this->entries['name'],
 					$this->entries['owner']);
 
 				if ($created){
-					login($this->entries['email'],$this->entries['passwd']);
+					AuthLogin::login($this->entries['email'],$this->entries['passwd']);
 					header("Location: {$IS4C_PATH}gui-modules/storefront.php");
 					return False;
 				}

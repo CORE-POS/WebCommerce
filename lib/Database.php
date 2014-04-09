@@ -35,9 +35,12 @@ if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 ***********************************************************************************************/
 
+class Database
+{
 
 
-function tDataConnect()
+
+public static function tDataConnect()
 {
 	global $IS4C_LOCAL;
 
@@ -47,7 +50,7 @@ function tDataConnect()
 	return $sql;
 }
 
-function pDataConnect()
+public static function pDataConnect()
 {
 	global $IS4C_LOCAL;
 
@@ -62,7 +65,8 @@ function pDataConnect()
 // Given $CashierNo, gettransno() will look up the number of the most recent transaction.
 // modified for web use. Check localtemptrans for an ongoing transaction first, then
 // check for any other transactions that day
-function gettransno($CashierNo) {
+public static function gettransno($CashierNo) 
+{
 	global $IS4C_LOCAL;
 
 	$register_no = $IS4C_LOCAL->get("laneno");
@@ -96,7 +100,8 @@ function gettransno($CashierNo) {
  * unlike getMatchingColumns, this compares tables
  * on the same database & server
  */
-function localMatchingColumns($connection,$table1,$table2){
+public static function localMatchingColumns($connection,$table1,$table2)
+{
 	$poll1 = $connection->table_definition($table1);
 	$cols1 = array();
 	foreach($poll1 as $name=>$v)
@@ -112,6 +117,8 @@ function localMatchingColumns($connection,$table1,$table2){
 	foreach($matching_cols as $col)
 		$ret .= $col.",";
 	return rtrim($ret,",");
+}
+
 }
 
 ?>

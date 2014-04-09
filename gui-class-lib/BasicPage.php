@@ -42,7 +42,9 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
 
 class BasicPage {
 
@@ -92,7 +94,7 @@ class BasicPage {
 	function top_menu(){
 		global $IS4C_PATH;
 		echo '<div id="topMenuRunner">';
-		$user = checkLogin();
+		$user = AuthLogin::checkLogin();
 		if (!$user){
 			printf('<ul>
 				<li><a href="%sgui-modules/storefront.php">Browse Store</a>

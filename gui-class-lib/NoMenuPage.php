@@ -31,7 +31,7 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
-if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
+if (!class_exists('BasicPage')) include(dirname(__FILE__) . '/BasicPage.php');
 
 class NoMenuPage extends BasicPage {
 

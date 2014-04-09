@@ -32,27 +32,35 @@
 
    userGroupPrivs contains a list of authorizations for groups.  Each
    record is (group id, authorization class, subclass start, subclass end).
-   Authorizations function identically to the per-user ones in 
+   Authorizations static public function identically to the per-user ones in 
    privileges.php, just for all members of a group.
 
    Functions return true on success, false on failure.
 */
 
-require_once('privileges.php');
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/AuthUtilities.php');
+}
+if (!class_exists('AuthPriv')) {
+    include_once(dirname(__FILE__) . '/AuthPriv.php');
+}
+
+class AuthGroup
+{
 
 /* addGroup(groupname, username)
    creates a new group and adds the user to it
    a user is required because of db structuring and
    because an empty group makes little sense
 */
-function addGroup($group,$user){
-  $sql = dbconnect();  
+static public function addGroup($group,$user){
+  $sql = AuthUtilities::dbconnect();  
   
   if (!isAlphaNumeric($group) || !isAlphaNumeric($user)){
     return false;
   }  
  
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if ($gid > 0){
     echo "Group $group already exists<p />";
     return false;
@@ -72,13 +80,13 @@ function addGroup($group,$user){
    deletes the given group, removing all
    users and all authorizations
 */
-function deleteGroup($group){
-  $sql = dbconnect();  
+static public function deleteGroup($group){
+  $sql = AuthUtilities::dbconnect();  
   if (!isAlphaNumeric($group)){
     return false;
   }
 
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if (!$gid){
     echo "Group $group doesn't exist<p />";
     return false;
@@ -95,14 +103,14 @@ function deleteGroup($group){
 /* addUSerToGroup(groupname, username)
    adds the given user to the given group
 */
-function addUserToGroup($group,$user){
-  $sql = dbconnect();  
+static public function addUserToGroup($group,$user){
+  $sql = AuthUtilities::dbconnect();  
   
   if (!isAlphaNumeric($group) || !isAlphaNumeric($user)){
     return false;
   }
 
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if (!$gid){
     echo "Group $group doesn't exist<p />";
     return false;
@@ -123,13 +131,13 @@ function addUserToGroup($group,$user){
 /* deleteUserFromGroup(groupname, username)
    removes the given user from the given group
 */
-function deleteUserFromGroup($group,$user){
-  $sql = dbconnect();  
+static public function deleteUserFromGroup($group,$user){
+  $sql = AuthUtilities::dbconnect();  
   if (!isAlphaNumeric($group) || !isAlphaNumeric($user)){
     return false;
   }
 
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if (!$gid){
     echo "Group $group doesn't exist<p />";
     return false;
@@ -144,15 +152,15 @@ function deleteUserFromGroup($group,$user){
 /* addAuthToGroup(groupname, authname, subclass boundaries)
    adds the authorization to the given group
 */
-function addAuthToGroup($group,$auth,$start='admin',$end='admin'){
-  $sql = dbconnect();  
+static public function addAuthToGroup($group,$auth,$start='admin',$end='admin'){
+  $sql = AuthUtilities::dbconnect();  
   
   if (!isAlphaNumeric($group) || !isAlphaNumeric($auth) ||
       !isAlphaNumeric($start) || !isAlphaNumeric($end)){
     return false;
   }
 
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if (!$gid){
     echo "Group $group doesn't exist<p />";
     return false;
@@ -167,8 +175,8 @@ function addAuthToGroup($group,$auth,$start='admin',$end='admin'){
    checks to see if the user is in a group that has 
    authorization in the given class
 */
-function checkGroupAuth($user,$auth,$sub='all'){
-  $sql = dbconnect();
+static public function checkGroupAuth($user,$auth,$sub='all'){
+  $sql = AuthUtilities::dbconnect();
   if (!isAlphaNumeric($user) || !isAlphaNumeric($auth) ||
       !isAlphaNumeric($sub)){
     return false;
@@ -193,13 +201,13 @@ function checkGroupAuth($user,$auth,$sub='all'){
    subclasses, so ALL authorizations in the base
    class will be deleted.
 */
-function deleteAuthFromGroup($group,$auth){
-  $sql = dbconnect();  
+static public function deleteAuthFromGroup($group,$auth){
+  $sql = AuthUtilities::dbconnect();  
   if (!isAlphaNumeric($group,$auth)){
     return false;
   }
 
-  $gid = getGID($group);
+  $gid = AuthUtilities::getGID($group);
   if (!$gid){
     echo "Group $group doesn't exist<p />";
     return false;  
@@ -213,8 +221,8 @@ function deleteAuthFromGroup($group,$auth){
 /* showGroups()
    prints a table of all the groups
 */
-function showGroups(){
-  $sql = dbconnect();
+static public function showGroups(){
+  $sql = AuthUtilities::dbconnect();
   
   $fetchQ = $sql->prepare_statement("select distinct gid, name from userGroups order by name");
   $fetchR = $sql->exec_statement($fetchQ);
@@ -233,12 +241,12 @@ function showGroups(){
    prints out all the users and authorizations in
    the given group
 */
-function detailGroup($group){
+static public function detailGroup($group){
   if (!isAlphaNumeric($group)){
     return false;
   }
 
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   
   $usersP = $sql->prepare_statement("select gid,username from userGroups where name=? order by username");
   $usersR = $sql->exec_statement($usersP,array($group));
@@ -262,5 +270,6 @@ function detailGroup($group){
   echo "</table>";
 }
 
+}
 
 ?>

@@ -64,15 +64,23 @@ signs in
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!function_exists("pDataConnect")) include($IS4C_PATH."lib/connect.php");
-if (!function_exists("nullwrap")) include($IS4C_PATH."lib/lib.php");
-if (!function_exists("checkLogin")) include($IS4C_PATH."auth/login.php");
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/Database.php');
+}
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
+class TransRecord
+{
+
 //-------insert line into localtemptrans with standard insert string--------------
-function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $strtransstatus, $intdepartment, $dblquantity, $dblunitPrice, $dbltotal, $dblregPrice, $intscale, $inttax, $intfoodstamp, $dbldiscount, $dblmemDiscount, $intdiscountable, $intdiscounttype, $dblItemQtty, $intvolDiscType, $intvolume, $dblVolSpecial, $intmixMatch, $intmatched, $intvoided, $cost=0, $numflag=0, $charflag='') {
+public static function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $strtransstatus, $intdepartment, $dblquantity, $dblunitPrice, $dbltotal, $dblregPrice, $intscale, $inttax, $intfoodstamp, $dbldiscount, $dblmemDiscount, $intdiscountable, $intdiscounttype, $dblItemQtty, $intvolDiscType, $intvolume, $dblVolSpecial, $intmixMatch, $intmatched, $intvoided, $cost=0, $numflag=0, $charflag='') {
 	global $IS4C_LOCAL;
-	//$dbltotal = truncate2(str_replace(",", "", $dbltotal)); replaced by apbw 7/27/05 with the next 4 lines -- to fix thousands place errors
 
 	$dbltotal = str_replace(",", "", $dbltotal);		
 	$dbltotal = number_format($dbltotal, 2, '.', '');
@@ -81,11 +89,11 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 
 	$intregisterno = $IS4C_LOCAL->get("laneno");
 
-	$name = checkLogin();
+	$name = AuthLogin::checkLogin();
 	if (!$name) return False;
-	$intempno = getUID($name);
+	$intempno = AuthUtilities::getUID($name);
 	if (!$intempno) return False;
-	$owner = getOwner($name);
+	$owner = AuthUtilities::getOwner($name);
 	$memType = 0;
 	$staff = 0;
 	if ($owner !== False && $owner != 0){ 
@@ -101,9 +109,9 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 	}
 	$strCardNo = $owner;
 
-	$inttransno = gettransno($intempno);
+	$inttransno = Database::gettransno($intempno);
 
-	$db = tDataConnect();
+	$db = Database::tDataConnect();
 
 	$datetimestamp = "";
 	if ($IS4C_LOCAL->get("DBMS") == "mssql") {
@@ -116,41 +124,41 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 		'datetime'	=> $datetimestamp,
 		'register_no'	=> $intregisterno,
 		'emp_no'	=> $intempno,
-		'trans_no'	=> nullwrap($inttransno),
-		'upc'		=> nullwrap($strupc),
+		'trans_no'	=> self::nullwrap($inttransno),
+		'upc'		=> self::nullwrap($strupc),
 		'description'	=> $strdescription,
-		'trans_type'	=> nullwrap($strtransType),
-		'trans_subtype'	=> nullwrap($strtranssubType),
-		'trans_status'	=> nullwrap($strtransstatus),
-		'department'	=> nullwrap($intdepartment),
-		'quantity'	=> nullwrap($dblquantity),
-		'cost'		=> nullwrap($cost),
-		'unitPrice'	=> nullwrap($dblunitPrice),
-		'total'		=> nullwrap($dbltotal),
-		'regPrice'	=> nullwrap($dblregPrice),
-		'scale'		=> nullwrap($intscale),
-		'tax'		=> nullwrap($inttax),
-		'foodstamp'	=> nullwrap($intfoodstamp),
-		'discount'	=> nullwrap($dbldiscount),
-		'memDiscount'	=> nullwrap($dblmemDiscount),
-		'discountable'	=> nullwrap($intdiscountable),
-		'discounttype'	=> nullwrap($intdiscounttype),
-		'ItemQtty'	=> nullwrap($dblItemQtty),
-		'volDiscType'	=> nullwrap($intvolDiscType),
-		'volume'	=> nullwrap($intvolume),
-		'VolSpecial'	=> nullwrap($dblVolSpecial),
-		'mixMatch'	=> nullwrap($intmixMatch),
-		'matched'	=> nullwrap($intmatched),
-		'voided'	=> nullwrap($intvoided),
-		'memType'	=> nullwrap($memType),
-		'staff'		=> nullwrap($staff),
-		'numflag'	=> nullwrap($numflag),
+		'trans_type'	=> self::nullwrap($strtransType),
+		'trans_subtype'	=> self::nullwrap($strtranssubType),
+		'trans_status'	=> self::nullwrap($strtransstatus),
+		'department'	=> self::nullwrap($intdepartment),
+		'quantity'	=> self::nullwrap($dblquantity),
+		'cost'		=> self::nullwrap($cost),
+		'unitPrice'	=> self::nullwrap($dblunitPrice),
+		'total'		=> self::nullwrap($dbltotal),
+		'regPrice'	=> self::nullwrap($dblregPrice),
+		'scale'		=> self::nullwrap($intscale),
+		'tax'		=> self::nullwrap($inttax),
+		'foodstamp'	=> self::nullwrap($intfoodstamp),
+		'discount'	=> self::nullwrap($dbldiscount),
+		'memDiscount'	=> self::nullwrap($dblmemDiscount),
+		'discountable'	=> self::nullwrap($intdiscountable),
+		'discounttype'	=> self::nullwrap($intdiscounttype),
+		'ItemQtty'	=> self::nullwrap($dblItemQtty),
+		'volDiscType'	=> self::nullwrap($intvolDiscType),
+		'volume'	=> self::nullwrap($intvolume),
+		'VolSpecial'	=> self::nullwrap($dblVolSpecial),
+		'mixMatch'	=> self::nullwrap($intmixMatch),
+		'matched'	=> self::nullwrap($intmatched),
+		'voided'	=> self::nullwrap($intvoided),
+		'memType'	=> self::nullwrap($memType),
+		'staff'		=> self::nullwrap($staff),
+		'numflag'	=> self::nullwrap($numflag),
 		'charflag'	=> $charflag,
 		'card_no'	=> (string)$strCardNo
 		);
 	if ($IS4C_LOCAL->get("DBMS") == "mssql" && $IS4C_LOCAL->get("store") == "wfc"){
 		unset($values["staff"]);
-		$values["isStaff"] = nullwrap($staff);
+		$values["isStaff"] = self::nullwrap($staff);
 	}
 
 	// translate column/value array to build prepared statement
@@ -179,10 +187,11 @@ function addItem($strupc, $strdescription, $strtransType, $strtranssubType, $str
 
 // add item by upc
 // essentially an extremely pared-down version of upcscanned
-function addUPC($upc,$quantity=1.0){
+public static function addUPC($upc,$quantity=1.0)
+{
 	global $IS4C_LOCAL;
 
-	$db = pDataConnect();
+	$db = Database::pDataConnect();
 	$upc = $db->escape($upc);
 	$lookP = $db->prepare_statement("SELECT description, department, normal_price, special_price, pricemethod, specialpricemethod,
 		tax, foodstamp, scale, discount, discounttype, cost, local FROM products
@@ -208,13 +217,13 @@ function addUPC($upc,$quantity=1.0){
 		$unitPrice -= $discount;
 		break;
 	case 2:
-		if (getOwner(checkLogin()))
+		if (AuthUtilities::getOwner(AuthLogin::checkLogin()))
 			$memDiscount = $row['normal_price'] - $row['special_price'];
 		$unitPrice -= $memDiscount;
 		break;
 	}
 
-	return addItem($upc, $row['description'], 'I', '', '', $row['department'], $quantity, 
+	return self::addItem($upc, $row['description'], 'I', '', '', $row['department'], $quantity, 
 			$unitPrice, $unitPrice*$quantity, $regPrice, $row['scale'], $row['tax'], 
 			$row['foodstamp'], $discount, $memDiscount, $row['discount'], 
 			$row['discounttype'], $quantity, 0, 0, 0.00, 0, 0, 0, $row['cost'],
@@ -223,8 +232,9 @@ function addUPC($upc,$quantity=1.0){
 
 //---------------------------------- insert tax line item --------------------------------------
 
-function addtax($amt) {
-	addItem("TAX", "Tax", "A", "", "", 0, 0, 0, $amt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+public static function addtax($amt) 
+{
+	self::addItem("TAX", "Tax", "A", "", "", 0, 0, 0, $amt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 //________________________________end addtax()
@@ -232,10 +242,28 @@ function addtax($amt) {
 
 //---------------------------------- insert tender line item -----------------------------------
 
-function addtender($strtenderdesc, $strtendercode, $dbltendered) {
-	addItem("", $strtenderdesc, "T", $strtendercode, "", 0, 0, 0, $dbltendered, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+public static function addtender($strtenderdesc, $strtendercode, $dbltendered) 
+{
+	self::addItem("", $strtenderdesc, "T", $strtendercode, "", 0, 0, 0, $dbltendered, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+// -----------nullwrap($num /numeric)----------
+//
+// Given $num, if it is empty or of length less than one, nullwrap becomes "0".
+// If the argument is a non-numeric, generate a fatal error.
+// Else nullwrap becomes the number.
+public static function nullwrap($num) 
+{
+	if ( !$num ) {
+		 return 0;
+	} else if (!is_numeric($num) && strlen($num) < 1) {
+		return " ";
+	} else {
+		return $num;
+	}
 }
 
 //_______________________________end addtender()
+}
 
 ?>

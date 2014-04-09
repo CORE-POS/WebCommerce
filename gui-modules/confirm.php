@@ -27,11 +27,24 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('pDataConnect')) include($IS4C_PATH.'lib/connect.php');
-if (!function_exists('getUID')) include($IS4C_PATH.'auth/login.php');
-if (!function_exists('addUPC')) include($IS4C_PATH.'lib/additem.php');
-if (!function_exists('customer_confirmation')) include($IS4C_PATH.'lib/notices.php');
-if (!function_exists('GetExpressCheckoutDetails')) include($IS4C_PATH.'lib/paypal.php');
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
+if (!class_exists('TransRecord')) {
+    include_once(dirname(__FILE__) . '/../lib/TransRecord.php');
+}
+if (!class_exists('Notices')) {
+    include_once(dirname(__FILE__) . '/../lib/Notices.php');
+}
+if (!class_exists('PayPal')) {
+    include_once(dirname(__FILE__) . '/../lib/PayPal.php');
+}
 
 class confirm extends BasicPage {
 
@@ -55,8 +68,8 @@ class confirm extends BasicPage {
 
 	function confirm_content($receiptMode=False){
 		global $IS4C_PATH,$IS4C_LOCAL;
-		$db = tDataConnect();
-		$empno = getUID(checkLogin());
+		$db = Database::tDataConnect();
+		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 
 		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
 		$r = $db->exec_statement($q, array($empno));
@@ -152,18 +165,18 @@ class confirm extends BasicPage {
 			}
 			$attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
 
-            $db = tDataConnect();
-            $email = checkLogin();
-            $empno = getUID($email);
+            $db = Database::tDataConnect();
+            $email = AuthLogin::checkLogin();
+            $empno = AuthUtilities::getUID($email);
 			$subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
 			$sub = $db->exec_statement($subP,array($empno));
 			$sub = array_pop($dbc->fetch_row($sub));
 
             $final_amount = $sub;
 			if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
-				$pp1 = GetExpressCheckoutDetails($_REQUEST['token']);
+				$pp1 = PayPal::GetExpressCheckoutDetails($_REQUEST['token']);
 
-				$pp2 = DoExpressCheckoutPayment($pp1['TOKEN'],
+				$pp2 = PayPal::DoExpressCheckoutPayment($pp1['TOKEN'],
 					$pp1['PAYERID'],
 					$pp1['PAYMENTREQUEST_0_AMT']);
 
@@ -174,10 +187,10 @@ class confirm extends BasicPage {
 					$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
 					$taxR = $db->exec_statement($taxP,array($empno));
 					$taxes = round(array_pop($db->fetch_row($taxR)),2);
-					addtax($taxes);
+					TransRecord::addtax($taxes);
 					
 					/* add paypal tender */
-					addtender("Paypal","PP",-1*$pp1['PAYMENTREQUEST_0_AMT']);
+					TransRecord::addtender("Paypal","PP",-1*$pp1['PAYMENTREQUEST_0_AMT']);
                     $final_amount = $pp1['PAYMENTREQUEST_0_AMT'];
 				}
 			} else if (floor($sub * 100) == 0) {
@@ -188,8 +201,8 @@ class confirm extends BasicPage {
 
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
-                $cart = customer_confirmation($empno,$email,$final_amount);
-                admin_notification($empno,$email,$ph,$final_amount,$cart);
+                $cart = Notices::customerConfirmation($empno,$email,$final_amount);
+                Notices::adminNotification($empno,$email,$ph,$final_amount,$cart);
 
                 $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
                     as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
@@ -200,7 +213,7 @@ class confirm extends BasicPage {
                 while($addrW = $db->fetch_row($addrR))
                     $addr[] = $addrW[0];
                 if (count($addr) > 0)
-                    mgr_notification($addr,$email,$ph,$final_amount,$attend,$cart);
+                    Notices::mgrNotification($addr,$email,$ph,$final_amount,$attend,$cart);
             }
 		}
 

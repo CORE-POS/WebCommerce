@@ -27,7 +27,12 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('UserPage')) include($IS4C_PATH.'gui-class-lib/UserPage.php');
-if (!function_exists('checkLogin')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
 
 class changePassword extends UserPage {
 
@@ -79,10 +84,10 @@ class changePassword extends UserPage {
 
 	function preprocess(){
 		global $IS4C_PATH;
-		$this->logged_in_user = checkLogin();
+		$this->logged_in_user = AuthLogin::checkLogin();
 		$this->changed = False;
 
-		$dbc = pDataConnect();
+		$dbc = Database::pDataConnect();
 
 		$q = $dbc->prepare_statement('SELECT name FROM Users WHERE name=?');
 		$r = $dbc->exec_statement($q, array($this->logged_in_user));
@@ -108,7 +113,7 @@ class changePassword extends UserPage {
 				return True;
 			}
 			else {
-				$this->changed = changePassword($this->logged_in_user,
+				$this->changed = AuthLogin::changePassword($this->logged_in_user,
 					$_REQUEST['old'],$_REQUEST['passwd']);
 				if (!$this->changed) {
 					echo '<div class="errorMsg">';

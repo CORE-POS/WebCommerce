@@ -26,13 +26,14 @@ $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-if (!function_exists("addUPC")) include($IS4C_PATH."lib/additem.php");
+if (!class_exists('TransRecord')) {
+    include_once(dirname(__FILE__) . '/../lib/TransRecord.php');
+}
 
 if (!isset($_REQUEST['upc'])){
 	echo "0";
-}
-else {
-	$success = addUPC($_REQUEST['upc']);
+} else {
+	$success = TransRecord::addUPC($_REQUEST['upc']);
 	if ($success)
 		echo "1";
 	else

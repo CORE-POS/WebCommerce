@@ -24,22 +24,25 @@
 /*
 utility functions
 */
+class AuthUtilities
+{
 
 /*
 connect to the database
 having this as a separate function makes changing
 the database easier
 */
-function dbconnect(){
-	global $IS4C_PATH;
-	if (!class_exists("SQLManager")){
-		include($IS4C_PATH."lib/connect.php");
+public static function dbconnect()
+{
+	if (!class_exists("Database")){
+		include(dirname(__FILE__) . "/../lib/connect.php");
 	}
-	$dbc = pDataConnect();
+	$dbc = Database::pDataConnect();
 	return $dbc;
 }
 
-function guesspath(){
+public static function guesspath()
+{
 	$path = "";
 	$found = False;
 	$uri = $_SERVER["REQUEST_URI"];
@@ -59,31 +62,32 @@ function guesspath(){
 	return $path;
 }
 
-function init_check(){
-	$path = guesspath();
-	return file_exists($path."auth/init.php");
+public static function init_check()
+{
+    return file_exists(dirname(__FILE__) . '/init.php');
 }
 
 /*
 checking whether a string is alphanumeric is
 a good idea to prevent sql injection
 */
-function isAlphanumeric($str){
+public static function isAlphanumeric($str)
+{
   if (preg_match("/^\\w*$/",$str) == 0){
     return false;
   }
   return true;
 }
 
-function isEmail($str){
+public static function isEmail($str)
+{
 	if (!preg_match('/@.+\./', $str)) return false;
 	return filter_var($str,FILTER_VALIDATE_EMAIL);
 }
 
-function getUID($name){
-  if (!auth_enabled()) return '0000';
-
-  $sql = dbconnect();
+public static function getUID($name)
+{
+  $sql = self::dbconnect();
   $name = $sql->escape($name);
   $fetchP = $sql->prepare_statement("select uid from Users where name=?");
   $fetchR = $sql->exec_statement($fetchP,array($name));
@@ -95,10 +99,9 @@ function getUID($name){
   return $uid;
 }
 
-function getRealName($name){
-  if (!auth_enabled()) return '';
-
-  $sql = dbconnect();
+public static function getRealName($name)
+{
+  $sql = self::dbconnect();
   $name = $sql->escape($name);
   $fetchP = $sql->prepare_statement("select real_name from Users where name=?");
   $fetchR = $sql->exec_statement($fetchP,array($name));
@@ -110,8 +113,9 @@ function getRealName($name){
   return $rn;
 }
 
-function getOwner($name){
-	$sql = dbconnect();
+public static function getOwner($name)
+{
+	$sql = self::dbconnect();
 	$name = $sql->escape($name);
 	$fetchP = $sql->prepare_statement("select owner from Users where name=?");
 	$fetchR = $sql->exec_statement($fetchP,array($name));
@@ -120,10 +124,11 @@ function getOwner($name){
 	return array_pop($sql->fetch_array($fetchR));
 }
 
-function getGID($group){
+public static function getGID($group)
+{
   if (!isAlphaNumeric($group))
     return false;
-  $sql = dbconnect();
+  $sql = self::dbconnect();
 
   $gidP = $sql->prepare_statement('SELECT git FROM userGroups WHERE name=?');
   $gidR = $sql->exec_statement($gidP, array($group));
@@ -135,7 +140,8 @@ function getGID($group){
   return $row[0];
 }
 
-function genSessID(){
+public static function genSessID()
+{
   $session_id = '';
   srand(time());
   for ($i = 0; $i < 50; $i++){
@@ -148,10 +154,11 @@ function genSessID(){
   return $session_id;
 }
 
-function doLogin($name){
-	$session_id = genSessID();	
+public static function doLogin($name)
+{
+	$session_id = self::genSessID();	
 
-	$sql = dbconnect();
+	$sql = self::dbconnect();
 	$name = $sql->escape($name);
 	$sessionP = $sql->prepare_statement("update Users set session_id = ? where name=?");
 	$sessionR = $sql->exec_statement($sessionP,array($session_id,$name));
@@ -162,30 +169,10 @@ function doLogin($name){
 	setcookie('is4c-web',base64_encode($cookie_data),0,'/');
 }
 
-function syncUserShadow($name){
-	$localdata = posix_getpwnam($name);
-
-	$currentUID = getUID($name);
-	$posixUID = str_pad($localdata['uid'],4,"0",STR_PAD_LEFT);
-	$realname = str_replace("'","''",$localdata['gecos']);
-	$sql = dbconnect();	
-
-	if (!$currentUID){
-		$addP = $sql->prepare_statement("INSERT INTO Users 
-			(name,password,salt,uid,session_id,real_name)
-			VALUES (?,'','',?,'',?)");
-		$sql->exec_statement($addP,array($name,$posixUID,$realname));
-	}
-	else {
-		$upP1 = $sql->prepare_statement("UPDATE Users SET real_name=?
-				WHERE name=?");
-		$sql->exec_statement($upP1,array($realname,$name));
-	}
-}
-
-function syncUserLDAP($name,$uid,$fullname){
-	$currentUID = getUID($name);
-	$sql = dbconnect();
+public static function syncUserLDAP($name,$uid,$fullname)
+{
+	$currentUID = self::getUID($name);
+	$sql = self::dbconnect();
 
 	if (!$currentUID){
 		$addP = $sql->prepare_statement("INSERT INTO Users 
@@ -200,12 +187,9 @@ function syncUserLDAP($name,$uid,$fullname){
 	}
 }
 
-function auth_enabled(){
-	return True;
-}
-
-function table_check(){
-	$sql = dbconnect();
+public static function table_check()
+{
+	$sql = self::dbconnect();
 	if (!$sql->table_exists('Users')){
 		$sql->query("CREATE TABLE Users (
 			name varchar(50) NOT NULL,
@@ -242,6 +226,8 @@ function table_check(){
 			sub_end varchar(50)
 			)");
 	}
+}
+
 }
 
 ?>

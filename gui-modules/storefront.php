@@ -27,8 +27,15 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('pDataConnect')) include($IS4C_PATH.'lib/connect.php');
-if (!function_exists('getUID')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
 class storefront extends BasicPage {
 
@@ -72,8 +79,8 @@ class storefront extends BasicPage {
 		$page = isset($_REQUEST['pg'])?((int)$_REQUEST['pg']):0;
 		$offset = $page*$limit;
 
-		$dbc = pDataConnect();
-		$empno = getUID(checkLogin());
+		$dbc = Database::pDataConnect();
+		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 		if ($empno===False) $empno=-999;
 	
 		$q = "SELECT p.upc,p.normal_price,
@@ -150,7 +157,7 @@ class storefront extends BasicPage {
 		$d = isset($_REQUEST['d'])?$_REQUEST['d']:-1;
 
 		$ret = '<ul id="superList">';
-		$dbc = pDataConnect();
+		$dbc = Database::pDataConnect();
 		$r = $dbc->query("SELECT superID,super_name FROM
 			superDeptNames ORDER BY super_name");
 		$sids = array();
@@ -252,7 +259,7 @@ class storefront extends BasicPage {
 	function preprocess(){
 		global $IS4C_PATH;
 		if (isset($_REQUEST['email'])){
-			if (!isEmail($_REQUEST['email'])){
+			if (!AuthUtilities::isEmail($_REQUEST['email'])){
 				echo '<div class="errorMsg">';
 				echo 'Not a valid e-mail address: '.$_REQUEST['email'];
 				echo '</div>';

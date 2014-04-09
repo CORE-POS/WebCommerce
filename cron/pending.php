@@ -1,11 +1,18 @@
+<?php
+if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
+    return;
+}
+?>
 <html>
 <head></head>
 <body>
 <?php
 include('../ini.php');
-if (!function_exists("pDataConnect")) include($IS4C_PATH."lib/connect.php");
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
 
-$db = tDataConnect();
+$db = Database::tDataConnect();
 
 $db->query("LOCK TABLES pendingtrans WRITE, dtransactions WRITE, 
 	localtrans_today WRITE");
@@ -28,7 +35,7 @@ $db->query("DELETE FROM pendingtrans");
 $db->query("UNLOCK TABLES");
 
 // update limits based on amounts sold
-$db2 = pDataConnect();
+$db2 = Database::pDataConnect();
 foreach($data as $upc=>$qty){
 	$q = sprintf("UPDATE productOrderLimits 
 		SET available=available-%d

@@ -27,8 +27,15 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!function_exists('pDataConnect')) include($IS4C_PATH.'lib/connect.php');
-if (!function_exists('getUID')) include($IS4C_PATH.'auth/login.php');
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/../lib/Database.php');
+}
+if (!class_exists('AuthLogin')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
 class itemPage extends BasicPage {
 
@@ -52,10 +59,10 @@ class itemPage extends BasicPage {
 		$upc = $_REQUEST['upc'];
 		$upc = str_pad($upc,13,'0',STR_PAD_LEFT);
 
-		$empno = getUID(checkLogin());
+		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
         if ($empno===false) $empno=-999;
 
-		$dbc = pDataConnect();
+		$dbc = Database::pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
 			p.inUse,
@@ -99,7 +106,7 @@ class itemPage extends BasicPage {
 			echo '<a href="loginPage.php">Login</a> or ';
 			echo '<a href="createAccount.php">Create an Account</a> ';
 			echo 'to add items to your cart.';
-		} else if ((!getOwner(checkLogin()) || getOwner(checkLogin()) == 9) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
+		} else if ((!AuthUtilities::getOwner(AuthLogin::checkLogin()) || AuthUtilities::getOwner(AuthLogin::checkLogin()) == 9) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
             echo 'This item is only available to owners. ';
             echo '<a href="manageAccount.php">Verify your Account status</a>';
 		} else {

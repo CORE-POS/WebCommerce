@@ -35,15 +35,20 @@ Unless otherwise noted, functions return true on success
 and false on failure
 */
 
-require_once('utilities.php');
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/AuthUtilities.php');
+}
 
-function addAuth($name,$auth_class,$sub_start='all',$sub_end='all'){
-  $sql = dbconnect();
-  if (!isAlphanumeric($name) or !isAlphanumeric($auth_class) or
-      !isAlphanumeric($sub_start) or !isAlphanumeric($sub_end)){
+class AuthPriv
+{
+
+static public function addAuth($name,$auth_class,$sub_start='all',$sub_end='all'){
+  $sql = AuthUtilities::dbconnect();
+  if (!AuthUtilities::isAlphanumeric($name) or !AuthUtilities::isAlphanumeric($auth_class) or
+      !AuthUtilities::isAlphanumeric($sub_start) or !AuthUtilities::isAlphanumeric($sub_end)){
     return false;
   }
-  $uid = getUID($name);
+  $uid = AuthUtilities::getUID($name);
   if (!$uid){
     return $uid;
   }
@@ -57,8 +62,8 @@ function addAuth($name,$auth_class,$sub_start='all',$sub_end='all'){
   return true;
 }
 
-function deleteAuth($name,$auth_class){
-  if (!isAlphanumeric($name) or !isAlphanumeric($auth_class)){
+static public function deleteAuth($name,$auth_class){
+  if (!AuthUtilities::isAlphanumeric($name) or !AuthUtilities::isAlphanumeric($auth_class)){
     return false;
   }
   
@@ -66,18 +71,18 @@ function deleteAuth($name,$auth_class){
     return false;
   }
 
-  $uid = getUID($name);
+  $uid = AuthUtilities::getUID($name);
   if (!$uid){
     return false;
   }
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $delP = $sql->prepare_statement("delete from userPrivs where uid=? and auth_class=?");
   $delR = $sql->exec_statement($delP,array($uid,$auth_class));
   return true;
 }
 
-function showAuths($name){
-  if (!isAlphanumeric($name)){
+static public function showAuths($name){
+  if (!AuthUtilities::isAlphanumeric($name)){
     echo "Invalid name<p />";
     return false;
   }
@@ -86,7 +91,7 @@ function showAuths($name){
     return false;
   }
 
-  $uid = getUID($name);
+  $uid = AuthUtilities::getUID($name);
   if (!$uid){
     echo "No such user '$name'<p />";
     return false;
@@ -95,7 +100,7 @@ function showAuths($name){
   echo "<table cellspacing=2 cellpadding=2 border=1><tr>";
   echo "<th>Authorization class</th><th>Subclass start</th><th>Subclass end</th>";
   echo "</tr>";
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $fetchP = $sql->prepare_statement("select auth_class,sub_start,sub_end from userPrivs where uid=?");
   $fetchR = $sql->exec_statement($fetchP, array($uid));
   while ($row = $sql->fetch_array($fetchR)){
@@ -112,17 +117,17 @@ with how authorization checking currently works, sub classes
 must be countable (i.e., a sub class must be able to be 
 tested as to whether or not it's 'between' start and end
 */
-function checkAuth($name,$auth_class,$sub='all'){
-  if (init_check())
+static public function checkAuth($name,$auth_class,$sub='all'){
+  if (AuthUtilities::init_check())
     return 'init';
-  if (!isAlphanumeric($name) or !isAlphanumeric($auth_class) or !isAlphanumeric($sub)){
+  if (!AuthUtilities::isAlphanumeric($name) or !AuthUtilities::isAlphanumeric($auth_class) or !AuthUtilities::isAlphanumeric($sub)){
     return false;
   }
-  $uid = getUID($name);
+  $uid = AuthUtilities::getUID($name);
   if (!$uid){
     return false;
   }
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $checkP = $sql->prepare_statement("select * from userPrivs where uid=? and auth_class=? and
              ((? between sub_start and sub_end) or (sub_start='all' and sub_end='all'))");
   $checkR = $sql->exec_statement($checkP,array($uid,$auth_class,$sub));
@@ -130,6 +135,8 @@ function checkAuth($name,$auth_class,$sub='all'){
     return false;
   }
   return true;
+}
+
 }
 
 ?>

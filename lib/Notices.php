@@ -26,47 +26,58 @@ $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-if (!function_exists("getRealName")) include($IS4C_PATH."auth/utilities.php");
-if (!function_exists("tDataConnect")) include($IS4C_PATH."lib/connect.php");
+if (!class_exists('Database')) {
+    include_once(dirname(__FILE__) . '/Database.php');
+}
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
+}
 
-define("STORE_EMAIL","orders@wholefoods.coop");
-define("REPLY_EMAIL","andy@wholefoods.coop");
-define("ADMIN_EMAIL","andy@wholefoods.coop");
+class Notices
+{
 
-function send_email($to,$subject,$msg){
-	$headers = 'From: '.STORE_EMAIL."\r\n";
-	$headers .= 'Reply-To: '.REPLY_EMAIL."\r\n";
+    const STORE_EMAIL = 'orders@wholefoods.coop';
+    const REPLY_EMAIL = 'andy@wholefoods.coop';
+    const ADMIN_EMAIL = 'andy@wholefoods.coop';
+
+public static function sendEmail($to,$subject,$msg)
+{
+	$headers = 'From: '.self::STORE_EMAIL."\r\n";
+	$headers .= 'Reply-To: '.self::REPLY_EMAIL."\r\n";
 
 	mail($to,$subject,$msg,$headers);
 }
 
-function customer_confirmation($uid,$email,$total){
+public static function customerConfirmation($uid,$email,$total)
+{
 	$msg = "Thank you for ordering from Whole Foods Co-op\n\n";
 	$msg .= "Order Summary:\n";
-	$cart = getcart($uid);
+	$cart = self::getcart($uid);
 	$msg .= $cart."\n";
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
 
-	send_email($email,"WFC Order Confirmation",$msg);
+	self::sendEmail($email,"WFC Order Confirmation",$msg);
 
 	return $cart;
 }
 
-function admin_notification($uid,$email,$ph,$total,$cart=""){
+public static function adminNotification($uid,$email,$ph,$total,$cart="")
+{
 	$msg = "New online order\n\n";
-	$msg .= getRealName($email)." (".$email.")\n";
+	$msg .= AuthUtilities::getRealName($email)." (".$email.")\n";
 	$msg .= "Phone # provided: ".$ph."\n\n";
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
 
 	$msg .= "\nOrder Summary:\n";
 	$msg .= $cart;
 	
-	send_email(ADMIN_EMAIL,"New Online Order",$msg);
+	self::sendEmail(self::ADMIN_EMAIL,"New Online Order",$msg);
 }
 
-function mgr_notification($addresses,$email,$ph,$total,$notes="",$cart=""){
+public static function mgrNotification($addresses,$email,$ph,$total,$notes="",$cart="")
+{
 	$msg = "New online order\n\n";
-	$msg .= getRealName($email)." (".$email.")\n";
+	$msg .= AuthUtilities::getRealName($email)." (".$email.")\n";
 	$msg .= "Phone # provided: ".$ph."\n\n";
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
 
@@ -80,11 +91,12 @@ function mgr_notification($addresses,$email,$ph,$total,$notes="",$cart=""){
 	foreach($addresses as $a)
 		$addr .= $a.",";
 	$addr = rtrim($addr,",");
-	send_email($addr,"New Online Order",$msg);
+	self::sendEmail($addr,"New Online Order",$msg);
 }
 
-function getcart($empno){
-	$db = tDataConnect();
+public static function getcart($empno)
+{
+	$db = Database::tDataConnect();
 	$q = $db->prepare_statement("SELECT description,quantity,total FROM
 		cart WHERE emp_no=?");
 	$r = $db->exec_statement($q, array($empno));
@@ -103,6 +115,8 @@ function getcart($empno){
 	$ret .= sprintf("Sales tax: \$%.2f\n",$taxes);
 
 	return $ret;
+}
+
 }
 
 ?>

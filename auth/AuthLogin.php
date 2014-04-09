@@ -27,7 +27,15 @@ all functions return true on success, false on failure
 unless otherwise noted
 */
 
-require_once('groups.php');
+if (!class_exists('AuthUtilities')) {
+    include_once(dirname(__FILE__) . '/AuthUtilities.php');
+}
+if (!class_exists('AuthGroup')) {
+    include_once(dirname(__FILE__) . '/AuthGroup.php');
+}
+
+class AuthLogin
+{
 
 /*
 a user is logged in using cookies
@@ -36,16 +44,17 @@ two pieces of data: the user's name and a session_id which is
 a 50 character random string of digits and capital letters
 to access this data, unserialize the cookie's value and use
 keys 'name' and 'session_id' to access the array
-because this function sets a cookie, nothing before this function
+because this static public function sets a cookie, nothing before this function
 call can produce output
 */
-function login($name,$password,$testing=false){
-  $name = isEmail($name);
+static public function login($name,$password,$testing=false)
+{
+  $name = AuthUtilities::isEmail($name);
   if (!$name){
     return false;
   }
 
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $gatherP = $sql->prepare_statement("select password,salt from Users where name=?");
   $gatherR = $sql->exec_statement($gatherP,array($name));
   if ($sql->num_rows($gatherR) == 0){
@@ -60,35 +69,9 @@ function login($name,$password,$testing=false){
   }
 
   if (!$testing)
-    doLogin($name);
+    AuthUtilities::doLogin($name);
 
   return true;
-}
-
-/* 
-	Revised login for use with UNIX system
-	
-	shadowread searches the shadow password file
-	and returns the user's password hash
-*/
-
-function shadow_login($name,$passwd){
-	if (!isAlphanumeric($name))
-		return false;
-
-	$output = array();
-	$return_value = -1;
-	exec("../shadowread/shadowread \"$name\"",$output,$return_value);
-	if ($return_value != 0)
-		return false;
-
-	$pwhash = $output[0];
-	if (crypt($passwd,$pwhash) == $pwhash){
-		syncUserShadow($name);
-		doLogin($name);
-		return true;
-	}	
-	return false;
 }
 
 /* login using an ldap server 
@@ -107,7 +90,8 @@ function shadow_login($name,$passwd){
  *
  * Tested against openldap 2.3.27
  */
-function ldap_login($name,$passwd){
+static public function ldap_login($name,$passwd)
+{
 	$LDAP_HOST = "locke.wfco-op.store";
 	$LDAP_PORT = 389;
 	$LDAP_BASE_DN = "ou=People,dc=wfco-op,dc=store";
@@ -134,18 +118,19 @@ function ldap_login($name,$passwd){
 	$fullname = rtrim($fullname);
 
 	if (ldap_bind($conn,$user_dn,$passwd)){
-		syncUserLDAP($name,$uid,$fullname);	
-		doLogin($name);
+		AuthUtilities::syncUserLDAP($name,$uid,$fullname);	
+		AuthUtilities::doLogin($name);
 		return true;
-	}	
+	}
 	return false;
 }
 
 /*
-sets a cookie.  nothing before this function call can have output
+sets a cookie.  nothing before this static public function call can have output
 */
-function logout(){
-  $name = checkLogin();
+static public function logout()
+{
+  $name = self::checkLogin();
   if (!$name){
     return true;
   }
@@ -163,10 +148,11 @@ and a unique user-id number between 0001 and 9999
 a session id is also stored in this table, but that is created
 when the user actually logs in
 */
-function createLogin($name,$password,$fn="",$owner=0){
-  table_check();
+static public function createLogin($name,$password,$fn="",$owner=0)
+{
+  AuthUtilities::table_check();
 
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $checkP = $sql->prepare_statement("select name from Users where name=?");
   $checkR = $sql->exec_statement($checkP,array($name));
   if ($sql->num_rows($checkR) != 0){
@@ -183,17 +169,17 @@ function createLogin($name,$password,$fn="",$owner=0){
   return true;
 }
 
-function deleteLogin($name){
-  if (!isAlphanumeric($name)){
+static public function deleteLogin($name){
+  if (!AuthUtilities::isAlphanumeric($name)){
     return false;
   }
   
-  if (!validateUser('admin')){
+  if (!self::validateUser('admin')){
     return false;
   }
 
-  $sql=dbconnect();
-  $uid = getUID($name);
+  $sql=AuthUtilities::dbconnect();
+  $uid = AuthUtilities::getUID($name);
   $delP = $sql->prepare_statement("delete from userPrivs where uid=?");
   $delR = $sql->exec_statement($delP,array($uid));
 
@@ -207,13 +193,12 @@ function deleteLogin($name){
 }
 
 /* 
-this function returns the name of the logged in
+this static public function returns the name of the logged in
 user on success, false on failure
 */
-function checkLogin(){
-  if (!auth_enabled()) return 'null';
-
-  if (init_check())
+static public function checkLogin()
+{
+  if (AuthUtilities::init_check())
     return 'init';
 
   if (!isset($_COOKIE['is4c-web'])){
@@ -226,11 +211,11 @@ function checkLogin(){
   $name = $session_data['name'];
   $session_id = $session_data['session_id'];
 
-  if (!isEmail($name) or !isAlphanumeric($session_id)){
+  if (!AuthUtilities::isEmail($name) or !AuthUtilities::isAlphanumeric($session_id)){
     return false;
   }
 
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $checkP = $sql->prepare_statement("select * from Users where name=? and session_id=?");
   $checkR = $sql->exec_statement($checkP,array($name,$session_id));
 
@@ -241,14 +226,15 @@ function checkLogin(){
   return $name;
 }
 
-function showUsers(){
-  if (!validateUser('admin')){
+static public function showUsers()
+{
+  if (!self::validateUser('admin')){
     return false;
   }
   echo "Displaying current users";
   echo "<table cellspacing=2 cellpadding=2 border=1>";
   echo "<tr><th>Name</th><th>User ID</th></tr>";
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $usersQ = $sql->prepare_statement("select name,uid from Users order by name");
   $usersR = $sql->exec_statement($usersQ);
   while ($row = $sql->fetch_array($usersR)){
@@ -261,18 +247,19 @@ function showUsers(){
 }
 
 /* 
-this function uses login to verify the user's presented
+this static public function uses login to verify the user's presented
 name and password (thus creating a new session) rather
-than using checkLogin to verify the correct user is
-logged in.  This is nonstandard usage.  Normally checkLogin
+than using self::checkLogin to verify the correct user is
+logged in.  This is nonstandard usage.  Normally self::checkLogin
 should be used to determine who (if anyone) is logged in
 (this way users don't have to constantly provide passwords)
 However, since the current password is provided, checking
 it is slightly more secure than checking a cookie
 */
-function changePassword($name,$oldpassword,$newpassword){
-  $sql = dbconnect();
-  if (!login($name,$oldpassword,true)){
+static public function changePassword($name,$oldpassword,$newpassword)
+{
+  $sql = AuthUtilities::dbconnect();
+  if (!self::login($name,$oldpassword,true)){
     return false;
   }
 
@@ -286,11 +273,12 @@ function changePassword($name,$oldpassword,$newpassword){
   return true;
 }
 
-function changeAnyPassword($name,$newpassword){
+static public function changeAnyPassword($name,$newpassword)
+{
   $salt = time();
   $crypt_pass = crypt($newpassword,$salt);
 
-  $sql = dbconnect();
+  $sql = AuthUtilities::dbconnect();
   $name = $sql->escape($name);
   $updateP = $sql->prepare_statement("update Users set password=?,salt=? where name=?");
   $updateR = $sql->exec_statement($updateP,array($crypt_pass,$salt,$name));
@@ -299,29 +287,28 @@ function changeAnyPassword($name,$newpassword){
 }
 
 /*
-this function is here to reduce user validation checks to
-a single function call.  since this task happens ALL the time,
+this static public function is here to reduce user validation checks to
+a single static public function call.  since this task happens ALL the time,
 it just makes code cleaner.  It returns the current user on
 success just because that information might be useful  
 */
-function validateUser($auth,$sub='all'){
-     if (!auth_enabled()) return 'null';
-
-     if (init_check())
+static public function validateUser($auth,$sub='all')
+{
+     if (AuthUtilities::init_check())
 	return 'init';
 
-     $current_user = checkLogin();
+     $current_user = self::checkLogin();
      if (!$current_user){
        echo "You must be logged in to use this function";
        return false;
      }
 
-     $groupPriv = checkGroupAuth($current_user,$auth,$sub);
+     $groupPriv = AuthGroup::checkGroupAuth($current_user,$auth,$sub);
      if ($groupPriv){
        return $current_user;
      }
 
-     $priv = checkAuth($current_user,$auth,$sub);
+     $priv = AuthPriv::checkAuth($current_user,$auth,$sub);
      if (!$priv){
        echo "Your account doesn't have permission to use this function";
        return false;
@@ -329,23 +316,22 @@ function validateUser($auth,$sub='all'){
      return $current_user;
 }
 
-function validateUserQuiet($auth,$sub='all'){
-     if (!auth_enabled()) return 'null';
-
-     if (init_check())
+static public function validateUserQuiet($auth,$sub='all')
+{
+     if (AuthUtilities::init_check())
 	return 'init';
 
-     $current_user = checkLogin();
+     $current_user = self::checkLogin();
      if (!$current_user){
        return false;
      }
 
-     $groupPriv = checkGroupAuth($current_user,$auth,$sub);
+     $groupPriv = AuthGroup::checkGroupAuth($current_user,$auth,$sub);
      if ($groupPriv){
        return $current_user;
      }
 
-     $priv = checkAuth($current_user,$auth,$sub);
+     $priv = AuthPriv::checkAuth($current_user,$auth,$sub);
      if (!$priv){
        return false;
      }
@@ -355,17 +341,17 @@ function validateUserQuiet($auth,$sub='all'){
 // re-sets expires timer on the cookie if the
 // user is currently logged in
 // must be called prior to any output
-function refreshSession(){
+static public function refreshSession(){
   if (!isset($_COOKIE['is4c-web']))
     return false;
   setcookie('is4c-web',$_COOKIE['is4c-web'],time()+(60*40),'/');
   return true;
 }
 
-function pose($username){
+static public function pose($username){
 	if (!isset($_COOKIE['is4c-web']))
 		return false;
-	if (!isAlphanumeric($username))
+	if (!AuthUtilities::isAlphanumeric($username))
 		return false;
 
 	$cookie_data = base64_decode($_COOKIE['is4c-web']);
@@ -373,7 +359,7 @@ function pose($username){
 
 	$session_id = $session_data['session_id'];
 
-	$sql = dbconnect();
+	$sql = AuthUtilities::dbconnect();
 	$sessionP = $sql->prepare_statement("update Users set session_id = ? where name=?");
 	$sessionR = $sql->query($sessionP,array($session_id,$username));
 
@@ -383,6 +369,8 @@ function pose($username){
 	setcookie('is4c-web',base64_encode($cookie_data),time()+(60*40),'/');
 
 	return true;
+}
+
 }
 
 ?>
