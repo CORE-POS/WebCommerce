@@ -188,6 +188,8 @@ class createAccount extends BasicPage {
 	}
 }
 
-new createAccount();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new createAccount();
+}
 
 ?>

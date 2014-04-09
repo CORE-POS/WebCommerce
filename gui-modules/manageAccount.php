@@ -192,6 +192,8 @@ class manageAccount extends BasicPage {
 	}
 }
 
-new manageAccount();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new manageAccount();
+}
 
 ?>

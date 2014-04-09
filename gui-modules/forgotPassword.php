@@ -116,6 +116,8 @@ class forgotPassword extends BasicPage {
 	}
 }
 
-new forgotPassword();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new forgotPassword();
+}
 
 ?>

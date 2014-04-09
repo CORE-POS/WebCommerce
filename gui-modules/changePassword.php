@@ -123,6 +123,8 @@ class changePassword extends UserPage {
 	}
 }
 
-new changePassword();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new changePassword();
+}
 
 ?>

@@ -172,6 +172,8 @@ class cart extends BasicPage {
 	}
 }
 
-new cart();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new cart();
+}
 
 ?>

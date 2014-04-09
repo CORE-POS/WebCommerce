@@ -94,6 +94,8 @@ class loginPage extends BasicPage {
 	}
 }
 
-new loginPage();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new loginPage();
+}
 
 ?>

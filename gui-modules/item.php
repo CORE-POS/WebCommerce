@@ -137,6 +137,8 @@ class itemPage extends BasicPage {
 	}
 }
 
-new itemPage();
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    new itemPage();
+}
 
 ?>
