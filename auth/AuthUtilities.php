@@ -35,7 +35,7 @@ the database easier
 public static function dbconnect()
 {
 	if (!class_exists("Database")){
-		include(dirname(__FILE__) . "/../lib/connect.php");
+		include(dirname(__FILE__) . "/../lib/Database.php");
 	}
 	$dbc = Database::pDataConnect();
 	return $dbc;
