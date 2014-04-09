@@ -163,8 +163,9 @@ static public function createLogin($name,$password,$fn="",$owner=0)
   $crypt_pass = crypt($password,$salt);
   
   $addP = $sql->prepare_statement("insert into Users (name,password,salt,real_name,owner) 
-		values (?,?,?,?,?");
+		values (?,?,?,?,?)");
   $addR = $sql->exec_statement($addP,array($name,$crypt_pass,$salt,$fn,$owner));
+  if ($addR === false) return false;
 
   return true;
 }
