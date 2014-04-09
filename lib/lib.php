@@ -30,21 +30,6 @@ if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 // These functions have been translated from lib.asp by Brandon on 07.13.03.
 // The "/blah" notation in the function heading indicates the Type of argument that should be given.
 
-// ----------int($num /numeric)----------
-//
-// Given $num, detemine if it is numeric.
-// If so, int returns the integral part of $num.
-// Else generate a fatal error.
-
-function int($num) {
-	if(is_numeric($num)) {
-		return (int) $num;
-	}
-	else {
-		die("FATAL ERROR: Argument, '".$num.",' given to int() is not numeric.");
-	} 
-}
-
 // -----------nullwrap($num /numeric)----------
 //
 // Given $num, if it is empty or of length less than one, nullwrap becomes "0".
@@ -71,95 +56,6 @@ function nullwrap($num) {
 
 function truncate2($num) {
 	return number_format($num, 2);
-}
-
-// ----------pinghost($host /string)----------
-//
-// Given $host, pinghost() looks up that host name or IP address.
-// Returns:
-//	1 if ping succeeds
-//	0 if ping fails
-//     -1 if ping is unavailable (disabling exec is common on hosting services)
-
-function pinghost($host)
-{
-	global $IS4C_LOCAL;
-
-	$host = str_replace("[", "", $host);
-	$host = str_replace("]", "", $host);
-
-	if (strstr($host,"\\")){
-		$tmp = explode("\\",$host);
-		$host = $tmp[0];
-	}
-
-	$intConnected = 0;
-	$aPingReturn = array();
-	if ($IS4C_LOCAL->get("OS") == "win32") {
-		$pingReturn = @exec("ping -n 1 $host", $aPingReturn);
-		$packetLoss = "(0% loss";
-	} else {
-		$pingReturn = @exec("ping -c 1 $host", $aPingReturn);
-		$packetLoss = "1 received, 0% packet loss";
-	}
-
-	foreach($aPingReturn as $returnLine)
-
-	{	$pos = strpos($returnLine, $packetLoss);
-		if  ($pos) {
-			$intConnected = 1; 
-			break;
-			}
-	}
-	return (count($aPingReturn)>0 ? $intConnected : -1);
-}
-
-function win32() {
-	$winos = 0;
-	if (substr(PHP_OS, 0, 3) == "WIN") $winos = 1;
-	return $winos;
-}
-
-function scaleObject(){
-	global $IS4C_LOCAL, $IS4C_PATH;
-	$scaleDriver = $IS4C_LOCAL->get("scaleDriver");
-	$sd = 0;
-	if ($scaleDriver != "" && !class_exists($scaleDriver)){
-		include($IS4C_PATH.'scale-drivers/php-wrappers/'.$scaleDriver.'.php');
-		$sd = new $scaleDriver();
-	}
-}
-
-function goodBeep() {
-	global $IS4C_LOCAL;
-	$IS4C_LOCAL->set("beep","goodBeep");
-	$sd = scaleObject();
-	if (is_object($sd))
-		$sd->WriteToScale("goodBeep");
-}
-
-function rePoll() {
-	global $IS4C_LOCAL;
-	$IS4C_LOCAL->set("beep","rePoll");
-	$sd = scaleObject();
-	if (is_object($sd))
-		$sd->WriteToScale("rePoll");
-}
-
-function errorBeep() {
-	global $IS4C_LOCAL;
-	$IS4C_LOCAL->set("beep","errorBeep");
-	$sd = scaleObject();
-	if (is_object($sd))
-		$sd->WriteToScale("errorBeep");
-}
-
-function twoPairs() {
-	global $IS4C_LOCAL;
-	$IS4C_LOCAL->set("beep","twoPairs");
-	$sd = scaleObject();
-	if (is_object($sd))
-		$sd->WriteToScale("twoPairs");
 }
 
 ?>
