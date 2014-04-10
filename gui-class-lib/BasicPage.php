@@ -48,7 +48,8 @@ if (!class_exists('AuthLogin')) {
 
 class BasicPage {
 
-	var $title;
+	protected $title;
+    protected $scripts = array();
 
 	function BasicPage($arg="IS4C Online"){
 		$this->title = $arg;
@@ -63,6 +64,16 @@ class BasicPage {
 	function js_content(){
 
 	}
+
+    /**
+      Add a script to the page using <script> tags
+      @param $file_url the script URL
+      @param $type the script type
+    */
+    public function addScript($file_url, $type='text/javascript')
+    {
+        $this->scripts[$file_url] = $type;
+    }
 
 	function main_content(){
 
@@ -84,6 +95,11 @@ class BasicPage {
 			src=\"{$IS4C_PATH}js/angular.js\"></script>";
 		echo "<script type=\"text/javascript\"
 			src=\"{$IS4C_PATH}js/angular-sanitize.min.js\"></script>";
+        foreach($this->scripts as $s_url => $s_type) {
+            printf('<script type="%s" src="%s"></script>',
+                $s_type, $s_url);
+            echo "\n";
+        }
 		echo "<script type=\"text/javascript\">";
 		$this->js_content();
 		echo "</script>";

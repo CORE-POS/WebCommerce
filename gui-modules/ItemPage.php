@@ -36,23 +36,7 @@ class ItemPage extends BasicPage
 	public function js_content()
     {
 		?>
-        var myApp = angular.module('myApp', ['ngSanitize']);
-        myApp.factory('userFactory', function($http) {
-            return { 
-                getUserAsync: function(callback) {
-                    $http.get('../ajax-callbacks/ajax-get-user.php', { cache: true})
-                        .success(callback);
-                },
-            };
-        });
-        myApp.factory('itemFactory', function($http) {
-            return {
-                getItemAsync: function(upc, callback) {
-                    $http.get('../ajax-callbacks/ajax-get-item.php?upc='+upc)
-                        .success(callback);
-                },
-            };
-        });
+        var myApp = angular.module('myApp', ['ngSanitize', 'wcUser', 'wcItem']);
         myApp.controller('itemController', function ($scope, $http, userFactory, itemFactory) {
             $scope.ready = false;
             $scope.buyable = false;
@@ -154,6 +138,10 @@ class ItemPage extends BasicPage
 			header("Location: {$IS4C_PATH}gui-modules/storefront.php");
 			return False;
 		}
+
+        $this->addScript('../js/wcUser.js');
+        $this->addScript('../js/wcItem.js');
+
 		return True;
 	}
 }
