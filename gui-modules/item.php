@@ -65,7 +65,7 @@ class itemPage extends BasicPage {
 		$dbc = Database::pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
-			p.inUse,u.soldOut
+			p.inUse,u.soldOut,
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o

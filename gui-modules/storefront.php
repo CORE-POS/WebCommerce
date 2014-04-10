@@ -125,7 +125,7 @@ class storefront extends BasicPage {
 		$ret .= '<tr><th>Brand</th><th>Product</th><th>Price</th><th>&nbsp;</th></tr>';
 		while($w = $dbc->fetch_row($r)){
 			$ret .= sprintf('<tr><td>%s</td>
-					<td><a href="ItemPage.php?upc=%s">%s</a></td>
+					<td><a href="item.php?upc=%s">%s</a></td>
 					<td>$%.2f</td>
 					<td>%s</td>',
 					$w['brand'],
