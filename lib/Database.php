@@ -76,7 +76,7 @@ public static function gettransno($CashierNo)
 	$query2 = "SELECT max(trans_no) as maxtransno from localtranstoday 
 		where emp_no = ? AND register_no=?
 		GROUP BY register_no, emp_no";
-	$connection = tDataConnect();
+	$connection = self::tDataConnect();
 	$prep1 = $connection->prepare_statement($query1);
 	$result = $connection->exec_statement($prep1,array($CashierNo,$register_no));
 	$row = $connection->fetch_array($result);
