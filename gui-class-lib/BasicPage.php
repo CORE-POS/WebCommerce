@@ -89,8 +89,8 @@ class BasicPage {
 		echo '<title>'.$this->title.'</title>';	
 		echo "<link rel=\"stylesheet\" type=\"text/css\"
 		    href=\"{$IS4C_PATH}is4c.css\">";
-		//echo "<script type=\"text/javascript\"
-	    //src=\"{$IS4C_PATH}js/jquery.js\"></script>";
+		echo "<script type=\"text/javascript\"
+            src=\"{$IS4C_PATH}js/jquery.js\"></script>";
 		echo "<script type=\"text/javascript\"
 			src=\"{$IS4C_PATH}js/angular.js\"></script>";
 		echo "<script type=\"text/javascript\"
