@@ -38,6 +38,8 @@ class RemoteProcessor
     public $tender_name = '';
     public $tender_code = '';
 
+    const LIVE_MODE = false;
+
     /**
       Start payment process. Usually involves a request to the
       processor entity.
@@ -68,6 +70,16 @@ class RemoteProcessor
     public function finalizePayment($identifier) 
     {
         return false;
+    }
+
+    /**
+      Display processor-specfic checkout button
+      and any other icons/bling. The checkout button
+      should have name=checkoutButton
+      @return [string] html
+    */
+    public function checkoutButton() {
+        return '';
     }
 }
 

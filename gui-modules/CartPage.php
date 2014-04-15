@@ -53,13 +53,18 @@ class CartPage extends BasicPage
 		?>
         var myApp = angular.module('myApp', ['ngSanitize', 'wcCart']);
         myApp.controller('cartController', function ($scope, cartFactory) {
+            $scope.cart = [];
+            $scope.cart = [{"upc":"0000099041514","brand":"test-brand","description":"test item","scale":"0","quantity":"1","unitPrice":"20","total":"20","saleMsg":"Owner Special","checked":false}];
             cartFactory.getCartAsync(function(result) {
-                console.log(result);
                 $scope.cart = result.cart;
                 $scope.subtotal = result.subtotal;
                 $scope.tax = result.tax;
                 $scope.total = result.total;
             });
+
+            $scope.updateQty = function() {
+                console.log($scope.cart);
+            };
         });
 		<?php
 	}
@@ -67,70 +72,24 @@ class CartPage extends BasicPage
 	public function main_content()
     {
 		global $IS4C_PATH,$IS4C_LOCAL;
-		$db = Database::tDataConnect();
-		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
-
-		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
-		$r = $db->exec_statement($q, array($empno));
 
 		if (!PayPal::PAYPAL_LIVE){
 			echo '<h2>This store is in test mode; orders will not be processed</h2>';
 		}
 
-		
 		echo '<blockquote><em>'.$this->notices.'</em></blockquote>';
-		echo '<form action="cart.php" method="post">';
-		echo "<table id=\"carttable\" cellspacing='0' cellpadding='4' border='1'>";
-		echo "<tr><th>&nbsp;</th><th>Item</th><th>Qty</th><th>Price</th>
-			<th>Total</th><th>&nbsp;</th></tr>";
-		$ttl = 0.0;
-		while($w = $db->fetch_row($r)){
-			printf('<tr>
-				<td><input type="checkbox" name="selections[]" value="%s" /></td>
-				<td>%s %s</td>
-				<td><input type="hidden" name="upcs[]" value="%s" /><input type="text"
-				size="4" name="qtys[]" value="%.2f" /><input type="hidden" name="scales[]"
-				value="%d" /><input type="hidden" name="orig[]" value="%.2f" /></td>
-				<td>$%.2f</td><td>$%.2f</td><td>%s</td></tr>',
-				$w['upc'],
-				$w['brand'],$w['description'],
-				$w['upc'],$w['quantity'],$w['scale'],$w['quantity'],
-				$w['unitPrice'],$w['total'],
-				(empty($w['saleMsg'])?'&nbsp;':$w['saleMsg'])
-			);
-			$ttl += $w['total'];
-		}
-		printf('<tr><th colspan="4" align="right">Subtotal</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
-		$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
-		$taxR = $db->exec_statement($taxP,array($empno));
-		$taxes = 0;
-		if ($db->num_rows($taxR) > 0)
-			$taxes = round(array_pop($db->fetch_row($taxR)),2);
-		printf('<tr><th colspan="4" align="right">Taxes</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
-		printf('<tr><th colspan="4" align="right">Total</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
-		echo '<tr><td colspan="6" valign="top">';
-		echo '<input type="submit" name="delbtn" style="" value="Delete Selected Items" />';
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		echo '<input type="submit" name="qtybtn" value="Update Quantities" />';
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		//echo '<input type="submit" name="cobtn" value="Proceed to Checkout" />';
-		echo '<input type="image" name="cobtn" height="30px;" style="vertical-align:bottom;" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" />';
-		echo "</td></tr>";
-		echo "</table><br />";
+		//echo '<input type="image" name="cobtn" height="30px;" style="vertical-align:bottom;" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" />';
         ?>
 
         <div ng-app="myApp" ng-controller="cartController">
-		<table id="carttable" cellspacing='0' cellpadding='4' border='1'>
+		<table id="carttable" cellspacing="0" cellpadding="4" border="1">
             <tr>
                 <th>&nbsp;</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>&nbsp;</th>
             </tr>
             <tr ng-repeat="entry in cart">
-                <td><input type="checkbox" ng-model="entry.checked" /></td>
+                <td><input type="checkbox" ng-model="cart[$index].checked" /></td>
                 <td> {{ entry.brand }} {{ entry.description }}</td> 
-                <td><input type="text" size=4 ng-model="entry.quantity" /></td>
+                <td><input type="text" size=4 ng-model="cart[$index].quantity" /></td>
                 <td> {{ entry.unitPrice | currency }} </td>
                 <td> {{ entry.total | currency }} </td>
                 <td> {{ entry.saleMsg }} </td>
@@ -149,6 +108,14 @@ class CartPage extends BasicPage
                 <td colspan="4" align="right">Total</td>
                 <td>{{ total  | currency }} </td>
                 <td>&nbsp;</td>
+            </tr>
+		    <tr>
+                <td colspan="6" valign="top">
+		        <input type="submit" value="Delete Selected Items" />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		        <input type="submit" ng-click="updateQty();" value="Update Quantities" />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </td>
             </tr>
         </table>
         </div>

@@ -42,31 +42,28 @@ if (!class_exists('TransRecord')) {
 if (!class_exists('Notices')) {
     include_once(dirname(__FILE__) . '/../lib/Notices.php');
 }
-if (!class_exists('PayPal')) {
-    include_once(dirname(__FILE__) . '/../lib/PayPal.php');
+if (!class_exists('RemoteProcessor')) {
+    include_once(dirname(__FILE__) . '/../lib/pay/RemoteProcessor.php');
+}
+if (!class_exists('PayPalMod')) {
+    include_once(dirname(__FILE__) . '/../lib/pay/PayPalMod.php');
 }
 
 class confirm extends BasicPage {
 
-	var $mode;
-	var $msgs;
+	private $mode;
+	private $msgs;
 
-	function js_content(){
-		?>
-		$(document).ready(function(){
-			$('#searchbox').focus();
-		});
-		<?php
-	}
-
-	function main_content(){
+	function main_content()
+    {
 		if ($this->mode == 0)
 			$this->confirm_content(False);
 		else
 			$this->confirm_content(True);
 	}
 
-	function confirm_content($receiptMode=False){
+	function confirm_content($receiptMode=False)
+    {
 		global $IS4C_PATH,$IS4C_LOCAL;
 		$db = Database::tDataConnect();
 		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
@@ -111,8 +108,10 @@ class confirm extends BasicPage {
 		printf('<tr><th colspan="3" align="right">Total</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
 		echo "</table><br />";
-		if (!$receiptMode){
-			printf('<input type="hidden" name="token" value="%s" />',$_REQUEST['token']);
+		if (!$receiptMode) {
+            $proc = new PayPalMod();
+            $ident = $_REQUEST[$proc->postback_field_name];
+			printf('<input type="hidden" name="token" value="%s" />',$ident);
 			echo '<b>Phone Number (incl. area code)</b>: ';
 			echo '<input type="text" name="ph_contact" /> (<span style="color:red;">Required</span>)<br />';
 			echo '<blockquote>We require a phone number because some email providers
@@ -125,8 +124,7 @@ class confirm extends BasicPage {
 			echo '<input type="submit" name="confbtn" value="Finalize Order" />';
 			echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 			echo '<input type="submit" name="backbtn" value="Go Back" />';
-		}
-		else {
+		} else {
 			/* refactor idea: clear in preprocess()
 			   and print receipt from a different script
 			*/
@@ -143,15 +141,17 @@ class confirm extends BasicPage {
 		}
 	}
 
-	function preprocess(){
+	function preprocess()
+    {
 		global $IS4C_LOCAL;
 		$this->mode = 0;
 		$this->msgs = "";
 
 		if (isset($_REQUEST['backbtn'])){
 			header("Location: cart.php");
-			return False;
-		} else if (isset($_REQUEST['confbtn'])){
+
+			return false;
+		} else if (isset($_REQUEST['confbtn'])) {
 			/* confirm payment with paypal
 			   if it succeeds, add tax and tender
 			   shuffle order to pendingtrans table
@@ -174,13 +174,10 @@ class confirm extends BasicPage {
 
             $final_amount = $sub;
 			if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
-				$pp1 = PayPal::GetExpressCheckoutDetails($_REQUEST['token']);
+                $proc = new PayPalMod();
+                $done = $proc->finalizePayment($_REQUEST['token']);
 
-				$pp2 = PayPal::DoExpressCheckoutPayment($pp1['TOKEN'],
-					$pp1['PAYERID'],
-					$pp1['PAYMENTREQUEST_0_AMT']);
-
-				if ($pp2['ACK'] == 'Success') {
+				if ($done) {
 					$this->mode=1;
 
 					/* get tax from db and add */
@@ -190,8 +187,7 @@ class confirm extends BasicPage {
 					TransRecord::addtax($taxes);
 					
 					/* add paypal tender */
-					TransRecord::addtender("Paypal","PP",-1*$pp1['PAYMENTREQUEST_0_AMT']);
-                    $final_amount = $pp1['PAYMENTREQUEST_0_AMT'];
+					TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$final_amount);
 				}
 			} else if (floor($sub * 100) == 0) {
                 // items totalled $0. No paypal to process.

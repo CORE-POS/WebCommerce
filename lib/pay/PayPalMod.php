@@ -37,10 +37,10 @@ class PayPalMod extends RemoteProcessor
     const PAYPAL_LIVE_RD        = 'https://www.paypal.com/webscr';
 
     const PAYPAL_NVP_VERSION    = 63;
-    const PAYPAL_LIVE           = true;
 
     public $tender_name = 'Pay Pal';
     public $tender_code = 'PP';
+    public $postback_field_name = 'token';
 
     /* utility to transform array to url-encoded
        argument string */
@@ -59,9 +59,9 @@ class PayPalMod extends RemoteProcessor
     {
         $args = array(
             'METHOD'	=> $method,
-            'USER'		=> (self::PAYPAL_LIVE ? PAYPAL_LIVE_UID : PAYPAL_TEST_UID),
-            'PWD'		=> (self::PAYPAL_LIVE ? PAYPAL_LIVE_PWD : PAYPAL_TEST_PWD),
-            'SIGNATURE'	=> (self::PAYPAL_LIVE ? PAYPAL_LIVE_KEY : PAYPAL_TEST_KEY),
+            'USER'		=> (RemoteProcessor::LIVE_MODE ? PAYPAL_LIVE_UID : PAYPAL_TEST_UID),
+            'PWD'		=> (RemoteProcessor::LIVE_MODE ? PAYPAL_LIVE_PWD : PAYPAL_TEST_PWD),
+            'SIGNATURE'	=> (RemoteProcessor::LIVE_MODE ? PAYPAL_LIVE_KEY : PAYPAL_TEST_KEY),
             'VERSION'	=> self::PAYPAL_NVP_VERSION,
         );
         return $args;
@@ -71,7 +71,7 @@ class PayPalMod extends RemoteProcessor
        results as keyed array */
     public function pp_do_curl($args)
     {
-        $curl_handle = curl_init((self::PAYPAL_LIVE ? self::PAYPAL_LIVE_URL : self::PAYPAL_TEST_URL));
+        $curl_handle = curl_init((RemoteProcessor::LIVE_MODE ? self::PAYPAL_LIVE_MODE_URL : self::PAYPAL_TEST_URL));
         curl_setopt($curl_handle,CURLOPT_POST,True);
         curl_setopt($curl_handle,CURLOPT_POSTFIELDS,$this->argstring($args));
         curl_setopt($curl_handle, CURLOPT_HEADER, 0);
@@ -111,7 +111,7 @@ class PayPalMod extends RemoteProcessor
     */
     public function redirectToProcess($identifier)
     {
-        header("Location: ".(self::PAYPAL_LIVE ? self::PAYPAL_LIVE_RD : self::PAYPAL_TEST_RD)."?cmd=_express-checkout&token=".$identifier);
+        header("Location: ".(RemoteProcessor::LIVE_MODE ? self::PAYPAL_LIVE_RD : self::PAYPAL_TEST_RD)."?cmd=_express-checkout&token=".$identifier);
     }
 
     /**
@@ -137,10 +137,10 @@ class PayPalMod extends RemoteProcessor
     */
     public function SetExpressCheckout($amt,$tax=0,$email="")
     {
-        global $PAYPAL_URL_SUCCESS, $PAYPAL_URL_FAILURE;
+        global $PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
         $args = $this->pp_init_args('SetExpressCheckout');
-        $args['RETURNURL'] = $PAYPAL_URL_SUCCESS;
-        $args['CANCELURL'] = $PAYPAL_URL_FAILURE;
+        $args['RETURNURL'] = $PAYMENT_URL_SUCCESS;
+        $args['CANCELURL'] = $PAYMENT_URL_FAILURE;
         $args['PAYMENTREQUEST_0_AMT'] = $amt;
         $args['PAYMENTREQUEST_0_TAXAMT'] = $tax;
         $args['PAYMENTREQUEST_0_ITEMAMT'] = $amt - $tax;
@@ -188,6 +188,16 @@ class PayPalMod extends RemoteProcessor
         $result = $this->pp_do_curl($args);
 
         return $result;
+    }
+
+    public function checkoutButton() 
+    {
+		return '<button type="submit" name="checkoutButton">
+                    <img height="30px;" 
+                         style="vertical-align:bottom;" 
+                         alt="Paypal Checkout Button"
+                         src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" />
+                </button>';
     }
 
 }

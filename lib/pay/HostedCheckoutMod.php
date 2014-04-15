@@ -25,6 +25,7 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
+include_once(dirname(__FILE__) . "/../pp-api-credentials.php");
 if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
 
 class HostedCheckoutMod extends RemoteProcessor
@@ -34,24 +35,10 @@ class HostedCheckoutMod extends RemoteProcessor
     const LIVE_GATEWAY = 'https://hc.mercurypay.com/hcws/HCService.asmx?WSDL';
     const TEST_CHECKOUT = 'https://hc.mercurydev.net/Checkout.aspx';
     const LIVE_CHECKOUT = 'https://hc.mercurypay.com/Checkout.aspx';
-    const TEST_MERCH_ID = '013163015566916';
-    const TEST_PASSWD = '';
-
-    /** per-user config **/
-    
-    /** merchant ID number */
-    const LIVE_MERCH_ID = '';
-    /** merchant password */
-    const LIVE_PASSWD = '';
-    /** website URL after payment is completed */
-    const COMPLETE_URL = '';
-    /** website URL is payment is cancelled */
-    const CANCEL_URL = '';
-
-    const LIVE_MODE = false;
 
     public $tender_name = 'Credit Card';
     public $tender_code = 'CC';
+    public $postback_field_name = 'PaymentID';
 
     /**
       Start payment process. Usually involves a request to the
@@ -63,19 +50,20 @@ class HostedCheckoutMod extends RemoteProcessor
     */
     public function initializePayment($amount, $tax=0, $email="")
     {
+        global $PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
         $param = array(
-            'MerchantID' => self::LIVE_MODE ?  LIVE_MERCH_ID : TEST_MERCH_ID,
+            'MerchantID' => RemoteProcessor::LIVE_MODE ?  HOSTED_CHECKOUT_LIVE_MERCH_ID : HOSTED_CHECKOUT_TEST_MERCH_ID,
             'LaneID' => '01',
-            'Password' => self::LIVE_MODE ? LIVE_PASSWD : TEST_PASSWD,
+            'Password' => RemoteProcessor::LIVE_MODE ? HOSTED_CHECKOUT_LIVE_PASSWORD : HOSTED_CHECKOUT_TEST_PASSWORD,
             'TotalAmount' => sprintf('%.2f', $amount),
             'TaxAmount' => sprintf('%.2f', $tax),
             'TranType' => 'Sale',
             'Frequency' => 'OneTime',
             'Memo' => 'CORE Web',
-            'ProcessCompleteURL' => self::COMPLETE_URL,
-            'ReturnURL' => self::CANCEL_URL,
+            'ProcessCompleteURL' => $PAYMENT_URL_SUCCESS,
+            'ReturnURL' => $PAYMENT_URL_FAILURE,
         );
-        $gateway = self::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -85,7 +73,7 @@ class HostedCheckoutMod extends RemoteProcessor
             } else {
                 return false;
             }
-        } catch ($ex){
+        } catch (Exception $ex){
             return false;
         }
 
@@ -103,7 +91,7 @@ class HostedCheckoutMod extends RemoteProcessor
                 <head></head>
                 <body onload="document.hcForm.submit();">
                 <form name="hcForm" method="post"
-                    action="' . (self::LIVE_MODE ? LIVE_CHECKOUT : TEST_CHECKOUT) . '">
+                    action="' . (RemoteProcessor::LIVE_MODE ? LIVE_CHECKOUT : TEST_CHECKOUT) . '">
                 <input type="hidden" name="PaymentID" value="' . $identifier . '" />
                 <input type="hidden" name="ReturnMethod" value="GET" />
                 </form>
@@ -119,11 +107,11 @@ class HostedCheckoutMod extends RemoteProcessor
     public function finalizePayment($identifier) 
     {
         $param = array(
-            'MerchantID' => self::LIVE_MODE ?  LIVE_MERCH_ID : TEST_MERCH_ID,
+            'MerchantID' => RemoteProcessor::LIVE_MODE ?  HOSTED_CHECKOUT_LIVE_MERCH_ID : HOSTED_CHECKOUT_TEST_MERCH_ID,
             'PaymentID' => $identifier,
-            'Password' => self::LIVE_MODE ? LIVE_PASSWD : TEST_PASSWD,
+            'Password' => RemoteProcessor::LIVE_MODE ? HOSTED_CHECKOUT_LIVE_PASSWORD : HOSTED_CHECKOUT_TEST_PASSWORD,
         );
-        $gateway = self::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -133,7 +121,7 @@ class HostedCheckoutMod extends RemoteProcessor
             } else {
                 return false;
             }
-        } catch ($ex) {
+        } catch (Exception $ex) {
             return false;
         }
 

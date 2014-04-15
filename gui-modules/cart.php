@@ -39,12 +39,14 @@ if (!class_exists('AuthUtilities')) {
 if (!class_exists('TransRecord')) {
     include_once(dirname(__FILE__) . '/../lib/TransRecord.php');
 }
-if (!class_exists('PayPal')) {
-    include_once(dirname(__FILE__) . '/../lib/PayPal.php');
+if (!class_exists('RemoteProcessor')) {
+    include_once(dirname(__FILE__) . '/../lib/pay/RemoteProcessor.php');
+}
+if (!class_exists('PayPalMod')) {
+    include_once(dirname(__FILE__) . '/../lib/pay/PayPalMod.php');
 }
 
 class cart extends BasicPage {
-
 
 	var $notices;
 
@@ -64,10 +66,9 @@ class cart extends BasicPage {
 		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
 		$r = $db->exec_statement($q, array($empno));
 
-		if (!PayPal::PAYPAL_LIVE){
+		if (!RemoteProcessor::LIVE_MODE){
 			echo '<h2>This store is in test mode; orders will not be processed</h2>';
 		}
-
 		
 		echo '<blockquote><em>'.$this->notices.'</em></blockquote>';
 		echo '<form action="cart.php" method="post">';
@@ -107,13 +108,14 @@ class cart extends BasicPage {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		echo '<input type="submit" name="qtybtn" value="Update Quantities" />';
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		//echo '<input type="submit" name="cobtn" value="Proceed to Checkout" />';
-		echo '<input type="image" name="cobtn" height="30px;" style="vertical-align:bottom;" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" />';
+        $mod = new PayPalMod();
+        echo $mod->checkoutButton();
 		echo "</td></tr>";
 		echo "</table><br />";
 	}
 
-	function preprocess(){
+	function preprocess()
+    {
 		global $IS4C_LOCAL;
 		$db = Database::tDataConnect();
 		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
@@ -159,24 +161,34 @@ class cart extends BasicPage {
 				}
 			}
 		}
-		if (isset($_REQUEST['cobtn_x'])){
+		if (isset($_REQUEST['checkoutButton'])){
 			$dbc = Database::tDataConnect();
 			$email = AuthLogin::checkLogin();
 			$empno = AuthUtilities::getUID($email);
 			$subP = $dbc->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
 			$sub = $dbc->exec_statement($subP,array($empno));
-			$sub = array_pop($dbc->fetch_row($sub));
+            $row = $dbc->fetch_row($sub);
+            $sub = $row[0];
 			$taxP = $dbc->prepare_statement("SELECT sum(total) FROM taxTTL WHERE emp_no=?");
 			$tax = $dbc->exec_statement($taxP,array($empno));
-			$tax = array_pop($dbc->fetch_row($tax));
+            $row = $dbc->fetch_row($tax);
+            $tax = $row[0];
 
             $ttl = round($sub + $tax, 2);
             if (floor($ttl*100) == 0) {
                 header('Location: confirm.php');
+
                 return false;
             } else {
-                return PayPal::SetExpressCheckout(round($sub+$tax,2),
-                    round($tax,2),$email);
+                $proc = new PayPalMod();
+                $init = $proc->initializePayment(round($sub+$tax, 2), round($tax, 2), $email);
+                if ($init === false) {
+                    echo 'Error: cannot process payment at this time.';
+                } else {
+                    $proc->redirectToProcess($init);
+                }
+
+                return false;
             }
 		}
 
