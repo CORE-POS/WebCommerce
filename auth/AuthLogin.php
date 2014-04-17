@@ -27,13 +27,6 @@ all functions return true on success, false on failure
 unless otherwise noted
 */
 
-if (!class_exists('AuthUtilities')) {
-    include_once(dirname(__FILE__) . '/AuthUtilities.php');
-}
-if (!class_exists('AuthGroup')) {
-    include_once(dirname(__FILE__) . '/AuthGroup.php');
-}
-
 class AuthLogin
 {
 
@@ -267,7 +260,6 @@ static public function changePassword($name,$oldpassword,$newpassword)
   $salt = time();
   $crypt_pass = crypt($newpassword,$salt);
 
-  $name = $sql->escape($name);
   $updateP = $sql->prepare_statement("update Users set password=?,salt=? where name=?");
   $updateR = $sql->exec_statement($updateP,array($crypt_pass,$salt,$name));
   
@@ -280,7 +272,6 @@ static public function changeAnyPassword($name,$newpassword)
   $crypt_pass = crypt($newpassword,$salt);
 
   $sql = AuthUtilities::dbconnect();
-  $name = $sql->escape($name);
   $updateP = $sql->prepare_statement("update Users set password=?,salt=? where name=?");
   $updateR = $sql->exec_statement($updateP,array($crypt_pass,$salt,$name));
 
@@ -362,7 +353,7 @@ static public function pose($username){
 
 	$sql = AuthUtilities::dbconnect();
 	$sessionP = $sql->prepare_statement("update Users set session_id = ? where name=?");
-	$sessionR = $sql->query($sessionP,array($session_id,$username));
+	$sessionR = $sql->exec_statement($sessionP,array($session_id,$username));
 
 	$session_data = array("name"=>$username,"session_id"=>$session_id);
 	$cookie_data = serialize($session_data);

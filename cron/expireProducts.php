@@ -8,8 +8,8 @@ if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
 <body>
 <?php
 include('../ini.php');
-if (!class_exists('Database')) {
-    include_once(dirname(__FILE__) . '/../lib/Database.php');
+if (!class_exists('PhpAutoLoader')) {
+    require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
 
 $query = "UPDATE products AS p INNER JOIN productExpires AS e

@@ -35,10 +35,6 @@ Unless otherwise noted, functions return true on success
 and false on failure
 */
 
-if (!class_exists('AuthUtilities')) {
-    include_once(dirname(__FILE__) . '/AuthUtilities.php');
-}
-
 class AuthPriv
 {
 

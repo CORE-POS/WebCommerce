@@ -24,10 +24,8 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-
-if (!class_exists('BasicPage')) {
-    include_once(dirname(__FILE__) . '/../gui-class-lib/BasicPage.php');
+if (!class_exists('PhpAutoLoader')) {
+    require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
 
 class ItemPage extends BasicPage 

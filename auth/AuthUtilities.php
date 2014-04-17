@@ -88,7 +88,6 @@ public static function isEmail($str)
 public static function getUID($name)
 {
   $sql = self::dbconnect();
-  $name = $sql->escape($name);
   $fetchP = $sql->prepare_statement("select uid from Users where name=?");
   $fetchR = $sql->exec_statement($fetchP,array($name));
   if ($sql->num_rows($fetchR) == 0){
@@ -102,7 +101,6 @@ public static function getUID($name)
 public static function getRealName($name)
 {
   $sql = self::dbconnect();
-  $name = $sql->escape($name);
   $fetchP = $sql->prepare_statement("select real_name from Users where name=?");
   $fetchR = $sql->exec_statement($fetchP,array($name));
   if ($sql->num_rows($fetchR) == 0){
@@ -116,7 +114,6 @@ public static function getRealName($name)
 public static function getOwner($name)
 {
 	$sql = self::dbconnect();
-	$name = $sql->escape($name);
 	$fetchP = $sql->prepare_statement("select owner from Users where name=?");
 	$fetchR = $sql->exec_statement($fetchP,array($name));
 	if ($sql->num_rows($fetchR) == 0)
@@ -159,7 +156,6 @@ public static function doLogin($name)
 	$session_id = self::genSessID();	
 
 	$sql = self::dbconnect();
-	$name = $sql->escape($name);
 	$sessionP = $sql->prepare_statement("update Users set session_id = ? where name=?");
 	$sessionR = $sql->exec_statement($sessionP,array($session_id,$name));
 

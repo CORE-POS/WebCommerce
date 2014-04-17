@@ -64,17 +64,6 @@ signs in
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!class_exists('Database')) {
-    include_once(dirname(__FILE__) . '/Database.php');
-}
-if (!class_exists('AuthLogin')) {
-    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
-}
-if (!class_exists('AuthUtilities')) {
-    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
-}
-if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-
 class TransRecord
 {
 
@@ -192,7 +181,6 @@ public static function addUPC($upc,$quantity=1.0)
 	global $IS4C_LOCAL;
 
 	$db = Database::pDataConnect();
-	$upc = $db->escape($upc);
 	$lookP = $db->prepare_statement("SELECT description, department, normal_price, special_price, pricemethod, specialpricemethod,
 		tax, foodstamp, scale, discount, discounttype, cost, local FROM products
 		WHERE upc=?");

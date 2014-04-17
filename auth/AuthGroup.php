@@ -38,13 +38,6 @@
    Functions return true on success, false on failure.
 */
 
-if (!class_exists('AuthUtilities')) {
-    include_once(dirname(__FILE__) . '/AuthUtilities.php');
-}
-if (!class_exists('AuthPriv')) {
-    include_once(dirname(__FILE__) . '/AuthPriv.php');
-}
-
 class AuthGroup
 {
 

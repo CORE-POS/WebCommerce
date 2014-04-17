@@ -696,9 +696,9 @@ class SQLManager {
         }
 
 	function escape($str,$which_connection=''){
-                if ($which_connection == '')
-                        $which_connection = $this->default_db;
-                switch($this->db_types[$which_connection]){
+        if ($which_connection == '')
+                $which_connection = $this->default_db;
+        switch($this->db_types[$which_connection]){
 		case $this->TYPE_MYSQL:
 			return mysql_real_escape_string($str);
 		case $this->TYPE_MSSQL:

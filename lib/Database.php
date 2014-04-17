@@ -24,11 +24,6 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!class_exists("SQLManager")) include($IS4C_PATH."lib/SQLManager.php");
-
-if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-
-
 /***********************************************************************************************
 
  Functions transcribed from connect.asp on 07.13.03 by Brandon.
@@ -44,7 +39,7 @@ public static function tDataConnect()
 {
 	global $IS4C_LOCAL;
 
-	$sql = new SQLManager($IS4C_LOCAL->get("localhost"),$IS4C_LOCAL->get("DBMS"),$IS4C_LOCAL->get("tDatabase"),
+	$sql = new SqlManager($IS4C_LOCAL->get("localhost"),$IS4C_LOCAL->get("DBMS"),$IS4C_LOCAL->get("tDatabase"),
 			      $IS4C_LOCAL->get("localUser"),$IS4C_LOCAL->get("localPass"),False);
 	$sql->query("SET time_zone='America/Chicago'");
 	return $sql;
@@ -54,7 +49,7 @@ public static function pDataConnect()
 {
 	global $IS4C_LOCAL;
 
-	$sql = new SQLManager($IS4C_LOCAL->get("localhost"),$IS4C_LOCAL->get("DBMS"),$IS4C_LOCAL->get("pDatabase"),
+	$sql = new SqlManager($IS4C_LOCAL->get("localhost"),$IS4C_LOCAL->get("DBMS"),$IS4C_LOCAL->get("pDatabase"),
 			      $IS4C_LOCAL->get("localUser"),$IS4C_LOCAL->get("localPass"),False);
 	$sql->query("SET time_zone='America/Chicago'");
 	return $sql;

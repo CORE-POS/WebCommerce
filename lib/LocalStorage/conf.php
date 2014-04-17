@@ -30,12 +30,12 @@ if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .=
 $LOCAL_STORAGE_MECHANISM = 'SessionStorage';
 
 if (!class_exists($LOCAL_STORAGE_MECHANISM)){
-	include($IS4C_PATH."lib/LocalStorage/"
-		.$LOCAL_STORAGE_MECHANISM.".php");
+    // can probably be autoloaded..
+    include(dirname(__FILE__) . '/' . $LOCAL_STORAGE_MECHANISM . '.php');
 }
 
 $IS4C_LOCAL = new $LOCAL_STORAGE_MECHANISM();
 global $IS4C_LOCAL;
-include($IS4C_PATH."ini.php");
+include(dirname(__FILE__) .'/../../ini.php');
 
 ?>

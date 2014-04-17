@@ -24,23 +24,8 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-
-if (!class_exists('BasicPage')) include($IS4C_PATH.'gui-class-lib/BasicPage.php');
-if (!class_exists('Database')) {
-    include_once(dirname(__FILE__) . '/../lib/Database.php');
-}
-if (!class_exists('AuthLogin')) {
-    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
-}
-if (!class_exists('AuthUtilities')) {
-    include_once(dirname(__FILE__) . '/../auth/AuthUtilities.php');
-}
-if (!class_exists('TransRecord')) {
-    include_once(dirname(__FILE__) . '/../lib/TransRecord.php');
-}
-if (!class_exists('PayPal')) {
-    include_once(dirname(__FILE__) . '/../lib/PayPal.php');
+if (!class_exists('PhpAutoLoader')) {
+    require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
 
 class CartPage extends BasicPage 
@@ -132,7 +117,7 @@ class CartPage extends BasicPage
 				if (!is_numeric($_REQUEST['qtys'][$i])) continue;
 				if ($_REQUEST['qtys'][$i] == $_REQUEST['orig'][$i]) continue;
 
-				$upc = $db->escape($_REQUEST['upcs'][$i]);
+				$upc = $_REQUEST['upcs'][$i];
 				$qty = round($_REQUEST['qtys'][$i]);
 				if ($_REQUEST['scales'][$i] == 1)
 					$qty = number_format(round($_REQUEST['qtys'][$i]*4)/4,2);
@@ -161,7 +146,6 @@ class CartPage extends BasicPage
 		if (isset($_REQUEST['delbtn'])){
 			if (isset($_REQUEST['selections'])){
 				foreach($_REQUEST['selections'] as $upc){
-					$upc = $db->escape($upc);
 					$q1 = $db->prepare_statement("DELETE FROM localtemptrans WHERE
 						upc=? AND emp_no=?");
 					$db->exec_statement($q1,array($upc,$empno));

@@ -24,14 +24,8 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
-if (!isset($IS4C_LOCAL)) include($IS4C_PATH."lib/LocalStorage/conf.php");
-
-if (!class_exists('UserPage')) include($IS4C_PATH.'gui-class-lib/UserPage.php');
-if (!class_exists('AuthLogin')) {
-    include_once(dirname(__FILE__) . '/../auth/AuthLogin.php');
-}
-if (!class_exists('Database')) {
-    include_once(dirname(__FILE__) . '/../lib/Database.php');
+if (!class_exists('PhpAutoLoader')) {
+    require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
 
 class changePassword extends UserPage {

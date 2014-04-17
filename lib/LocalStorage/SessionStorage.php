@@ -23,8 +23,6 @@
 
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 
-if (!class_exists("LocalStorage")) include_once($IS4C_PATH."lib/LocalStorage/LocalStorage.php");
-
 class SessionStorage extends LocalStorage {
 	function SessionStorage(){
 		if(ini_get('session.auto_start')==0 && !headers_sent())

@@ -1,7 +1,5 @@
 <?php
 
-if (!class_exists("LocalStorage")) include_once($_SESSION["INCLUDE_PATH"]."/lib/LocalStorage/LocalStorage.php");
-
 class SQLiteStorage extends LocalStorage {
 	var $db;
 	function SQLiteStorage(){
