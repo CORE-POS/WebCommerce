@@ -1,0 +1,3 @@
+[submodule "vendor-code/PhpAutoLoader"]
+	path = vendor-code/PhpAutoLoader
+	url = git://github.com:CORE-POS/PhpAutoLoader.git
