@@ -108,6 +108,16 @@ class confirm extends BasicPage {
             /* refactor idea: clear in preprocess()
                and print receipt from a different script
             */
+            // normalize date in case items were added long before checkout
+            $dateP = $db->prepare_statement('UPDATE localtemptrans SET datetime=' . $db->now() . '
+                                        WHERE emp_no=?');
+            $dateR = $db->exec_statement($dateP, array($empno));
+            // mark test transactions as lane #99
+            if (!RemoteProcessor::LIVE_MODE) {
+                $testP = $db->prepare_statement('UPDATE localtemptrans SET register_no=99 WHERE emp_no=?');
+                $testR = $db->exec_statement($testP, array($empno));
+            }
+            // rotate data
             $endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
                 localtemptrans AS l WHERE emp_no=?");
             $endR = $db->exec_statement($endP,array($empno));
