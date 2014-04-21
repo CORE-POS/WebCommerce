@@ -30,145 +30,148 @@ if (!class_exists('PhpAutoLoader')) {
 
 class confirm extends BasicPage {
 
-	private $mode;
-	private $msgs;
+    private $mode;
+    private $msgs;
 
-	function main_content()
+    function main_content()
     {
-		if ($this->mode == 0)
-			$this->confirm_content(False);
-		else
-			$this->confirm_content(True);
-	}
+        if ($this->mode == 0)
+            $this->confirm_content(False);
+        else
+            $this->confirm_content(True);
+    }
 
-	function confirm_content($receiptMode=False)
+    function confirm_content($receiptMode=False)
     {
-		global $IS4C_PATH,$IS4C_LOCAL;
-		$db = Database::tDataConnect();
-		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
+        global $IS4C_PATH,$IS4C_LOCAL;
+        $db = Database::tDataConnect();
+        $empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 
-		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
-		$r = $db->exec_statement($q, array($empno));
-		
-		if (!$receiptMode){
-			echo '<form action="confirm.php" method="post">';
-		}
-		else {
-			echo '<blockquote>Your order has been processed</blockquote>';
-		}
-		if (!empty($this->msgs)){
-			echo '<blockquote>'.$this->msgs.'</blockquote>';
-		}
-		echo "<table id=\"carttable\" cellspacing='0' cellpadding='4' border='1'>";
-		echo "<tr><th>Item</th><th>Qty</th><th>Price</th>
-			<th>Total</th><th>&nbsp;</th></tr>";
-		$ttl = 0.0;
-		while($w = $db->fetch_row($r)){
-			printf('<tr>
-				<td>%s %s</td>
-				<td><input type="hidden" name="upcs[]" value="%s" />%.2f
-				<input type="hidden" name="scales[]"
-				value="%d" /><input type="hidden" name="orig[]" value="%.2f" /></td>
-				<td>$%.2f</td><td>$%.2f</td><td>%s</td></tr>',
-				$w['brand'],$w['description'],
-				$w['upc'],$w['quantity'],$w['scale'],$w['quantity'],
-				$w['unitPrice'],$w['total'],
-				(empty($w['saleMsg'])?'&nbsp;':$w['saleMsg'])
-			);
-			$ttl += $w['total'];
-		}
-		printf('<tr><th colspan="3" align="right">Subtotal</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
-		$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
-		$taxR = $db->exec_statement($taxP,array($empno));
-		$taxes = round(array_pop($db->fetch_row($taxR)),2);
-		printf('<tr><th colspan="3" align="right">Taxes</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
-		printf('<tr><th colspan="3" align="right">Total</th>
-			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
-		echo "</table><br />";
-		if (!$receiptMode) {
+        $q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
+        $r = $db->exec_statement($q, array($empno));
+        
+        if (!$receiptMode){
+            echo '<form action="confirm.php" method="post">';
+        }
+        else {
+            echo '<blockquote>Your order has been processed</blockquote>';
+        }
+        if (!empty($this->msgs)){
+            echo '<blockquote>'.$this->msgs.'</blockquote>';
+        }
+        echo "<table id=\"carttable\" cellspacing='0' cellpadding='4' border='1'>";
+        echo "<tr><th>Item</th><th>Qty</th><th>Price</th>
+            <th>Total</th><th>&nbsp;</th></tr>";
+        $ttl = 0.0;
+        while($w = $db->fetch_row($r)){
+            printf('<tr>
+                <td>%s %s</td>
+                <td><input type="hidden" name="upcs[]" value="%s" />%.2f
+                <input type="hidden" name="scales[]"
+                value="%d" /><input type="hidden" name="orig[]" value="%.2f" /></td>
+                <td>$%.2f</td><td>$%.2f</td><td>%s</td></tr>',
+                $w['brand'],$w['description'],
+                $w['upc'],$w['quantity'],$w['scale'],$w['quantity'],
+                $w['unitPrice'],$w['total'],
+                (empty($w['saleMsg'])?'&nbsp;':$w['saleMsg'])
+            );
+            $ttl += $w['total'];
+        }
+        printf('<tr><th colspan="3" align="right">Subtotal</th>
+            <td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
+        $taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+        $taxR = $db->exec_statement($taxP,array($empno));
+        $taxW = $db->fetch_row($taxR);
+        $taxes = round($taxW['taxes'], 2);
+        printf('<tr><th colspan="3" align="right">Taxes</th>
+            <td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
+        printf('<tr><th colspan="3" align="right">Total</th>
+            <td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
+        echo "</table><br />";
+        if (!$receiptMode) {
             $proc = new PayPalMod();
             $ident = $_REQUEST[$proc->postback_field_name];
-			printf('<input type="hidden" name="token" value="%s" />',$ident);
-			echo '<b>Phone Number (incl. area code)</b>: ';
-			echo '<input type="text" name="ph_contact" /> (<span style="color:red;">Required</span>)<br />';
-			echo '<blockquote>We require a phone number because some email providers
-				have trouble handling .coop email addresses. A phone number ensures
-				we can reach you if there are any questions about your order.</blockquote>';
-			echo '<b>Additional attendees</b>: ';
-			echo '<input type="text" name="attendees" /><br />';
-			echo '<blockquote>If you are purchasing a ticket for someone else, please
-				enter their name(s) so we know to put them on the list.</blockquote>';
-			echo '<input type="submit" name="confbtn" value="Finalize Order" />';
-			echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-			echo '<input type="submit" name="backbtn" value="Go Back" />';
-		} else {
-			/* refactor idea: clear in preprocess()
-			   and print receipt from a different script
-			*/
-			$endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
-				localtemptrans AS l WHERE emp_no=?");
-			$endR = $db->exec_statement($endP,array($empno));
-			$endP = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
-				localtemptrans AS l WHERE emp_no=?");
-			$endR = $db->exec_statement($endP,array($empno));
-			if ($endR !== False){
-				$clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
-				$db->exec_statement($clearP,array($empno));
-			}
-		}
-	}
+            printf('<input type="hidden" name="token" value="%s" />',$ident);
+            echo '<b>Phone Number (incl. area code)</b>: ';
+            echo '<input type="text" name="ph_contact" /> (<span style="color:red;">Required</span>)<br />';
+            echo '<blockquote>We require a phone number because some email providers
+                have trouble handling .coop email addresses. A phone number ensures
+                we can reach you if there are any questions about your order.</blockquote>';
+            echo '<b>Additional attendees</b>: ';
+            echo '<input type="text" name="attendees" /><br />';
+            echo '<blockquote>If you are purchasing a ticket for someone else, please
+                enter their name(s) so we know to put them on the list.</blockquote>';
+            echo '<input type="submit" name="confbtn" value="Finalize Order" />';
+            echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+            echo '<input type="submit" name="backbtn" value="Go Back" />';
+        } else {
+            /* refactor idea: clear in preprocess()
+               and print receipt from a different script
+            */
+            $endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
+                localtemptrans AS l WHERE emp_no=?");
+            $endR = $db->exec_statement($endP,array($empno));
+            $endP = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
+                localtemptrans AS l WHERE emp_no=?");
+            $endR = $db->exec_statement($endP,array($empno));
+            if ($endR !== False){
+                $clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
+                $db->exec_statement($clearP,array($empno));
+            }
+        }
+    }
 
-	function preprocess()
+    function preprocess()
     {
-		global $IS4C_LOCAL;
-		$this->mode = 0;
-		$this->msgs = "";
+        global $IS4C_LOCAL;
+        $this->mode = 0;
+        $this->msgs = "";
 
-		if (isset($_REQUEST['backbtn'])){
-			header("Location: cart.php");
+        if (isset($_REQUEST['backbtn'])){
+            header("Location: cart.php");
 
-			return false;
-		} else if (isset($_REQUEST['confbtn'])) {
-			/* confirm payment with paypal
-			   if it succeeds, add tax and tender
-			   shuffle order to pendingtrans table
-			   send order notifications
-			*/
-			$ph = $_REQUEST['ph_contact'];
-			$ph = preg_replace("/[^\d]/","",$ph);
-			if (strlen($ph) != 10){
-				$this->msgs = 'Phone number with area code is required';
-				return True;
-			}
-			$attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
+            return false;
+        } else if (isset($_REQUEST['confbtn'])) {
+            /* confirm payment with paypal
+               if it succeeds, add tax and tender
+               shuffle order to pendingtrans table
+               send order notifications
+            */
+            $ph = $_REQUEST['ph_contact'];
+            $ph = preg_replace("/[^\d]/","",$ph);
+            if (strlen($ph) != 10){
+                $this->msgs = 'Phone number with area code is required';
+                return True;
+            }
+            $attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
 
             $db = Database::tDataConnect();
             $email = AuthLogin::checkLogin();
             $empno = AuthUtilities::getUID($email);
-			$subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
-			$sub = $db->exec_statement($subP,array($empno));
-			$sub = array_pop($dbc->fetch_row($sub));
+            $subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
+            $sub = $db->exec_statement($subP,array($empno));
+            $subW = $db->fetch_row($sub);
+            $sub = $subW[0];
 
             $final_amount = $sub;
-			if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
+            if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
                 $proc = new PayPalMod();
                 $done = $proc->finalizePayment($_REQUEST['token']);
 
-				if ($done) {
-					$this->mode=1;
+                if ($done) {
+                    $this->mode=1;
 
-					/* get tax from db and add */
-					$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
-					$taxR = $db->exec_statement($taxP,array($empno));
-					$taxes = round(array_pop($db->fetch_row($taxR)),2);
-					TransRecord::addtax($taxes);
-					
-					/* add paypal tender */
-					TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$final_amount);
-				}
-			} else if (floor($sub * 100) == 0) {
+                    /* get tax from db and add */
+                    $taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
+                    $taxR = $db->exec_statement($taxP,array($empno));
+                    $taxW = $db->fetch_row($taxR);
+                    $taxes = round($taxW['taxes'], 2);
+                    TransRecord::addtax($taxes);
+                    
+                    /* add paypal tender */
+                    TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$final_amount);
+                }
+            } else if (floor($sub * 100) == 0) {
                 // items totalled $0. No paypal to process.
                 $this->mode=1;
                 $final_amount = '0.00';
@@ -187,13 +190,13 @@ class confirm extends BasicPage {
                 $addr = array();
                 while($addrW = $db->fetch_row($addrR))
                     $addr[] = $addrW[0];
-                if (count($addr) > 0)
+                if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) 
                     Notices::mgrNotification($addr,$email,$ph,$final_amount,$attend,$cart);
             }
-		}
+        }
 
-		return True;
-	}
+        return True;
+    }
 }
 
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {

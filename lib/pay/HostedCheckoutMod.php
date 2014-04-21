@@ -25,6 +25,7 @@
 $IS4C_PATH = isset($IS4C_PATH)?$IS4C_PATH:"";
 if (empty($IS4C_PATH)){ while(!file_exists($IS4C_PATH."is4c.css")) $IS4C_PATH .= "../"; }
 
+global $PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
 include_once(dirname(__FILE__) . "/../pp-api-credentials.php");
 
 class HostedCheckoutMod extends RemoteProcessor

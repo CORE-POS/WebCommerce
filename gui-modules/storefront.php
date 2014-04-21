@@ -155,8 +155,10 @@ class storefront extends BasicPage {
 		while($w = $dbc->fetch_row($r)){
 			$sids[$w['superID']] = $w['super_name'];
 		}
-		if (count($sids)==1)
-			$super = array_pop(array_keys($sids));
+		if (count($sids)==1) {
+            $keys = array_keys($sids);
+            $super = array_pop($keys);
+        }
 
 		if ($sub != -1 && $d != -1 && $super != -1){
 			// browsing subdept

@@ -79,8 +79,10 @@ class cart extends BasicPage {
 		$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
 		$taxR = $db->exec_statement($taxP,array($empno));
 		$taxes = 0;
-		if ($db->num_rows($taxR) > 0)
-			$taxes = round(array_pop($db->fetch_row($taxR)),2);
+		if ($db->num_rows($taxR) > 0) {
+            $taxW = $db->fetch_row($taxR);
+			$taxes = round($taxW['taxes'], 2);
+        }
 		printf('<tr><th colspan="4" align="right">Taxes</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
 		printf('<tr><th colspan="4" align="right">Total</th>
@@ -116,8 +118,10 @@ class cart extends BasicPage {
 				$availP = $db->prepare_statement("SELECT available FROM productOrderLimits WHERE upc=?");
 				$availR = $db->exec_statement($availP,array($upc));
 				$limit = 999;
-				if ($db->num_rows($availR) > 0)
-					$limit = array_pop($db->fetch_row($availR));
+				if ($db->num_rows($availR) > 0) {
+                    $availW = $db->fetch_row($availR);
+					$limit = $availW['available'];
+                }
 				if ($qty > $limit && $qty > 0){
 					$qty = $limit;
 					if ($qty <= 0) $qty=1;

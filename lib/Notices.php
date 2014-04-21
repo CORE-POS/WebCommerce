@@ -103,7 +103,8 @@ public static function getcart($empno)
 
 	$taxP = $db->prepare_statement("SELECT taxes FROM taxTTL WHERE emp_no=?");
 	$taxR = $db->exec_statement($taxP, array($empno));
-	$taxes = round(array_pop($db->fetch_row($taxR)),2);
+    $taxW = $db->fetch_row($taxR);
+    $taxes = round($taxW['taxes'], 2);
 	$ret .= sprintf("Sales tax: \$%.2f\n",$taxes);
 
 	return $ret;

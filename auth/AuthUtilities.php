@@ -118,7 +118,8 @@ public static function getOwner($name)
 	$fetchR = $sql->exec_statement($fetchP,array($name));
 	if ($sql->num_rows($fetchR) == 0)
 		return false;
-	return array_pop($sql->fetch_array($fetchR));
+    $fetchW = $sql->fetch_row($fetchR);
+	return $fetchW['owner'];
 }
 
 public static function getGID($group)
