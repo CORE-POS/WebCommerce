@@ -37,6 +37,7 @@ class RemoteProcessor
     public $tender_code = '';
 
     const LIVE_MODE = false;
+    const CURRENT_PROCESSOR = 'PayPalMod';
 
     /**
       Start payment process. Usually involves a request to the

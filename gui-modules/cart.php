@@ -92,7 +92,8 @@ class cart extends BasicPage {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		echo '<input type="submit" name="qtybtn" value="Update Quantities" />';
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-        $mod = new PayPalMod();
+        $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
+        $mod = new $pay_class();
         echo $mod->checkoutButton();
 		echo "</td></tr>";
 		echo "</table><br />";
@@ -165,7 +166,8 @@ class cart extends BasicPage {
 
                 return false;
             } else {
-                $proc = new PayPalMod();
+                $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
+                $proc = new $pay_class();
                 $init = $proc->initializePayment(round($sub+$tax, 2), round($tax, 2), $email);
                 if ($init === false) {
                     echo 'Error: cannot process payment at this time.';

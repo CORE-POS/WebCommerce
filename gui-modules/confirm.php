@@ -89,7 +89,8 @@ class confirm extends BasicPage {
             <td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
         echo "</table><br />";
         if (!$receiptMode) {
-            $proc = new PayPalMod();
+            $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
+            $proc = new $pay_class();
             $ident = $_REQUEST[$proc->postback_field_name];
             printf('<input type="hidden" name="token" value="%s" />',$ident);
             echo '<b>Phone Number (incl. area code)</b>: ';
@@ -165,7 +166,8 @@ class confirm extends BasicPage {
 
             $final_amount = $sub;
             if (isset($_REQUEST['token']) && !empty($_REQUEST['token'])){
-                $proc = new PayPalMod();
+                $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
+                $proc = new $pay_class();
                 $done = $proc->finalizePayment($_REQUEST['token']);
 
                 if ($done) {
