@@ -42,6 +42,8 @@ class PayPalMod extends RemoteProcessor
     public $tender_code = 'PP';
     public $postback_field_name = 'token';
 
+    public $cancelable = true;
+
     /* utility to transform array to url-encoded
        argument string */
     private function argstring($arr)

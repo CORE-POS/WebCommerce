@@ -36,6 +36,8 @@ class RemoteProcessor
     public $tender_name = '';
     public $tender_code = '';
 
+    public $cancelable = true;
+
     const LIVE_MODE = false;
     const CURRENT_PROCESSOR = 'PayPalMod';
 
