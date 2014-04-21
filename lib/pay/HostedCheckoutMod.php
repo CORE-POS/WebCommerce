@@ -51,6 +51,8 @@ class HostedCheckoutMod extends RemoteProcessor
     public function initializePayment($amount, $tax=0, $email="")
     {
         global $PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
+        $uid = AuthUtilities::getUID(AuthLogin::checkLogin());
+        $invoice = str_pad($uid, 6, '0', STR_PAD_LEFT) . time();
         $param = array(
             'MerchantID' => RemoteProcessor::LIVE_MODE ?  HOSTED_CHECKOUT_LIVE_MERCH_ID : HOSTED_CHECKOUT_TEST_MERCH_ID,
             'LaneID' => '01',
@@ -60,10 +62,13 @@ class HostedCheckoutMod extends RemoteProcessor
             'TranType' => 'Sale',
             'Frequency' => 'OneTime',
             'Memo' => 'CORE Web',
-            'ProcessCompleteURL' => $PAYMENT_URL_SUCCESS,
-            'ReturnURL' => $PAYMENT_URL_FAILURE,
+            'Invoice' => $invoice,
+            'ProcessCompleteUrl' => $PAYMENT_URL_SUCCESS,
+            'ReturnUrl' => $PAYMENT_URL_FAILURE,
+            'PartialAuth' => 'off',
+            'AVSFields' => 'Both',
         );
-        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? self::LIVE_GATEWAY : self::TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -91,7 +96,7 @@ class HostedCheckoutMod extends RemoteProcessor
                 <head></head>
                 <body onload="document.hcForm.submit();">
                 <form name="hcForm" method="post"
-                    action="' . (RemoteProcessor::LIVE_MODE ? LIVE_CHECKOUT : TEST_CHECKOUT) . '">
+                    action="' . (RemoteProcessor::LIVE_MODE ? self::LIVE_CHECKOUT : self::TEST_CHECKOUT) . '">
                 <input type="hidden" name="PaymentID" value="' . $identifier . '" />
                 <input type="hidden" name="ReturnMethod" value="GET" />
                 </form>
@@ -111,7 +116,7 @@ class HostedCheckoutMod extends RemoteProcessor
             'PaymentID' => $identifier,
             'Password' => RemoteProcessor::LIVE_MODE ? HOSTED_CHECKOUT_LIVE_PASSWORD : HOSTED_CHECKOUT_TEST_PASSWORD,
         );
-        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? self::LIVE_GATEWAY : self::TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -126,6 +131,13 @@ class HostedCheckoutMod extends RemoteProcessor
         }
 
         return false;
+    }
+
+    public function checkoutButton() 
+    {
+		return '<button type="submit" name="checkoutButton">
+                    Checkout
+                </button>';
     }
 }
 
