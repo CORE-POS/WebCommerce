@@ -73,7 +73,7 @@ class PayPalMod extends RemoteProcessor
        results as keyed array */
     public function pp_do_curl($args)
     {
-        $curl_handle = curl_init((RemoteProcessor::LIVE_MODE ? self::PAYPAL_LIVE_MODE_URL : self::PAYPAL_TEST_URL));
+        $curl_handle = curl_init((RemoteProcessor::LIVE_MODE ? self::PAYPAL_LIVE_URL : self::PAYPAL_TEST_URL));
         curl_setopt($curl_handle,CURLOPT_POST,True);
         curl_setopt($curl_handle,CURLOPT_POSTFIELDS,$this->argstring($args));
         curl_setopt($curl_handle, CURLOPT_HEADER, 0);

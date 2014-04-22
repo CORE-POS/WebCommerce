@@ -104,7 +104,7 @@ class confirm extends BasicPage {
                 enter their name(s) so we know to put them on the list.</blockquote>';
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-            if ($pay_class->cancelable) {
+            if ($proc->cancelable) {
                 echo '<input type="submit" name="backbtn" value="Go Back" />';
             }
         } else {
