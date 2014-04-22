@@ -45,7 +45,7 @@ class BasicPage {
 	protected $title;
     protected $scripts = array();
 
-	function BasicPage($arg="IS4C Online"){
+	function BasicPage($arg="CORE Online"){
 		$this->title = $arg;
 		if ($this->preprocess()){
 			ob_start();
