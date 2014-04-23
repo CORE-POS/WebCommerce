@@ -35,10 +35,14 @@ class HostedCheckoutMod extends RemoteProcessor
     const LIVE_GATEWAY = 'https://hc.mercurypay.com/hcws/HCService.asmx?WSDL';
     const TEST_CHECKOUT = 'https://hc.mercurydev.net/Checkout.aspx';
     const LIVE_CHECKOUT = 'https://hc.mercurypay.com/Checkout.aspx';
+    const LIVE_MOD_GATEWAY = 'https://hc.mercurypay.com/tws/transactionservice.asmx';
+    const TEST_MOD_GATEWAY = 'https://hc.mercurydev.net/tws/transactionservice.asmx';
 
     public $tender_name = 'Credit Card';
     public $tender_code = 'CC';
     public $postback_field_name = 'PaymentID';
+
+    public $cancelable = false;
 
     /**
       Start payment process. Usually involves a request to the
@@ -51,6 +55,8 @@ class HostedCheckoutMod extends RemoteProcessor
     public function initializePayment($amount, $tax=0, $email="")
     {
         global $PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
+        $uid = AuthUtilities::getUID(AuthLogin::checkLogin());
+        $invoice = str_pad($uid, 6, '0', STR_PAD_LEFT) . time();
         $param = array(
             'MerchantID' => RemoteProcessor::LIVE_MODE ?  HOSTED_CHECKOUT_LIVE_MERCH_ID : HOSTED_CHECKOUT_TEST_MERCH_ID,
             'LaneID' => '01',
@@ -60,10 +66,13 @@ class HostedCheckoutMod extends RemoteProcessor
             'TranType' => 'Sale',
             'Frequency' => 'OneTime',
             'Memo' => 'CORE Web',
-            'ProcessCompleteURL' => $PAYMENT_URL_SUCCESS,
-            'ReturnURL' => $PAYMENT_URL_FAILURE,
+            'Invoice' => $invoice,
+            'ProcessCompleteUrl' => $PAYMENT_URL_SUCCESS,
+            'ReturnUrl' => $PAYMENT_URL_FAILURE,
+            'PartialAuth' => 'off',
+            'AVSFields' => 'Both',
         );
-        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? self::LIVE_GATEWAY : self::TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -91,12 +100,68 @@ class HostedCheckoutMod extends RemoteProcessor
                 <head></head>
                 <body onload="document.hcForm.submit();">
                 <form name="hcForm" method="post"
-                    action="' . (RemoteProcessor::LIVE_MODE ? LIVE_CHECKOUT : TEST_CHECKOUT) . '">
+                    action="' . (RemoteProcessor::LIVE_MODE ? self::LIVE_CHECKOUT : self::TEST_CHECKOUT) . '">
                 <input type="hidden" name="PaymentID" value="' . $identifier . '" />
                 <input type="hidden" name="ReturnMethod" value="GET" />
                 </form>
                 </body>
             </html>';
+    }
+
+    /**
+      Undo the payment
+      @param $identifier [string] payment identifier
+      @return [boolean] success or failure
+
+      Reverse a previous transaction.  
+    */
+    public function undoPayment($identifier)
+    {
+        $param = array(
+            'MerchantID' => RemoteProcessor::LIVE_MODE ?  HOSTED_CHECKOUT_LIVE_MERCH_ID : HOSTED_CHECKOUT_TEST_MERCH_ID,
+            'PaymentID' => $identifier,
+            'Password' => RemoteProcessor::LIVE_MODE ? HOSTED_CHECKOUT_LIVE_PASSWORD : HOSTED_CHECKOUT_TEST_PASSWORD,
+        );
+        
+        $gateway = RemoteProcessor::LIVE_MODE ? self::LIVE_GATEWAY : self::TEST_GATEWAY;
+
+        $client = new SoapClient($gateway);
+        try {
+            $resp = $client->VerifyPayment(array('request' => $param));
+            if ($resp->VerifyPaymentResult->ResponseCode == '0') {
+                $password = $param['Password'];
+                unset($param['Password']);
+                unset($param['PaymentID']);
+                $param['Frequency'] = 'OneTime';
+                $param['Memo'] = 'CORE Web';
+                $uid = AuthUtilities::getUID(AuthLogin::checkLogin());
+                $invoice = str_pad($uid, 6, '0', STR_PAD_LEFT) . time();
+                $param['Invoice'] = $invoice;
+                $param['AuthCode'] = $resp->VerifyPaymentResult->AuthCode;
+                $param['PurchaseAmount'] = $resp->VerifyPaymentResult->Amount;
+                $param['RefNo'] = $resp->VerifyPaymentResult->RefNo;
+                $param['Token'] = $resp->VerifyPaymentResult->Token;
+                $param['AcqRefData'] = $resp->VerifyPaymentResult->AcqRefData;
+                $param['ProcessData'] = $resp->VerifyPaymentResult->ProcessData;
+
+                $client = new SoapClient(RemoteProcessor::LIVE ? self::LIVE_MOD_GATEWAY : self::TEST_MOD_GATEWAY);
+                $resp = $client->CreditReversalToken(array('request'=>$param, 'password'=>$password));
+                if ($resp->CreditReversalTokenResult->Status == 'Approved') {
+                    return true;
+                } else {
+                    return false;
+                }
+
+            } else {
+                // transaction didn't approve. 
+                // no need to reverse it
+                return true;
+            }
+        } catch (Exception $ex) {
+            return false;
+        }
+
+        return false;
     }
 
     /**
@@ -111,7 +176,7 @@ class HostedCheckoutMod extends RemoteProcessor
             'PaymentID' => $identifier,
             'Password' => RemoteProcessor::LIVE_MODE ? HOSTED_CHECKOUT_LIVE_PASSWORD : HOSTED_CHECKOUT_TEST_PASSWORD,
         );
-        $gateway = RemoteProcessor::LIVE_MODE ? LIVE_GATEWAY : TEST_GATEWAY;
+        $gateway = RemoteProcessor::LIVE_MODE ? self::LIVE_GATEWAY : self::TEST_GATEWAY;
 
         $client = new SoapClient($gateway);
         try {
@@ -126,6 +191,13 @@ class HostedCheckoutMod extends RemoteProcessor
         }
 
         return false;
+    }
+
+    public function checkoutButton() 
+    {
+		return '<button type="submit" name="checkoutButton">
+                    Checkout
+                </button>';
     }
 }
 

@@ -155,7 +155,7 @@ class cart extends BasicPage {
 			$sub = $dbc->exec_statement($subP,array($empno));
             $row = $dbc->fetch_row($sub);
             $sub = $row[0];
-			$taxP = $dbc->prepare_statement("SELECT sum(total) FROM taxTTL WHERE emp_no=?");
+			$taxP = $dbc->prepare_statement("SELECT sum(taxes) FROM taxTTL WHERE emp_no=?");
 			$tax = $dbc->exec_statement($taxP,array($empno));
             $row = $dbc->fetch_row($tax);
             $tax = $row[0];
