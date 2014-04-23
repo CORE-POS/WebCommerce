@@ -122,8 +122,13 @@ class confirm extends BasicPage {
             $endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
                 localtemptrans AS l WHERE emp_no=?");
             $endR = $db->exec_statement($endP,array($empno));
-            $endP = $db->prepare_statement("INSERT INTO pendingtrans SELECT l.* FROM
-                localtemptrans AS l WHERE emp_no=?");
+
+            $pendingCols = Database::localMatchingColumns($db, 'localtemptrans', 'pendingtrans');
+            $endP = $db->prepare_statement("INSERT INTO pendingtrans ($pendingCols) 
+                                            SELECT $pendingCols 
+                                            FROM localtemptrans AS l 
+                                            WHERE l.emp_no=?");
+
             $endR = $db->exec_statement($endP,array($empno));
             if ($endR !== False){
                 $clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");

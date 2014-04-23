@@ -26,8 +26,12 @@ while($row = $db->fetch_row($result)){
 }
 
 // shuffle contents to final trans tables
-$db->query("INSERT INTO dtransactions SELECT * FROM pendingtrans");
-$db->query("INSERT INTO localtrans_today SELECT * FROM pendingtrans");
+$pendingCols = Database::localMatchingColumns($db, 'pendingtrans', 'dtransactions');
+$db->query("INSERT INTO dtransactions ($pendingCols)
+            SELECT $pendingCols FROM pendingtrans");
+$pendingCols = Database::localMatchingColumns($db, 'pendingtrans', 'localtrans_today');
+$db->query("INSERT INTO localtrans_today ($pendingCols)
+            SELECT $pendingCols FROM pendingtrans");
 
 // clear pending
 $db->query("DELETE FROM pendingtrans");

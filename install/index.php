@@ -707,16 +707,20 @@ function create_trans_dbs($db,$type){
 	global $IS4C_LOCAL;
 	$name = $IS4C_LOCAL->get('tDatabase');
 
-	$dtransQ = "CREATE TABLE `dtransactions` (
+    /**
+      localtrans, localtransarchive, and
+      localtrans_today share the same structure
+    */
+	$ltQ = "CREATE TABLE `localtrans` (
 	  `datetime` datetime default NULL,
 	  `register_no` smallint(6) default NULL,
 	  `emp_no` smallint(6) default NULL,
 	  `trans_no` int(11) default NULL,
-	  `upc` varchar(255) default NULL,
-	  `description` varchar(255) default NULL,
-	  `trans_type` varchar(255) default NULL,
-	  `trans_subtype` varchar(255) default NULL,
-	  `trans_status` varchar(255) default NULL,
+	  `upc` varchar(13) default NULL,
+	  `description` varchar(30) default NULL,
+	  `trans_type` varchar(1) default NULL,
+	  `trans_subtype` varchar(2) default NULL,
+	  `trans_status` varchar(1) default NULL,
 	  `department` smallint(6) default NULL,
 	  `quantity` real default NULL,
 	  `scale` tinyint(4) default NULL,
@@ -738,15 +742,15 @@ function create_trans_dbs($db,$type){
 	  `VolSpecial` real default NULL,
 	  `mixMatch` varchar(12) default NULL,
 	  `matched` smallint(6) default NULL,
-	  `memType` tinyint(2) default NULL,
+	  `memType` tinyint(4) default NULL,
 	  `staff` tinyint(4) default NULL,
 	  `numflag` smallint(6) default 0 NULL,
 	  `charflag` varchar(2) default '' NULL,
-	  `card_no` varchar(255) default NULL,
+	  `card_no` int(11) default NULL,
 	  `trans_id` int(11) default NULL
 	)";
-	if ($type == 'mssql'){
-		$dtransQ = "CREATE TABLE [dtransactions] (
+	if ($type == 'mssql') {
+		$ltQ = "CREATE TABLE [localtrans] (
 		[datetime] [datetime] NOT NULL ,
 		[register_no] [smallint] NOT NULL ,
 		[emp_no] [smallint] NOT NULL ,
@@ -784,16 +788,12 @@ function create_trans_dbs($db,$type){
 		[trans_id] [int] NOT NULL 
 		) ON [PRIMARY]";
 	}
-	if (!$db->table_exists('dtransactions',$name)){
-		$db->query($dtransQ,$name);
-	}
 
-	$ltQ = str_replace("dtransactions","localtrans",$dtransQ);
 	if (!$db->table_exists('localtrans',$name)){
 		$db->query($ltQ,$name);
 	}
 
-	$lttQ = str_replace("dtransactions","localtrans_today",$dtransQ);
+	$lttQ = str_replace("localtrans","localtrans_today", $ltQ);
 	if (!$db->table_exists('localtrans_today',$name)){
 		$db->query($lttQ,$name);
 	}
@@ -804,26 +804,25 @@ function create_trans_dbs($db,$type){
 		$db->query($lttV,$name);
 	}
 
-	$ltaQ = str_replace("dtransactions","localtransarchive",$dtransQ);
+	$ltaQ = str_replace("localtrans","localtransarchive", $ltQ);
 	if (!$db->table_exists('localtransarchive',$name)){
 		$db->query($ltaQ,$name);
 	}
 
-	$ltaQ = str_replace("dtransactions","pendingtrans",$dtransQ);
-	if (!$db->table_exists('pendingtrans',$name)){
-		$db->query($ltaQ,$name);
-	}
-
+    /**
+      localtemptrans differs from localtrans 
+      by having an increment setting on trans_id
+    */
 	$lttQ = "CREATE TABLE `localtemptrans` (
 	  `datetime` datetime default NULL,
 	  `register_no` smallint(6) default NULL,
 	  `emp_no` smallint(6) default NULL,
 	  `trans_no` int(11) default NULL,
-	  `upc` varchar(255) default NULL,
-	  `description` varchar(255) default NULL,
-	  `trans_type` varchar(255) default NULL,
-	  `trans_subtype` varchar(255) default NULL,
-	  `trans_status` varchar(255) default NULL,
+	  `upc` varchar(13) default NULL,
+	  `description` varchar(30) default NULL,
+	  `trans_type` varchar(1) default NULL,
+	  `trans_subtype` varchar(2) default NULL,
+	  `trans_status` varchar(1) default NULL,
 	  `department` smallint(6) default NULL,
 	  `quantity` real default NULL,
 	  `scale` tinyint(4) default NULL,
@@ -845,15 +844,15 @@ function create_trans_dbs($db,$type){
 	  `VolSpecial` real default NULL,
 	  `mixMatch` varchar(12) default NULL,
 	  `matched` smallint(6) default NULL,
-	  `memType` varchar(10) default NULL,
+	  `memType` tinyint(4) default NULL,
 	  `staff` tinyint(4) default 0,
 	  `numflag` smallint(6) default 0,
 	  `charflag` varchar(2) default '',
-	  `card_no` varchar(255) default NULL,
+	  `card_no` int(11) default NULL,
 	  `trans_id` int(11) NOT NULL auto_increment,
 	  PRIMARY KEY  (`trans_id`)
 	)";
-	if ($type == 'mssql'){
+	if ($type == 'mssql') {
 		$lttQ = "CREATE TABLE [localtemptrans] (
 		[datetime] [smalldatetime] NOT NULL ,
 		[register_no] [smallint] NOT NULL ,
@@ -892,10 +891,193 @@ function create_trans_dbs($db,$type){
 		[trans_id] [int] IDENTITY (1, 1) NOT NULL 
 		) ON [PRIMARY]";
 	}
-
-	/* don't make this table yet */
-	if (!$db->table_exists('localtemptrans',$name)){
+	if (!$db->table_exists('localtemptrans',$name)) {
 		$db->query($lttQ,$name);
+	}
+
+    /**
+      pendingtrans has one additional column:
+      * pos_row_id
+      Incrementing ID emulates additional ID column
+      generated in retail lane=>server operations
+    */
+	$pendingQ = "CREATE TABLE `pendingtrans` (
+	  `datetime` datetime default NULL,
+	  `register_no` smallint(6) default NULL,
+	  `emp_no` smallint(6) default NULL,
+	  `trans_no` int(11) default NULL,
+	  `upc` varchar(255) default NULL,
+	  `description` varchar(255) default NULL,
+	  `trans_type` varchar(255) default NULL,
+	  `trans_subtype` varchar(255) default NULL,
+	  `trans_status` varchar(255) default NULL,
+	  `department` smallint(6) default NULL,
+	  `quantity` real default NULL,
+	  `scale` tinyint(4) default NULL,
+	  `cost` real default 0.00 NULL,
+	  `unitPrice` real default NULL,
+	  `total` real default NULL,
+	  `regPrice` real default NULL,
+	  `tax` smallint(6) default NULL,
+	  `foodstamp` tinyint(4) default NULL,
+	  `discount` real default NULL,
+	  `memDiscount` real default NULL,
+	  `discountable` tinyint(4) default NULL,
+	  `discounttype` tinyint(4) default NULL,
+	  `voided` tinyint(4) default NULL,
+	  `percentDiscount` tinyint(4) default NULL,
+	  `ItemQtty` real default NULL,
+	  `volDiscType` tinyint(4) default NULL,
+	  `volume` tinyint(4) default NULL,
+	  `VolSpecial` real default NULL,
+	  `mixMatch` varchar(12) default NULL,
+	  `matched` smallint(6) default NULL,
+	  `memType` tinyint(2) default NULL,
+	  `staff` tinyint(4) default NULL,
+	  `numflag` smallint(6) default 0 NULL,
+	  `charflag` varchar(2) default '' NULL,
+	  `card_no` varchar(255) default NULL,
+	  `trans_id` int(11) default NULL,
+      `pos_row_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      INDEX(pos_row_id),
+	)";
+	if ($type == 'mssql'){
+		$pendingQ = "CREATE TABLE [pendingtransk] (
+		[datetime] [datetime] NOT NULL ,
+		[register_no] [smallint] NOT NULL ,
+		[emp_no] [smallint] NOT NULL ,
+		[trans_no] [int] NOT NULL ,
+		[upc] [nvarchar] (13) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[description] [nvarchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_type] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_subtype] [nvarchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_status] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[department] [smallint] NULL ,
+		[quantity] [float] NULL ,
+		[scale] [tinyint] NULL ,
+		[unitPrice] [money] NULL ,
+		[total] [money] NOT NULL ,
+		[regPrice] [money] NULL ,
+		[tax] [smallint] NULL ,
+		[foodstamp] [tinyint] NOT NULL ,
+		[discount] [money] NOT NULL ,
+		[memDiscount] [money] NULL ,
+		[discountable] [tinyint] NULL ,
+		[discounttype] [tinyint] NULL ,
+		[voided] [tinyint] NULL ,
+		[percentDiscount] [tinyint] NULL ,
+		[ItemQtty] [float] NULL ,
+		[volDiscType] [tinyint] NOT NULL ,
+		[volume] [tinyint] NOT NULL ,
+		[VolSpecial] [money] NOT NULL ,
+		[mixMatch] [nvarchar] (12) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[matched] [smallint] NOT NULL ,
+		[memType] [smallint] NULL ,
+		[staff] [tinyint] NULL ,
+		[numflag] [smallint] NULL ,
+		[charflag] [nvarchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[card_no] [nvarchar] (6) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_id] [int] NOT NULL ,
+        [pos_row_id] [bigint] NOT NULL IDENTITY(1, 1)
+		) ON [PRIMARY]";
+	}
+	if (!$db->table_exists('pendingtrans',$name)){
+		$db->query($pendingQ,$name);
+	}
+
+    /**
+      dtransactions has three columns that are not in localtrans et al
+      1. store_id (setting a default in the database is suggested)
+      2. pos_row_id (provided by pendingtrans)
+      3. store_row_id (increment column)
+    */
+	$dtransQ = "CREATE TABLE `dtransactions` (
+	  `datetime` datetime default NULL,
+	  `store_id` smallint(6) default NULL,
+	  `register_no` smallint(6) default NULL,
+	  `emp_no` smallint(6) default NULL,
+	  `trans_no` int(11) default NULL,
+	  `upc` varchar(255) default NULL,
+	  `description` varchar(255) default NULL,
+	  `trans_type` varchar(255) default NULL,
+	  `trans_subtype` varchar(255) default NULL,
+	  `trans_status` varchar(255) default NULL,
+	  `department` smallint(6) default NULL,
+	  `quantity` real default NULL,
+	  `scale` tinyint(4) default NULL,
+	  `cost` real default 0.00 NULL,
+	  `unitPrice` real default NULL,
+	  `total` real default NULL,
+	  `regPrice` real default NULL,
+	  `tax` smallint(6) default NULL,
+	  `foodstamp` tinyint(4) default NULL,
+	  `discount` real default NULL,
+	  `memDiscount` real default NULL,
+	  `discountable` tinyint(4) default NULL,
+	  `discounttype` tinyint(4) default NULL,
+	  `voided` tinyint(4) default NULL,
+	  `percentDiscount` tinyint(4) default NULL,
+	  `ItemQtty` real default NULL,
+	  `volDiscType` tinyint(4) default NULL,
+	  `volume` tinyint(4) default NULL,
+	  `VolSpecial` real default NULL,
+	  `mixMatch` varchar(12) default NULL,
+	  `matched` smallint(6) default NULL,
+	  `memType` tinyint(2) default NULL,
+	  `staff` tinyint(4) default NULL,
+	  `numflag` smallint(6) default 0 NULL,
+	  `charflag` varchar(2) default '' NULL,
+	  `card_no` varchar(255) default NULL,
+	  `trans_id` int(11) default NULL,
+      `pos_row_id` BIGINT UNSIGNED,
+      `store_row_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      INDEX(store_row_id),
+      INDEX(store_id)
+	)";
+	if ($type == 'mssql'){
+		$dtransQ = "CREATE TABLE [dtransactions] (
+		[datetime] [datetime] NOT NULL ,
+		[store_id] [smallint] NOT NULL ,
+		[register_no] [smallint] NOT NULL ,
+		[emp_no] [smallint] NOT NULL ,
+		[trans_no] [int] NOT NULL ,
+		[upc] [nvarchar] (13) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[description] [nvarchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_type] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_subtype] [nvarchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_status] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[department] [smallint] NULL ,
+		[quantity] [float] NULL ,
+		[scale] [tinyint] NULL ,
+		[unitPrice] [money] NULL ,
+		[total] [money] NOT NULL ,
+		[regPrice] [money] NULL ,
+		[tax] [smallint] NULL ,
+		[foodstamp] [tinyint] NOT NULL ,
+		[discount] [money] NOT NULL ,
+		[memDiscount] [money] NULL ,
+		[discountable] [tinyint] NULL ,
+		[discounttype] [tinyint] NULL ,
+		[voided] [tinyint] NULL ,
+		[percentDiscount] [tinyint] NULL ,
+		[ItemQtty] [float] NULL ,
+		[volDiscType] [tinyint] NOT NULL ,
+		[volume] [tinyint] NOT NULL ,
+		[VolSpecial] [money] NOT NULL ,
+		[mixMatch] [nvarchar] (12) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[matched] [smallint] NOT NULL ,
+		[memType] [smallint] NULL ,
+		[staff] [tinyint] NULL ,
+		[numflag] [smallint] NULL ,
+		[charflag] [nvarchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[card_no] [nvarchar] (6) COLLATE SQL_Latin1_General_CP1_CI_AS NULL ,
+		[trans_id] [int] NOT NULL ,
+        [pos_row_id] [bigint],
+        [store_row_id] [bigint] NOT NULL IDENTITY(1, 1)
+		) ON [PRIMARY]";
+	}
+	if (!$db->table_exists('dtransactions',$name)){
+		$db->query($dtransQ,$name);
 	}
 
 	$caQ = "CREATE TABLE couponApplied (
