@@ -7,7 +7,6 @@ if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
 <head></head>
 <body>
 <?php
-include('../ini.php');
 if (!class_exists('PhpAutoLoader')) {
     require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
