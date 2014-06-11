@@ -10,6 +10,7 @@ if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
 if (!class_exists('PhpAutoLoader')) {
     require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
+include('../ini.php');
 
 $db = Database::tDataConnect();
 

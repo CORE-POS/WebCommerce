@@ -10,6 +10,7 @@ if (basename(__FILE__) != basename($_SERVER['PHP_SELF'])) {
 if (!class_exists('PhpAutoLoader')) {
     require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
+include('../ini.php');
 
 $query = "UPDATE products AS p INNER JOIN productExpires AS e
 	ON p.upc=e.upc 
