@@ -32,7 +32,7 @@ $pingQ = "INSERT INTO dtransactions (datetime, register_no, emp_no, trans_no, up
             0, 0, 0, 0, 0, 0,
             0, 0, '', 0, 0, 0, 0, 0,
             '', 0, 1)";
-$db->query($pingR);
+$db->query($pingQ);
 
 ?>
 </body>
