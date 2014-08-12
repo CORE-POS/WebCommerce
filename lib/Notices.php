@@ -48,6 +48,20 @@ public static function customerConfirmation($uid,$email,$total)
 	$msg .= $cart."\n";
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
 
+    $class_info = "\nCLASS INSTRUCTIONS:\n"
+        . wordwrap("Please be courteous of the instructor and your classmates and be on time. Anyone arriving more than 10 minutes late will not be admitted into the class. The classroom is open at least 20 minutes prior to each class time to allow you to get settled in.")
+        . "\n"
+        . wordwrap("Please park in the 4th Street (upper) lot. People parking in the staff (lower) lot will be asked to move to the upper lot. We will no longer have anyone monitoring the back entrance.")
+        . "\n"
+        . wordwrap("Students should check in at Customer Service. We will escort you in groups to the classroom.")
+        . "\n"
+        . wordwrap("Please be on time! Late arrivals are disruptive to the instructor, and students. The classroom is open at least 30 minutes before each class, anyone arriving more than 10 minutes late will not be allowed into the class. A refund will not be given.")
+        . "\n\n"
+        . "THE FINE PRINT READ ME PLEASE!\n"
+        . wordwrap("Classes and lectures must have a minimum of 6 students signed up for the class to take place. If a student cancels prior to 48 hours before the class, the refund will be applied to a future class or refunded in full in the tender with which it was paid. No refunds will be given for cancellations received after the 48-hour deadline or for no-shows. If WFC cancels the class, a full refund will be given or the refund may be applied to a future class, whichever the student prefers.");
+
+    $msg .= $class_info;
+
 	self::sendEmail($email,"WFC Order Confirmation",$msg);
 
 	return $cart;
