@@ -96,6 +96,8 @@ class createAccount extends BasicPage {
 			'owner'=>0
 		);
 
+		$dbc = Database::pDataConnect();
+
 		if (isset($_REQUEST['submit'])){
 			// validate
 			$errors = False;
@@ -133,7 +135,7 @@ class createAccount extends BasicPage {
 			}
 
 			if (isset($_REQUEST['vln']) && !empty($_REQUEST['vln']) && isset($_REQUEST['vnum']) && !empty($_REQUEST['vnum'])) {
-                $lastname = $_REQUSET['vln'];
+                $lastname = $_REQUEST['vln'];
                 $num = $_REQUEST['vnum'];
                 $num = str_replace(' ','',$num);
                 if (strlen($num)>=10){ // likely a card
@@ -156,7 +158,7 @@ class createAccount extends BasicPage {
                     $this->msgs .= 'You may omit Owner information and update your account\'s
                         status later.';
                     $this->msgs .= '</div>';
-		    $errors = True;
+                    $errors = True;
                 } else {
                     $row = $dbc->fetch_row($result);
 
