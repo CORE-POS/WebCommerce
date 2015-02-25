@@ -87,6 +87,9 @@ public static function isEmail($str)
 
 public static function getUID($name)
 {
+  if ($name === false) {
+      return false;
+  }
   $sql = self::dbconnect();
   $fetchP = $sql->prepare_statement("select uid from Users where name=?");
   $fetchR = $sql->exec_statement($fetchP,array($name));

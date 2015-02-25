@@ -112,7 +112,7 @@ class storefront extends BasicPage {
 		$p = $dbc->prepare_statement($q);
 		$r = $dbc->exec_statement($p, $args);
 				
-		$ret = '<table cellspacing="4" cellpadding="4" id="browsetable">';
+		$ret = '<table class="table" cellspacing="4" cellpadding="4" id="browsetable">';
 		$ret .= '<tr><th>Brand</th><th>Product</th><th>Price</th><th>&nbsp;</th></tr>';
 		while($w = $dbc->fetch_row($r)){
 			$ret .= sprintf('<tr><td>%s</td>

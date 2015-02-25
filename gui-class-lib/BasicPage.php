@@ -59,6 +59,10 @@ class BasicPage {
 
 	}
 
+	function css_content(){
+
+	}
+
     /**
       Add a script to the page using <script> tags
       @param $file_url the script URL
@@ -97,6 +101,9 @@ class BasicPage {
 		echo "<script type=\"text/javascript\">";
 		$this->js_content();
 		echo "</script>";
+        echo '<style type="text/css">';
+        echo $this->css_content();
+        echo '</style>';
 		$this->streamTemplateFile('header.html');
 		$this->top_menu();
 		echo "<div id=\"boundingBox\">\n";
