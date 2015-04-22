@@ -118,14 +118,14 @@ class BasicPage {
 		$user = AuthLogin::checkLogin();
 		if (!$user){
 			printf('<ul>
-				<li><a href="%sgui-modules/storefront.php">Browse Store</a>
+				<li><a href="%sitems/">Browse Store</a>
 				<li><a href="%sgui-modules/loginPage.php">Login</a></li>
 				</ul>',
 				$IS4C_PATH,$IS4C_PATH);
 		}
 		else {
 			printf('<ul>
-				<li><a href="%sgui-modules/storefront.php">Browse Store</a>
+				<li><a href="%sitems/">Browse Store</a>
 				<li><a href="%sgui-modules/manageAccount.php">%s</a></li>
 				<li><a href="%sgui-modules/cart.php">Shopping Cart</a></li>
 				<li><a href="%sgui-modules/loginPage.php?logout=yes">Logout</a></li>

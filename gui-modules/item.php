@@ -91,7 +91,10 @@ class itemPage extends BasicPage {
 		echo '<br /><br />';
 		if ($w['inUse'] == 0 || $w['available'] <= 0 || $w['soldOut'] == 1){
 			echo 'This product is expired, out of stock, or otherwise
-				no longer available to order';
+                no longer available to order online. Class reservations or
+                waiting lists may still be available. Call 
+                218-728-0884 and press 1 to speak to customer service
+                for more information.';
 		}
 		else if ($empno == -999){
 			echo '<a href="loginPage.php">Login</a> or ';

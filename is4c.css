@@ -54,8 +54,9 @@ span.itemBrand {
 }
 
 div.itemPrice {
-	width: 200px;
+	width: 250px;
 	float: left;
+    margin-left: 30px;
 }
 span.itemPriceNormal {
 	font-size: 150%;
