@@ -124,6 +124,44 @@ public static function getcart($empno)
 	return $ret;
 }
 
+public static function joinNotification($json)
+{
+	$msg = "Thank you for joining Whole Foods Co-op\n\n";
+    $msg .= 'Your owner number is ' . $json['card_no'] . "\n\n";
+    $msg .= 'Your owner ID cards and other materials will be available for pickup on '
+        . date('F j, Y', strtotime('+1 day')) . ' at the ';
+    if ($json['store'] == 1) {
+        $msg .= 'Hillside store:' . "\n";
+        $msg .= '610 E 4th St.' . "\n";
+        $msg .= 'Duluth, MN 55805' . "\n";
+        $msg .= '218-728-0884' . "\n";
+    }
+
+	self::sendEmail($json['email'], "Whole Foods Co-op", $msg);
+}
+
+public static function joinAdminNotification($json)
+{
+    $msg = 'New member joined via the website' . "\n\n";
+    $msg .= 'Name: ' . $json['fn'] . ' ' . $json['ln'] . "\n";
+    $msg .= 'Address: ' . $json['addr1'] . "\n";
+    if (!empty($json['addr2'])) {
+        $msg .= $json['addr2'] . "\n";
+    }
+    $msg .= 'City: ' . $json['city'] . "\n";
+    $msg .= 'State: ' . $json['state'] . "\n";
+    $msg .= 'Zip: ' . $json['zip'] . "\n";
+    $msg .= 'Phone: ' . $json['ph'] . "\n";
+    $msg .= 'E-mail: ' . $json['email'] . "\n";
+
+    $msg .= "\n";
+    $msg .= 'Update membership:' . "\n";
+    $msg .= 'http://key/git/fannie/modules/plugins/PIKiller/PIApply.php?json=';
+    $msg .= base64_encode(json_encode($json)) . "\n";
+
+	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
+}
+
 }
 
 ?>
