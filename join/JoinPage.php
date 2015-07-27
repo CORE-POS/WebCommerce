@@ -45,9 +45,10 @@ class JoinPage extends BasicPage
         }
 		echo $this->msgs;
 		?>
-		<div id="loginTitle">Join the Co-op<br />
+		<div id="loginTitle">
+        <h2>Join the Co-op</h2>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-		<table cellspacing="4" cellpadding="4">
+		<table class="table" cellspacing="4" cellpadding="4">
 		<tr>
             <th>First Name</th>
             <td><input type="text" required name="fn" value="<?php echo $this->entries['fn']; ?>" /></td>
@@ -86,19 +87,21 @@ class JoinPage extends BasicPage
 		</tr>
         <tr>
             <th>Password</th>
-            <td><input type="password" required name="passwd" value="<?php echo $this->entries['passwd']; ?>" /></td>
+            <td><input type="password" class="form-control" required name="passwd" value="<?php echo $this->entries['passwd']; ?>" /></td>
 		</tr>
         <tr>
             <th>Re-Type Password</th>
-            <td><input type="password" required name="passwd2" value="<?php echo $this->entries['passwd']; ?>" /></td>
+            <td><input type="password" class="form-control" required name="passwd2" value="<?php echo $this->entries['passwd']; ?>" /></td>
 		</tr>
         <tr>
             <th>Payment Options</th>
             <td align="left">
-                <label><input type="radio" name="plan" value="1" checked />$20 today; remaining $80 due by 
+                <label><input type="radio" name="plan" value="1" checked />
+                $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
                 <br />
-                <label><input type="radio" name="plan" value=2" />Full $100 today</label>
+                <label><input type="radio" name="plan" value=2" />
+                Full $100 today</label>
             </td>
         </tr>
         <tr>
@@ -111,7 +114,7 @@ class JoinPage extends BasicPage
             </td>
         </tr>
         <tr>
-            <th><input type="submit" value="Create Account" name="submit" /></th>
+            <th><input type="submit" value="Join" name="submit" /></th>
             <td>&nbsp;</td>
 		</tr>
 		</table>
@@ -126,9 +129,11 @@ class JoinPage extends BasicPage
         ?>
 		<div id="loginTitle">
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-        <input type="hidden" name="token" value="<?php echo $this->token; ?>" />
+        <input type="hidden" name="_token" value="<?php echo $this->token; ?>" />
         <p>
-        Text should go here explaining why the user needs to confirm their payment.
+        Your new account is almost ready. Please click <i>Finalize Payment</i> to
+        confirm your $<?php echo $this->entries['plan'] == 2 ? '100.00': '20.00'; ?>
+        payment. 
         </p>
         <p>
         <input type="submit" name="finalize" value="Finalize Payment" />
@@ -152,7 +157,7 @@ class JoinPage extends BasicPage
 
 	function preprocess()
     {
-		global $IS4C_PATH;
+        global $IS4C_PATH,$PAYMENT_URL_SUCCESS, $PAYMENT_URL_FAILURE;
         if (session_id() === '') {
             session_start();
         }
@@ -179,12 +184,13 @@ class JoinPage extends BasicPage
             $this->mode = 'confirm';
             $this->token = $_REQUEST[$proc->postback_field_name];
             return true;
-        } elseif (isset($_REQUEST['token']) && isset($_REQUEST['finalize'])) {
-            $done = $proc->finalizePayment($_REQUEST['token']);
+        } elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
+            $done = $proc->finalizePayment($_REQUEST['_token']);
             $this->entries = $_SESSION['userInfo'];
             unset($_SESSION['userInfo']);
             $this->mode = 'done';
-            $prep = $dbc->prepare_statement('
+            $db = Database::pDataConnect();
+            $prep = $db->prepare_statement('
                 UPDATE custdata
                 SET FirstName=?,
                     LastName=?
@@ -195,7 +201,7 @@ class JoinPage extends BasicPage
                 $this->entries['passwd'],
                 $this->entries['name'],
                 $this->entries['card_no']);
-            AuthLogin::login($this->entries['email'],$this->entries['passwd']);
+            AuthUtilities::doLogin($this->entries['email'],$this->entries['passwd']);
             $empno = AuthUtilities::getUID($this->entries['email']);
             $final_amount = $this->entries['plan'] == 2 ? 100.00 : 20.00;
             TransRecord::addOpenRing(20.00, 992, 'Class A Equity');
@@ -391,6 +397,12 @@ class JoinPage extends BasicPage
                 $_SESSION['userInfo'] = $this->entries;
 
                 $amount = ($this->entries['plan'] == 2) ? '100.00' : '20.00';
+                $PAYMENT_URL_SUCCESS = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+                $PAYMENT_URL_FAILURE = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+                if (substr($PAYMENT_URL_FAILURE, -9) == 'index.php') {
+                    $PAYMENT_URL_FAILURE = substr($PAYMENT_URL_FAILURE, 0, strlen($PAYMENT_URL_FAILURE)-9);
+                }
+                $PAYMENT_URL_FAILURE .= 'cancel/';
                 $init = $proc->initializePayment($amount, '0.00', $this->entries['email']);
                 if ($init === false) {
                     $this->msgs .= 'Error: cannot process payment at this time.';
