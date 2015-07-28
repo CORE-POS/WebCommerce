@@ -163,7 +163,7 @@ public static function joinNotification($json)
         $msg .= '218-728-0884' . "\n";
     }
 
-	self::sendEmail($json['email'], "Whole Foods Co-op", $msg);
+	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
 }
 
 public static function joinAdminNotification($json)
@@ -182,8 +182,8 @@ public static function joinAdminNotification($json)
 
     $msg .= "\n";
     $msg .= 'Update membership:' . "\n";
-    $msg .= 'http://key/git/fannie/modules/plugins/PIKiller/PIApply.php?json=';
-    $msg .= base64_encode(json_encode($json)) . "\n";
+    $msg .= '<a href="http://key/git/fannie/modules/plugins/PIKiller/PIApply.php?json=';
+    $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
 
 	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
 }

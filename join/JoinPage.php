@@ -199,9 +199,9 @@ class JoinPage extends BasicPage
 
             $created = AuthLogin::createLogin($this->entries['email'],
                 $this->entries['passwd'],
-                $this->entries['name'],
+                $this->entries['fn'] . ' ' . $this->entries['ln'],
                 $this->entries['card_no']);
-            AuthUtilities::doLogin($this->entries['email'],$this->entries['passwd']);
+            AuthUtilities::doLogin($this->entries['email']);
             $empno = AuthUtilities::getUID($this->entries['email']);
             $final_amount = $this->entries['plan'] == 2 ? 100.00 : 20.00;
             TransRecord::addOpenRing(20.00, 992, 'Class A Equity');
