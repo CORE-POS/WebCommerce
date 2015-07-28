@@ -44,6 +44,7 @@ public static function sendEmail($to,$subject,$msg)
         $mail->Port = 25;
         $mail->SMTPAuth = false;
         $mail->From = self::STORE_EMAIL;
+        $mail->FromName = 'Whole Foods Co-op';
         $mail->addReplyTo(self::REPLY_EMAIL);
         if (strstr($to, ',')) {
             foreach (explode(',', $to) as $address) {
