@@ -37,7 +37,32 @@ public static function sendEmail($to,$subject,$msg)
 	$headers = 'From: '.self::STORE_EMAIL."\r\n";
 	$headers .= 'Reply-To: '.self::REPLY_EMAIL."\r\n";
 
-	mail($to,$subject,$msg,$headers);
+    if (class_exists('PHPMailer')) {
+        $mail = new PHPMailer();
+        $mail->isSMTP();
+        $mail->Host = '127.0.0.1';
+        $mail->Port = 25;
+        $mail->SMTPAuth = false;
+        $mail->From = self::STORE_EMAIL;
+        $mail->addReplyTo(self::REPLY_EMAIL);
+        if (strstr($to, ',')) {
+            foreach (explode(',', $to) as $address) {
+                $mail->addAdress(trim($address));
+            }
+        } else {
+            $mail->addAddress($to);
+        }
+        $mail->Subject = $subject;
+        $html = file_get_contents(dirname(__FILE__) . '/../src/html-mail/header.html')
+            . str_replace("\n", '<br>', $msg)
+            . file_get_contents(dirname(__FILE__) . '/../src/html-mail/footer.html');
+        $mail->isHTML(true);
+        $mail->Body = $html;
+        $mail->AltBody = $msg;
+        $mail->send();
+    } else {
+        mail($to,$subject,$msg,$headers);
+    }
 }
 
 public static function customerConfirmation($uid,$email,$total)
