@@ -9,6 +9,7 @@ $example = array(
     'upc' => '0000000004011',
     'check-digits' => false,
 );
+$input = array('upc' => '4011');
 
 header('Content-type: application/json');
 if (!isset($input['upc'])) {
@@ -18,7 +19,7 @@ if (!isset($input['upc'])) {
     $dbc = Database::pDataConnect();
     $query = '
         SELECT p.upc,
-            p.brand AS brand1,
+            NULL AS brand1,
             u.brand AS brand2,
             p.description AS desc1,
             u.description AS desc2,
@@ -29,6 +30,7 @@ if (!isset($input['upc'])) {
         WHERE p.upc=?';
     $prep = $dbc->prepare($query);
     $res = $dbc->execute($prep, array($input['upc']));
+    echo $dbc->error();
 
     while ($w = $dbc->fetchRow($res)) {
         $out['upc'] = $w['upc'];
