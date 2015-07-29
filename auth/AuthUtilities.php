@@ -167,6 +167,7 @@ public static function doLogin($name)
 	$cookie_data = serialize($session_data);
 
 	setcookie('is4c-web',base64_encode($cookie_data),0,'/');
+    $_COOKIE['is4c-web'] = base64_encode($cookie_data);
 }
 
 public static function syncUserLDAP($name,$uid,$fullname)

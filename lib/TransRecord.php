@@ -218,6 +218,15 @@ public static function addUPC($upc,$quantity=1.0)
 			$row['local'], ''); 
 }
 
+public static function addOpenRing($amount, $dept_no, $dept_name, $tax=0, $fs=0)
+{
+	return self::addItem($amount . 'DP' . $dept_no, $dept_name, 'D', '', '', $dept_no, 1.0, 
+			$amount, $amount, $amount, 0, $tax, 
+			$fs, 0, 0, 0,
+			0, 1.0, 0, 0, 0.00, 0, 0, 0, 0,
+			0, ''); 
+}
+
 //---------------------------------- insert tax line item --------------------------------------
 
 public static function addtax($amt) 

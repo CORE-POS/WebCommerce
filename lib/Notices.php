@@ -37,7 +37,33 @@ public static function sendEmail($to,$subject,$msg)
 	$headers = 'From: '.self::STORE_EMAIL."\r\n";
 	$headers .= 'Reply-To: '.self::REPLY_EMAIL."\r\n";
 
-	mail($to,$subject,$msg,$headers);
+    if (class_exists('PHPMailer')) {
+        $mail = new PHPMailer();
+        $mail->isSMTP();
+        $mail->Host = '127.0.0.1';
+        $mail->Port = 25;
+        $mail->SMTPAuth = false;
+        $mail->From = self::STORE_EMAIL;
+        $mail->FromName = 'Whole Foods Co-op';
+        $mail->addReplyTo(self::REPLY_EMAIL);
+        if (strstr($to, ',')) {
+            foreach (explode(',', $to) as $address) {
+                $mail->addAdress(trim($address));
+            }
+        } else {
+            $mail->addAddress($to);
+        }
+        $mail->Subject = $subject;
+        $html = file_get_contents(dirname(__FILE__) . '/../src/html-mail/header.html')
+            . str_replace("\n", '<br>', $msg)
+            . file_get_contents(dirname(__FILE__) . '/../src/html-mail/footer.html');
+        $mail->isHTML(true);
+        $mail->Body = $html;
+        $mail->AltBody = $msg;
+        $mail->send();
+    } else {
+        mail($to,$subject,$msg,$headers);
+    }
 }
 
 public static function customerConfirmation($uid,$email,$total)
@@ -122,6 +148,44 @@ public static function getcart($empno)
 	$ret .= sprintf("Sales tax: \$%.2f\n",$taxes);
 
 	return $ret;
+}
+
+public static function joinNotification($json)
+{
+	$msg = "Thank you for joining Whole Foods Co-op\n\n";
+    $msg .= 'Your owner number is ' . $json['card_no'] . "\n\n";
+    $msg .= 'Your owner ID cards and other materials will be available for pickup on '
+        . date('F j, Y', strtotime('+1 day')) . ' at the ';
+    if ($json['store'] == 1) {
+        $msg .= 'Hillside store:' . "\n";
+        $msg .= '610 E 4th St.' . "\n";
+        $msg .= 'Duluth, MN 55805' . "\n";
+        $msg .= '218-728-0884' . "\n";
+    }
+
+	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
+}
+
+public static function joinAdminNotification($json)
+{
+    $msg = 'New member joined via the website' . "\n\n";
+    $msg .= 'Name: ' . $json['fn'] . ' ' . $json['ln'] . "\n";
+    $msg .= 'Address: ' . $json['addr1'] . "\n";
+    if (!empty($json['addr2'])) {
+        $msg .= $json['addr2'] . "\n";
+    }
+    $msg .= 'City: ' . $json['city'] . "\n";
+    $msg .= 'State: ' . $json['state'] . "\n";
+    $msg .= 'Zip: ' . $json['zip'] . "\n";
+    $msg .= 'Phone: ' . $json['ph'] . "\n";
+    $msg .= 'E-mail: ' . $json['email'] . "\n";
+
+    $msg .= "\n";
+    $msg .= 'Update membership:' . "\n";
+    $msg .= '<a href="http://key/git/fannie/modules/plugins/PIKiller/PIApply.php?json=';
+    $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
+
+	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
 }
 
 }
