@@ -45,57 +45,57 @@ class JoinPage extends BasicPage
         }
 		echo $this->msgs;
 		?>
+        <style type="text/css">
+        input.medium {
+            width: 12em;
+        }
+        </style>
 		<div id="loginTitle">
         <h2>Join the Co-op</h2>
+        <p class="text-left">
+        Become an <a href="http://wholefoods.coop/ownership/becoming-an-owner/">Owner</a> of Whole Foods Co-op today.
+        Ownership is a $100 investment. You may pay the full amount immediately or pay $20 now and the remaining $80
+        at any time in any increment(s) over the next year. After making the payment of your choice online your
+        Owner ID card and other materials will be available for pick up within 48 hours at the chosen Whole Foods Co-op 
+        location.
+        </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<table class="table" cellspacing="4" cellpadding="4">
 		<tr>
             <th>First Name</th>
-            <td><input type="text" required name="fn" value="<?php echo $this->entries['fn']; ?>" /></td>
-		</tr>
-		<tr>
+            <td><input class="medium" type="text" required name="fn" value="<?php echo $this->entries['fn']; ?>" /></td>
             <th>Last Name</th>
-            <td><input type="text" required name="ln" value="<?php echo $this->entries['ln']; ?>" /></td>
+            <td colspan="3"><input type="text" required name="ln" value="<?php echo $this->entries['ln']; ?>" /></td>
 		</tr>
 		<tr>
             <th>Street Address</th>
-            <td><input type="text" required name="addr1" value="<?php echo $this->entries['addr1']; ?>" /></td>
-		</tr>
-		<tr>
+            <td><input type="text" class="medium" required name="addr1" value="<?php echo $this->entries['addr1']; ?>" /></td>
             <th>Address (continued)</th>
-            <td><input type="text" name="addr2" value="<?php echo $this->entries['addr2']; ?>" /></td>
+            <td colspan="3"><input type="text" name="addr2" value="<?php echo $this->entries['addr2']; ?>" /></td>
 		</tr>
 		<tr>
             <th>City</th>
-            <td><input type="text" required name="city" value="<?php echo $this->entries['city']; ?>" /></td>
-		</tr>
-		<tr>
+            <td><input type="text" required class="medium" name="city" value="<?php echo $this->entries['city']; ?>" /></td>
             <th>State</th>
             <td><input type="text" required name="state" value="<?php echo $this->entries['state']; ?>" /></td>
-		</tr>
-		<tr>
             <th>Zip Code</th>
             <td><input type="text" required name="zip" value="<?php echo $this->entries['zip']; ?>" /></td>
 		</tr>
 		<tr>
             <th>Phone Number</th>
-            <td><input type="tel" required name="ph" value="<?php echo $this->entries['ph']; ?>" /></td>
-		</tr>
-        <tr>
+            <td><input type="tel" class="medium" required name="ph" value="<?php echo $this->entries['ph']; ?>" /></td>
             <th>E-mail address</th>
-            <td><input type="text" required name="email" value="<?php echo $this->entries['email']; ?>" /></td>
+            <td colspan="3"><input type="text" required name="email" value="<?php echo $this->entries['email']; ?>" /></td>
 		</tr>
         <tr>
             <th>Password</th>
-            <td><input type="password" class="form-control" required name="passwd" value="<?php echo $this->entries['passwd']; ?>" /></td>
-		</tr>
-        <tr>
+            <td><input type="password" class="medium form-control" required name="passwd" value="<?php echo $this->entries['passwd']; ?>" /></td>
             <th>Re-Type Password</th>
-            <td><input type="password" class="form-control" required name="passwd2" value="<?php echo $this->entries['passwd']; ?>" /></td>
+            <td colspan=3"><input type="password" class="form-control" required name="passwd2" value="<?php echo $this->entries['passwd']; ?>" /></td>
 		</tr>
         <tr>
             <th>Payment Options</th>
-            <td align="left">
+            <td align="left" colspan="5">
                 <label><input type="radio" name="plan" value="1" checked />
                 $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
@@ -105,8 +105,8 @@ class JoinPage extends BasicPage
             </td>
         </tr>
         <tr>
-            <th>I want to pick up my member ID card at:</th>
-            <td>
+            <th>I want to pick up my Owner ID card at:</th>
+            <td colspan="5">
                 <select name="store" required>
                     <option value="">Choose a store</option>
                     <option value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>

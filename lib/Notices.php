@@ -39,7 +39,7 @@ public static function sendEmail($to,$subject,$msg)
 
     if (class_exists('PHPMailer')) {
         $mail = new PHPMailer();
-        $mail->isSMTP();
+        $mail->isMail();
         $mail->From = self::STORE_EMAIL;
         $mail->FromName = 'Whole Foods Co-op';
         $mail->addReplyTo(self::REPLY_EMAIL);
@@ -179,7 +179,7 @@ public static function joinAdminNotification($json)
 
     $msg .= "\n";
     $msg .= 'Update membership:' . "\n";
-    $msg .= '<a href="http://key/git/fannie/modules/plugins/PIKiller/PIApply.php?json=';
+    $msg .= '<a href="http://key/git/fannie/modules/plugins2.0/PIKiller/PIApply.php?json=';
     $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
 
 	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
