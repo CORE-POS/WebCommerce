@@ -40,9 +40,6 @@ public static function sendEmail($to,$subject,$msg)
     if (class_exists('PHPMailer')) {
         $mail = new PHPMailer();
         $mail->isSMTP();
-        $mail->Host = '127.0.0.1';
-        $mail->Port = 25;
-        $mail->SMTPAuth = false;
         $mail->From = self::STORE_EMAIL;
         $mail->FromName = 'Whole Foods Co-op';
         $mail->addReplyTo(self::REPLY_EMAIL);
