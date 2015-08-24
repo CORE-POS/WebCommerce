@@ -110,6 +110,7 @@ class JoinPage extends BasicPage
                 <select name="store" required>
                     <option value="">Choose a store</option>
                     <option value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>
+                    <option value="50">Mail me the owner materials instead</option>
                 </select>
             </td>
         </tr>

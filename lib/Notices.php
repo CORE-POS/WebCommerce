@@ -152,13 +152,20 @@ public static function joinNotification($json)
 {
 	$msg = "Thank you for joining Whole Foods Co-op\n\n";
     $msg .= 'Your owner number is ' . $json['card_no'] . "\n\n";
-    $msg .= 'Your owner ID cards and other materials will be available for pickup on '
-        . date('F j, Y', strtotime('+1 day')) . ' at the ';
     if ($json['store'] == 1) {
+        $msg .= 'Your owner ID cards and other materials will be available for pickup on '
+            . date('F j, Y', strtotime('+1 day')) . ' at the ';
         $msg .= 'Hillside store:' . "\n";
         $msg .= '610 E 4th St.' . "\n";
         $msg .= 'Duluth, MN 55805' . "\n";
         $msg .= '218-728-0884' . "\n";
+    } elseif ($json['store'] == 50) {
+        $msg .= 'Your owner ID cards and other materials will be mailed to: ' . "\n";
+        $msg .= $json['addr1'] . "\n";
+        if (!empty($json['addr2'])) {
+            $msg .= $json['addr2'] . "\n";
+        }
+        $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
     }
 
 	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
@@ -177,6 +184,11 @@ public static function joinAdminNotification($json)
     $msg .= 'Zip: ' . $json['zip'] . "\n";
     $msg .= 'Phone: ' . $json['ph'] . "\n";
     $msg .= 'E-mail: ' . $json['email'] . "\n";
+    if ($json['store'] == 1) {
+        $msg .= 'Owner packet will be collected at Hillside.' . "\n";
+    } elseif ($json['store'] == 50) {
+        $msg .= 'Owner packet should be mailed to owner.' . "\n";
+    }
 
     $msg .= "\n";
     $msg .= 'Update membership:' . "\n";
