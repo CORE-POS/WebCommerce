@@ -31,6 +31,7 @@ class Notices
     const STORE_EMAIL = 'orders@wholefoods.coop';
     const REPLY_EMAIL = 'andy@wholefoods.coop';
     const ADMIN_EMAIL = 'andy@wholefoods.coop';
+    const PLUGIN_EMAIL = 'pik@hillside.wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
 {
@@ -183,6 +184,19 @@ public static function joinAdminNotification($json)
     $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
 
 	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
+
+    if (class_exists('PHPMailer')) {
+        $mail = new PHPMailer();
+        $mail->isMail();
+        $mail->From = self::STORE_EMAIL;
+        $mail->FromName = 'Whole Foods Co-op';
+        $mail->addReplyTo(self::REPLY_EMAIL);
+        $mail->addAddress(self::PLUGIN_EMAIL);
+        $mail->addStringAttachment($json, 'data.json', 'base64', 'application/json');
+        $mail->isHTML(false);
+        $mail->Body = 'blank';
+        $mail->send();
+    }
 }
 
 }
