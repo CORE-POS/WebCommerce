@@ -45,7 +45,7 @@ public static function sendEmail($to,$subject,$msg)
         $mail->addReplyTo(self::REPLY_EMAIL);
         if (strstr($to, ',')) {
             foreach (explode(',', $to) as $address) {
-                $mail->addAdress(trim($address));
+                $mail->addAddress(trim($address));
             }
         } else {
             $mail->addAddress($to);
