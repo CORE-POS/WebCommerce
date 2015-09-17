@@ -31,6 +31,7 @@ class Notices
     const STORE_EMAIL = 'orders@wholefoods.coop';
     const REPLY_EMAIL = 'andy@wholefoods.coop';
     const ADMIN_EMAIL = 'andy@wholefoods.coop';
+    const PLUGIN_EMAIL = 'pik@hillside.wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
 {
@@ -151,13 +152,20 @@ public static function joinNotification($json)
 {
 	$msg = "Thank you for joining Whole Foods Co-op\n\n";
     $msg .= 'Your owner number is ' . $json['card_no'] . "\n\n";
-    $msg .= 'Your owner ID cards and other materials will be available for pickup on '
-        . date('F j, Y', strtotime('+1 day')) . ' at the ';
     if ($json['store'] == 1) {
+        $msg .= 'Your owner ID cards and other materials will be available for pickup on '
+            . date('F j, Y', strtotime('+1 day')) . ' at the ';
         $msg .= 'Hillside store:' . "\n";
         $msg .= '610 E 4th St.' . "\n";
         $msg .= 'Duluth, MN 55805' . "\n";
         $msg .= '218-728-0884' . "\n";
+    } elseif ($json['store'] == 50) {
+        $msg .= 'Your owner ID cards and other materials will be mailed to: ' . "\n";
+        $msg .= $json['addr1'] . "\n";
+        if (!empty($json['addr2'])) {
+            $msg .= $json['addr2'] . "\n";
+        }
+        $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
     }
 
 	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
@@ -176,6 +184,11 @@ public static function joinAdminNotification($json)
     $msg .= 'Zip: ' . $json['zip'] . "\n";
     $msg .= 'Phone: ' . $json['ph'] . "\n";
     $msg .= 'E-mail: ' . $json['email'] . "\n";
+    if ($json['store'] == 1) {
+        $msg .= 'Owner packet will be collected at Hillside.' . "\n";
+    } elseif ($json['store'] == 50) {
+        $msg .= 'Owner packet should be mailed to owner.' . "\n";
+    }
 
     $msg .= "\n";
     $msg .= 'Update membership:' . "\n";
@@ -183,6 +196,19 @@ public static function joinAdminNotification($json)
     $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
 
 	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
+
+    if (class_exists('PHPMailer')) {
+        $mail = new PHPMailer();
+        $mail->isMail();
+        $mail->From = self::STORE_EMAIL;
+        $mail->FromName = 'Whole Foods Co-op';
+        $mail->addReplyTo(self::REPLY_EMAIL);
+        $mail->addAddress(self::PLUGIN_EMAIL);
+        $mail->addStringAttachment($json, 'data.json', 'base64', 'application/json');
+        $mail->isHTML(false);
+        $mail->Body = 'blank';
+        $mail->send();
+    }
 }
 
 }
