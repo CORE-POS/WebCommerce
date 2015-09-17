@@ -55,9 +55,13 @@ class JoinPage extends BasicPage
         <p class="text-left">
         Become an <a href="http://wholefoods.coop/ownership/becoming-an-owner/">Owner</a> of Whole Foods Co-op today.
         Ownership is a $100 investment. You may pay the full amount immediately or pay $20 now and the remaining $80
-        at any time in any increment(s) over the next year. After making the payment of your choice online your
-        Owner ID card and other materials will be available for pick up within 48 hours at the chosen Whole Foods Co-op 
-        location.
+        at any time in any increment(s) over the next year. After 48 hours, you can activate your ownership by bringing 
+        your picture ID to the Co-op location of your choice and picking up your Owner card and other materials.
+        </p>
+        <p class="text-left">
+        Need financial assistance?  You may qualify for the 
+        <a href="http://wholefoods.coop/wp/wp-content/uploads/2014/08/Fran-Skinner-Brochure-2014.pdf">Fran 
+        Skinner Memorial Matching Fund</a>.
         </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<table class="table" cellspacing="4" cellpadding="4">
@@ -70,8 +74,8 @@ class JoinPage extends BasicPage
 		<tr>
             <th>Street Address</th>
             <td><input type="text" class="medium" required name="addr1" value="<?php echo $this->entries['addr1']; ?>" /></td>
-            <th>Address (continued)</th>
-            <td colspan="3"><input type="text" name="addr2" value="<?php echo $this->entries['addr2']; ?>" /></td>
+            <th>Apt. #</th>
+            <td colspan="3"><input type="text" name="addr2" placeholder="Optional" value="<?php echo $this->entries['addr2']; ?>" /></td>
 		</tr>
 		<tr>
             <th>City</th>
