@@ -29,8 +29,8 @@ class Notices
 {
 
     const STORE_EMAIL = 'orders@wholefoods.coop';
-    const REPLY_EMAIL = 'andy@wholefoods.coop';
-    const ADMIN_EMAIL = 'andy@wholefoods.coop';
+    const REPLY_EMAIL = 'it@wholefoods.coop';
+    const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@hillside.wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
@@ -91,7 +91,7 @@ public static function customerConfirmation($uid,$email,$total)
 	return $cart;
 }
 
-public static function adminNotification($uid,$email,$ph,$total,$cart="")
+public static function adminNotification($uid,$email,$ph,$owner,$total,$cart="")
 {
 	$msg = "New online order\n\n";
 	$msg .= AuthUtilities::getRealName($email)." (".$email.")\n";
@@ -104,11 +104,16 @@ public static function adminNotification($uid,$email,$ph,$total,$cart="")
 	self::sendEmail(self::ADMIN_EMAIL,"New Online Order",$msg);
 }
 
-public static function mgrNotification($addresses,$email,$ph,$total,$notes="",$cart="")
+public static function mgrNotification($addresses,$email,$ph,$owner,$total,$notes="",$cart="")
 {
 	$msg = "New online order\n\n";
 	$msg .= AuthUtilities::getRealName($email)." (".$email.")\n";
 	$msg .= "Phone # provided: ".$ph."\n\n";
+    if ($owner) {
+        $msg .= 'Owner #: ' . $owner . "\n\n";
+    } else {
+        $msg .= 'Non-owner' . "\n\n";
+    }
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
 
 	$msg .= "\nOrder Summary:\n";

@@ -166,6 +166,7 @@ class confirm extends BasicPage {
             $db = Database::tDataConnect();
             $email = AuthLogin::checkLogin();
             $empno = AuthUtilities::getUID($email);
+            $owner = AuthUtilities::getOwner($email);
             $subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
             $sub = $db->exec_statement($subP,array($empno));
             $subW = $db->fetch_row($sub);
@@ -210,7 +211,7 @@ class confirm extends BasicPage {
                 while($addrW = $db->fetch_row($addrR))
                     $addr[] = $addrW[0];
                 if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) 
-                    Notices::mgrNotification($addr,$email,$ph,$final_amount,$attend,$cart);
+                    Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$attend,$cart);
             }
         }
 
