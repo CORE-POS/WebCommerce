@@ -200,7 +200,7 @@ class confirm extends BasicPage {
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
                 $cart = Notices::customerConfirmation($empno,$email,$final_amount);
-                Notices::adminNotification($empno,$email,$ph,$final_amount,$cart);
+                Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart);
 
                 $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
                     as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
