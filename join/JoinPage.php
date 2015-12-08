@@ -54,7 +54,7 @@ class JoinPage extends BasicPage
         <h2>Join the Co-op</h2>
         <p class="text-left">
         Become an <a href="http://wholefoods.coop/ownership/becoming-an-owner/">Owner</a> of Whole Foods Co-op today.
-        Ownership is a $100 investment. You may pay the full amount immediately or pay $20 now and the remaining $80
+        Ownership is a $100 investment, not an annual fee. You may pay the full amount immediately or pay $20 now and the remaining $80
         at any time in any increment(s) over the next year. After 48 hours, you can activate your ownership by bringing 
         your picture ID to the Co-op location of your choice and picking up your Owner card and other materials.
         </p>
@@ -114,9 +114,28 @@ class JoinPage extends BasicPage
                 <select name="store" required>
                     <option value="">Choose a store</option>
                     <option value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>
-                    <option value="50">Mail me the owner materials instead</option>
                 </select>
             </td>
+        </tr>
+        <tr>
+            <th class="text-center" style="text-align: center;" colspan="6">Include up to three additional members of your household</th>
+        <tr>
+            <th>First Name</th>
+            <td colspan="1"><input type="text" class="medium" name="hhf[]" value="<?php echo $this->entries['houseHold'][0][0]; ?>" /></td>
+            <th>Last Name</th>
+            <td colspan="3"><input type="text" name="hhl[]" value="<?php echo $this->entries['houseHold'][0][1]; ?>" /></td>
+        </tr>
+        <tr>
+            <th>First Name</th>
+            <td colspan="1"><input type="text" class="medium" name="hhf[]" value="<?php echo $this->entries['houseHold'][1][0]; ?>" /></td>
+            <th>Last Name</th>
+            <td colspan="3"><input type="text" name="hhl[]" value="<?php echo $this->entries['houseHold'][1][1]; ?>" /></td>
+        </tr>
+        <tr>
+            <th>First Name</th>
+            <td colspan="1"><input type="text" class="medium" name="hhf[]" value="<?php echo $this->entries['houseHold'][2][0]; ?>" /></td>
+            <th>Last Name</th>
+            <td colspan="3"><input type="text" name="hhl[]" value="<?php echo $this->entries['houseHold'][2][1]; ?>" /></td>
         </tr>
         <tr>
             <th><input type="submit" value="Join" name="submit" /></th>
@@ -179,7 +198,20 @@ class JoinPage extends BasicPage
 			'store'=>(isset($_REQUEST['store'])?$_REQUEST['store']:''),
 			'email'=>(isset($_REQUEST['email'])?$_REQUEST['email']:''),
 			'passwd'=>(isset($_REQUEST['passwd'])?$_REQUEST['passwd']:''),
+            'houseHold' => array(),
 		);
+        if (isset($_REQUEST['hhf']) && isset($_REQUEST['hhl'])) {
+            $hhf = $_REQUEST['hhf'];
+            $hhl = $_REQUEST['hhl'];
+            for ($i=0; $i<count($hhf) && $i<3; $i++) {
+                $this->entries['houseHold'][] = array($hhf[$i], $hhl[$i]);
+            }
+        }
+        for ($i=0; $i<3; $i++) {
+            if (!isset($this->entries['houseHold'][$i])) {
+                $this->entries['houseHold'][$i] = array('', '');
+            }
+        }
 
 		$dbc = Database::pDataConnect();
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
