@@ -31,7 +31,8 @@ class Notices
     const STORE_EMAIL = 'orders@wholefoods.coop';
     const REPLY_EMAIL = 'it@wholefoods.coop';
     const ADMIN_EMAIL = 'it@wholefoods.coop';
-    const PLUGIN_EMAIL = 'pik@hillside.wholefoods.coop';
+    const PLUGIN_EMAIL = 'pik@wholefoods.coop';
+    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,finance@wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
 {
@@ -164,13 +165,6 @@ public static function joinNotification($json)
         $msg .= '610 E 4th St.' . "\n";
         $msg .= 'Duluth, MN 55805' . "\n";
         $msg .= '218-728-0884' . "\n";
-    } elseif ($json['store'] == 50) {
-        $msg .= 'Your owner ID cards and other materials will be mailed to: ' . "\n";
-        $msg .= $json['addr1'] . "\n";
-        if (!empty($json['addr2'])) {
-            $msg .= $json['addr2'] . "\n";
-        }
-        $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
     }
 
 	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
@@ -191,8 +185,6 @@ public static function joinAdminNotification($json)
     $msg .= 'E-mail: ' . $json['email'] . "\n";
     if ($json['store'] == 1) {
         $msg .= 'Owner packet will be collected at Hillside.' . "\n";
-    } elseif ($json['store'] == 50) {
-        $msg .= 'Owner packet should be mailed to owner.' . "\n";
     }
 
     $msg .= "\n";
@@ -200,7 +192,7 @@ public static function joinAdminNotification($json)
     $msg .= '<a href="http://key/git/fannie/modules/plugins2.0/PIKiller/PIApply.php?json=';
     $msg .= base64_encode(json_encode($json)) . "\">Click Here</a>\n";
 
-	self::sendEmail(self::ADMIN_EMAIL, "New Online Ownership", $msg);
+	self::sendEmail(self::JOIN_EMAIL, "New Online Ownership", $msg);
 
     if (class_exists('PHPMailer')) {
         $mail = new PHPMailer();
@@ -209,7 +201,7 @@ public static function joinAdminNotification($json)
         $mail->FromName = 'Whole Foods Co-op';
         $mail->addReplyTo(self::REPLY_EMAIL);
         $mail->addAddress(self::PLUGIN_EMAIL);
-        $mail->addStringAttachment($json, 'data.json', 'base64', 'application/json');
+        $mail->addStringAttachment(json_encode($json), 'data.json', 'base64', 'application/json');
         $mail->isHTML(false);
         $mail->Body = 'blank';
         $mail->send();
@@ -218,4 +210,3 @@ public static function joinAdminNotification($json)
 
 }
 
-?>
