@@ -208,5 +208,45 @@ public static function joinAdminNotification($json)
     }
 }
 
+public static function giftNotification($json)
+{
+	$msg = sprintf("Thank you for purchasing a \$%.2f Whole Foods Co-op gift card\n\n", $json['amt']);
+    if ($json['store'] == 1) {
+        $msg .= 'Your card will be available for pickup on '
+            . date('F j, Y', strtotime('+1 day')) . ' at the ';
+        $msg .= 'Hillside store:' . "\n";
+        $msg .= '610 E 4th St.' . "\n";
+        $msg .= 'Duluth, MN 55805' . "\n";
+        $msg .= '218-728-0884' . "\n";
+    } elseif ($json['store'] == 99) {
+        $msg .= 'Your card will be mailed to:' . "\n";
+        $msg .= $json['sname'] . "\n";
+        $msg .= $json['addr1'] . "\n";
+        $msg .= $json['addr2'] . "\n";
+        $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
+    }
+
+	self::sendEmail($json['email'], "Whole Foods Co-op Gift Card", $msg);
+}
+
+public static function giftAdminNotification($json)
+{
+	$msg = sprintf("New \$%.2f Whole Foods Co-op gift card purchase\n\n", $json['amt']);
+    $msg .= 'Name: ' . $json['name'] . "\n";
+    $msg .= 'Phone: ' . $json['ph'] . "\n";
+    $msg .= 'E-mail: ' . $json['email'] . "\n";
+    if ($json['store'] == 1) {
+        $msg .= "The customer will pick up the card at Hillside";
+    } elseif ($json['store'] == 99) {
+        $msg .= 'The card should be mailed to:' . "\n";
+        $msg .= $json['sname'] . "\n";
+        $msg .= $json['addr1'] . "\n";
+        $msg .= $json['addr2'] . "\n";
+        $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
+    }
+
+	self::sendEmail($json['email'], "Online Gift Card", $msg);
+}
+
 }
 

@@ -78,17 +78,21 @@ public static function addItem($strupc, $strdescription, $strtransType, $strtran
 
 	$intregisterno = $IS4C_LOCAL->get("laneno");
 
-	$name = AuthLogin::checkLogin();
-	if (!$name) return False;
-	$intempno = AuthUtilities::getUID($name);
-	if (!$intempno) return False;
-	$owner = AuthUtilities::getOwner($name);
+    if (isset($_SESSION['emp_no'])) {
+        $intemno = $_SESSION['emp_no'];
+        $owner = 0;
+    } else {
+        $name = AuthLogin::checkLogin();
+        if (!$name) return False;
+        $intempno = AuthUtilities::getUID($name);
+        if (!$intempno) return False;
+        $owner = AuthUtilities::getOwner($name);
+    }
 	$memType = 0;
 	$staff = 0;
 	if ($owner !== False && $owner != 0){ 
 		$memType=1;
-	}
-	else {
+	} else {
 		$owner = $IS4C_LOCAL->get("defaultNonMem");
 		if ($strtransType == 'I'){
 			// this is handled fine in addUPC
