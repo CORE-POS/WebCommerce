@@ -57,6 +57,11 @@ ga('send', 'pageview');
 <style type='text/css'>img#wpstats{display:none}</style>
 		<style type="text/css">
             /*in doc*/
+            @media print {
+                .hidden-print {
+                    display: none !important;
+                }
+            }
         </style>
 
     </head>
@@ -90,7 +95,7 @@ ga('send', 'pageview');
         </nav>
         <nav id="main-nav" class="white_bkgd">
             <div class="container">
-            	<a id="brand" href="http://wholefoods.coop/"><img src="http://wholefoods.coop/cms/wp-content/themes/wfc/img/wfc-logo.png" alt="Whole Foods Co-op"></a>
+            	<a id="brand" href="http://wholefoods.coop/" class="hidden-print"><img class="hidden-print" src="http://wholefoods.coop/cms/wp-content/themes/wfc/img/wfc-logo.png" alt="Whole Foods Co-op"></a>
                 <ul class="pull-right">
                     <li id="menu-item-68" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-68"><a href="http://wholefoods.coop/specials/"><span>Specials</span></a></li>
 <li id="menu-item-57" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-57"><a href="http://wholefoods.coop/deli-menu/"><span>Deli Menu</span></a></li>
@@ -129,7 +134,7 @@ ga('send', 'pageview');
         	<div class="row">
             	<div class="col-md-12">
                 	<a id="word-mark" href="/" class="hidden-sm"><img src="http://wholefoods.coop/cms/wp-content/themes/wfc/img/wfc-wordmark.png" alt="Whole Foods Co-op" width="154"></a>
-                    <a id="small-brand" href="/" class="visible-sm pull-left"><img src="http://wholefoods.coop/cms/wp-content/themes/wfc/img/wfc-logo.png" alt="Whole Foods Co-op"></a>
+                    <a id="small-brand" href="/" class="visible-sm pull-left hidden-print"><img class="hidden-print" src="http://wholefoods.coop/cms/wp-content/themes/wfc/img/wfc-logo.png" alt="Whole Foods Co-op"></a>
                     <a id="collapse" href="#" class="pull-right"><i class="fa fa-bars"></i></a>
                     
                     
