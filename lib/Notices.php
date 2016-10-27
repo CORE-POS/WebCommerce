@@ -32,7 +32,7 @@ class Notices
     const REPLY_EMAIL = 'it@wholefoods.coop';
     const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@wholefoods.coop';
-    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,finance@wholefoods.coop';
+    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,finance@wholefoods.coop,dcsc@wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
 {
@@ -120,8 +120,7 @@ public static function mgrNotification($addresses,$email,$ph,$owner,$total,$note
 	$msg .= "\nOrder Summary:\n";
 	$msg .= $cart;
 
-	$msg .= "\n:Additional attendees\n";
-	$msg .= (!empty($notes) ? $notes : 'none listed');
+	$msg .= (!empty($notes) ? $notes : '');
 	
 	$addr = "";
 	foreach($addresses as $a)
@@ -165,6 +164,13 @@ public static function joinNotification($json)
         $msg .= '610 E 4th St.' . "\n";
         $msg .= 'Duluth, MN 55805' . "\n";
         $msg .= '218-728-0884' . "\n";
+    } elseif ($json['store'] == 2) {
+        $msg .= 'Your owner ID cards and other materials will be available for pickup on '
+            . date('F j, Y', strtotime('+1 day')) . ' at the ';
+        $msg .= 'Denfeld store:' . "\n";
+        $msg .= '4426 Grand Ave.' . "\n";
+        $msg .= 'Duluth, MN 55807' . "\n";
+        $msg .= '218-728-0884' . "\n";
     }
 
 	self::sendEmail($json['email'], "Joined Whole Foods Co-op", $msg);
@@ -173,6 +179,7 @@ public static function joinNotification($json)
 public static function joinAdminNotification($json)
 {
     $msg = 'New member joined via the website' . "\n\n";
+    $msg .= 'Account #: ' . $json['card_no'] . "\n";
     $msg .= 'Name: ' . $json['fn'] . ' ' . $json['ln'] . "\n";
     $msg .= 'Address: ' . $json['addr1'] . "\n";
     if (!empty($json['addr2'])) {
@@ -185,6 +192,8 @@ public static function joinAdminNotification($json)
     $msg .= 'E-mail: ' . $json['email'] . "\n";
     if ($json['store'] == 1) {
         $msg .= 'Owner packet will be collected at Hillside.' . "\n";
+    } elseif ($json['store'] == 2) {
+        $msg .= 'Owner packet will be collected at Denfeld.' . "\n";
     }
 
     $msg .= "\n";
@@ -217,6 +226,13 @@ public static function giftNotification($json)
         $msg .= 'Hillside store:' . "\n";
         $msg .= '610 E 4th St.' . "\n";
         $msg .= 'Duluth, MN 55805' . "\n";
+        $msg .= '218-728-0884' . "\n";
+    } elseif ($json['store'] == 2) {
+        $msg .= 'Your card will be available for pickup on '
+            . date('F j, Y', strtotime('+1 day')) . ' at the ';
+        $msg .= 'Denfeld store:' . "\n";
+        $msg .= '4426 Grand Ave' . "\n";
+        $msg .= 'Duluth, MN 55807' . "\n";
         $msg .= '218-728-0884' . "\n";
     } elseif ($json['store'] == 99) {
         $msg .= 'Your card will be mailed to:' . "\n";
