@@ -60,7 +60,7 @@ class JoinPage extends BasicPage
         </p>
         <p class="text-left">
         Need financial assistance?  You may qualify for the 
-        <a href="http://wholefoods.coop/wp/wp-content/uploads/2014/08/Fran-Skinner-Brochure-2014.pdf">Fran 
+        <a href="http://wholefoods.coop/wp/wp-content/uploads/2014/08/ran-Skinner-Brochure-2014.pdf">Fran 
         Skinner Memorial Matching Fund</a>.
         </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
@@ -81,7 +81,7 @@ class JoinPage extends BasicPage
             <th>City</th>
             <td><input type="text" required class="medium" name="city" value="<?php echo $this->entries['city']; ?>" /></td>
             <th>State</th>
-            <td><input type="text" required name="state" value="<?php echo $this->entries['state']; ?>" /></td>
+            <td><input type="text" required name="state" maxlength="2" value="<?php echo $this->entries['state']; ?>" /></td>
             <th>Zip Code</th>
             <td><input type="text" required name="zip" value="<?php echo $this->entries['zip']; ?>" /></td>
 		</tr>
@@ -114,6 +114,7 @@ class JoinPage extends BasicPage
                 <select name="store" required>
                     <option value="">Choose a store</option>
                     <option value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>
+                    <option value="2">Denfeld (4426 Grand Ave, Duluth, MN 55807)</option>
                 </select>
             </td>
         </tr>
@@ -138,7 +139,10 @@ class JoinPage extends BasicPage
             <td colspan="3"><input type="text" name="hhl[]" value="<?php echo $this->entries['houseHold'][2][1]; ?>" /></td>
         </tr>
         <tr>
-            <th><input type="submit" value="Join" name="submit" /></th>
+            <th>
+            <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" align="left" style="margin-right:7px;">
+            <input type="hidden" name="submit" value="submit" />
+            </th>
             <td>&nbsp;</td>
 		</tr>
 		</table>
