@@ -38,8 +38,6 @@ if (session_id() === '') {
   redirect
 */
 unset($_SESSION['giftInfo']);
-$uuid = $_SESSION['UUID'];
-unset($_SESSION['UUID']);
 
 header('Location: ../');
 

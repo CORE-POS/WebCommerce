@@ -53,8 +53,8 @@ class GiftPage extends BasicPage
 		<div id="loginTitle">
         <h2>Purchase a Gift Card</h2>
         <p class="text-left">
-        Gift cards may be purchase online in any amount between $5 and $500. Gift cards may be picked up in
-        store or mailed to the designated address. There is a $1 fee for shipping on mailed cards.
+        Gift cards may be purchased online in any amount between $5 and $500. Gift cards may be picked up in
+        store or mailed to the designated address. <strong>There is a $1 fee for shipping on mailed cards</strong>.
         </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<table class="table" cellspacing="4" cellpadding="4">
@@ -62,15 +62,6 @@ class GiftPage extends BasicPage
             <th>Amount</th>
             <td colspan="5"><input type="number" min="5" max="500" step="0.01" name="amt" required value="<?php echo $this->entries['amt']; ?>" /></td>
 		</tr>
-        <tr>
-            <th>Delivery</th>
-            <td colspan="5">
-                <select name="store" required>
-                    <option value="99">Mail to the address below ($1 fee)</option>
-                    <option value="1">Pick up at Hillside (610 E 4th St, Duluth, MN 55805)</option>
-                </select>
-            </td>
-        </tr>
         <tr>
             <th>Your Name</th>
             <td colspan="5"><input type="text" required name="name" value="<?php echo $this->entries['name']; ?>" /></td>
@@ -81,6 +72,15 @@ class GiftPage extends BasicPage
             <th>E-mail address</th>
             <td colspan="3"><input type="email" required name="email" value="<?php echo $this->entries['email']; ?>" /></td>
 		</tr>
+        <tr>
+            <th>Delivery</th>
+            <td colspan="5">
+                <select name="store" required>
+                    <option value="99">Mail to the address below ($1 fee)</option>
+                    <option value="1">Pick up at Hillside (610 E 4th St, Duluth, MN 55805)</option>
+                </select>
+            </td>
+        </tr>
         <tr>
             <th>Shipping Name</th>
             <td colspan="5"><input type="text" name="sname" value="<?php echo $this->entries['sname']; ?>" /></td>
@@ -103,12 +103,21 @@ class GiftPage extends BasicPage
             <th>Notes</th>
             <td colspan="5"><textarea name="notes"><?php echo $this->entries['notes']; ?></textarea></td>
         <tr>
-            <th><input type="submit" value="Continue" name="submit" /></th>
-            <td>&nbsp;</td>
+            <th colspan="6" align="center" style="text-align:center;">
+            <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif"> 
+            <input type="hidden" name="submit" value="submit" />
+            </th>
 		</tr>
 		</table>
 		</form>
 		</div>
+        <hr />
+        <div style="font-size: 90%;">
+        <h4>The Fine Print</h4>
+        Mailed gift card are sent via USPS. We'll make every effort to mail them by the next business day but cannot guarantee any
+        specific delivery date. With in store pickup cards should typically be available within a few minutes of ordering. Gift
+        card purchases are not eligible for refunds or returns.
+        </div>
 		<?php
 	}
 
@@ -298,7 +307,12 @@ class GiftPage extends BasicPage
 				$this->msgs .= 'Invalid card amount choice.';
 				$this->msgs .= '</div>';
 				$errors = true;
-			}
+			} elseif ($this->entries['amt'] < 5 || $this->entries['amt'] > 500) {
+				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= 'Card amount must be between $5 and $500';
+				$this->msgs .= '</div>';
+				$errors = true;
+            }
 
             if (empty($this->entries['sname'])) {
                 $this->entries['sname'] = $this->entries['name'];
