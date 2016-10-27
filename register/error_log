@@ -1,0 +1,2 @@
+[29-Aug-2012 22:52:51 UTC] PHP Parse error:  syntax error, unexpected T_VARIABLE in /home/wfcoop/public_html/register/done.php on line 50
+[04-Sep-2012 15:04:15 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library '/usr/local/lib/php/extensions/no-debug-non-zts-20090626/imagick.so' - libgomp.so.1: failed to map segment from shared object: Cannot allocate memory in Unknown on line 0
