@@ -1,4 +1,4 @@
 RewriteEngine on
-RewriteBase /ec/items/
-RewriteRule ^([0-9]+)$ /ec/gui-modules/item.php?upc=$1 [L]
-RewriteRule ^.*$ /ec/gui-modules/storefront.php [L]
+RewriteBase /items/
+RewriteRule ^([0-9]+)$ /gui-modules/item.php?upc=$1 [L]
+RewriteRule ^.*$ /gui-modules/storefront.php [L]
