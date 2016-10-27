@@ -97,8 +97,8 @@ class itemPage extends BasicPage {
                 for more information.';
 		}
 		else if ($empno == -999){
-			echo '<a href="loginPage.php">Login</a> or ';
-			echo '<a href="createAccount.php">Create an Account</a> ';
+			echo '<a href="' . $IS4C_PATH . 'gui-modules/loginPage.php">Login</a> or ';
+			echo '<a href="' . $IS4C_PATH . 'gui-modules/createAccount.php">Create an Account</a> ';
 			echo 'to add items to your cart.';
 		} else if ((!AuthUtilities::getOwner(AuthLogin::checkLogin()) || AuthUtilities::getOwner(AuthLogin::checkLogin()) == 9) && $w['discounttype'] == 2 && $w['special_price'] == 0) {
             echo 'This item is only available to owners. ';
