@@ -54,7 +54,7 @@ class cart extends BasicPage {
 		
 		echo '<blockquote><em>'.$this->notices.'</em></blockquote>';
 		echo '<form action="cart.php" method="post">';
-		echo "<table id=\"carttable\" cellspacing='0' cellpadding='4' border='1'>";
+		echo "<table class=\"table table-bordered\">";
 		echo "<tr><th>&nbsp;</th><th>Item</th><th>Qty</th><th>Price</th>
 			<th>Total</th><th>&nbsp;</th></tr>";
 		$ttl = 0.0;
