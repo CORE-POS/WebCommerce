@@ -63,6 +63,8 @@ class confirm extends BasicPage {
         echo "<tr><th>Item</th><th>Qty</th><th>Price</th>
             <th>Total</th><th>&nbsp;</th></tr>";
         $ttl = 0.0;
+        $pickupDate = false;
+        $class = false;
         while($w = $db->fetch_row($r)){
             printf('<tr>
                 <td>%s %s</td>
@@ -76,6 +78,11 @@ class confirm extends BasicPage {
                 (empty($w['saleMsg'])?'&nbsp;':$w['saleMsg'])
             );
             $ttl += $w['total'];
+            if (stristr($w['description'], 'CLASS')) {
+                $class = true;
+            } elseif ($w['upc'] == '0000000001127') {
+                $pickupDate = true;
+            }
         }
         printf('<tr><th colspan="3" align="right">Subtotal</th>
             <td>$%.2f</td><td>&nbsp;</td></tr>',$ttl);
@@ -98,10 +105,19 @@ class confirm extends BasicPage {
             echo '<blockquote>We require a phone number because some email providers
                 have trouble handling .coop email addresses. A phone number ensures
                 we can reach you if there are any questions about your order.</blockquote>';
-            echo '<b>Additional attendees</b>: ';
-            echo '<input type="text" name="attendees" /><br />';
-            echo '<blockquote>If you are purchasing a ticket for someone else, please
-                enter their name(s) so we know to put them on the list.</blockquote>';
+            if ($class) {
+                echo '<b>Additional attendees</b>: ';
+                echo '<input type="text" name="attendees" /><br />';
+                echo '<blockquote>If you are purchasing a ticket for someone else, please
+                    enter their name(s) so we know to put them on the list.</blockquote>';
+            }
+            if ($pickupDate) {
+                echo '<b>Choose order pick-up date</b>: ';
+                $date = date('Y-m-d', strtotime('+3 days'));
+                echo '<input type="date" name="pickup_date" min="' . $date . '" max="2016-11-23" /><br />';
+                echo '<blockquote>Orders are normally processed in 3-5 days. Please select a date between
+                ' . date('F j, Y', strtotime('+3 days')) . ' and November 23, 2016</blockquote>';
+            }
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
             if ($proc->cancelable) {
@@ -162,6 +178,14 @@ class confirm extends BasicPage {
                 return True;
             }
             $attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
+            $pickup = isset($_REQUEST['pickup_date']) ? $_REQUEST['pickup_date'] : '';
+            $notes = '';
+            if ($attend) {
+                $notes .= "Additional attendees: {$attend}\n";
+            }
+            if ($pickup) {
+                $notes .= "Pickup date: {$pickup}\n";
+            }
 
             $db = Database::tDataConnect();
             $email = AuthLogin::checkLogin();
@@ -211,7 +235,7 @@ class confirm extends BasicPage {
                 while($addrW = $db->fetch_row($addrR))
                     $addr[] = $addrW[0];
                 if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) 
-                    Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$attend,$cart);
+                    Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$notes,$cart);
             }
         }
 
