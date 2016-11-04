@@ -41,6 +41,10 @@ div.itemMain {
 	float: left;
 	font-size: 10pt;
 }
+img.itemImage {
+    width: 380px;
+    display: block;
+}
 span.itemDesc {
 	font-size: 125%;
 	font-weight: bold;

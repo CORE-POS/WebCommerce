@@ -56,7 +56,7 @@ class itemPage extends BasicPage {
 		$dbc = Database::pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
-			p.inUse,u.soldOut,
+			p.inUse,u.soldOut,u.photo,
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o
@@ -72,14 +72,18 @@ class itemPage extends BasicPage {
 		
 		echo '<div class="itemBox">';
 
-		echo '<div class="itemMain">';
+		echo '<div class="col-sm-9">';
 		echo '<span class="itemDesc">'.$w['description'].'</span><br />';
 		echo '<span class="itemBrand">by '.$w['brand'].'</span>';
+        if ($w['photo'] && file_exists($IS4C_PATH . 'img/' . $w['photo'])) {
+            $url = $IS4C_PATH. 'img/' . $w['photo'];
+            echo "<img src=\"{$url}\" class=\"itemImg\" />";
+        }
 		echo '<p />';
 		echo $w['long_text'];
 		echo '</div>';
 
-		echo '<div class="itemPrice">';
+		echo '<div class="col-sm-3">';
 		echo '<span class="itemPriceNormal">';
 		printf('$%.2f',($w['discounttype']==1?$w['special_price']:$w['normal_price']));
 		echo '</span><br />';
