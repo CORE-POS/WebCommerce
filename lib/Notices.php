@@ -65,13 +65,14 @@ public static function sendEmail($to,$subject,$msg)
     }
 }
 
-public static function customerConfirmation($uid,$email,$total)
+public static function customerConfirmation($uid,$email,$total,$notes)
 {
 	$msg = "Thank you for ordering from Whole Foods Co-op\n\n";
 	$msg .= "Order Summary:\n";
 	$cart = self::getcart($uid);
 	$msg .= $cart."\n";
 	$msg .= sprintf("Order Total: \$%.2f\n",$total);
+    $msg .= $notes . "\n";
 
     $class_info = "\nCLASS INSTRUCTIONS:\n"
         . wordwrap("Please be courteous of the instructor and your classmates and be on time. Anyone arriving more than 10 minutes late will not be admitted into the class. The classroom is open at least 20 minutes prior to each class time to allow you to get settled in.")
@@ -85,14 +86,14 @@ public static function customerConfirmation($uid,$email,$total)
         . "THE FINE PRINT READ ME PLEASE!\n"
         . wordwrap("Classes and lectures must have a minimum of 6 students signed up for the class to take place. If a student cancels prior to 48 hours before the class, the refund will be applied to a future class or refunded in full in the tender with which it was paid. No refunds will be given for cancellations received after the 48-hour deadline or for no-shows. If WFC cancels the class, a full refund will be given or the refund may be applied to a future class, whichever the student prefers.");
 
-    $msg .= $class_info;
+    //$msg .= $class_info;
 
 	self::sendEmail($email,"WFC Order Confirmation",$msg);
 
 	return $cart;
 }
 
-public static function adminNotification($uid,$email,$ph,$owner,$total,$cart="")
+public static function adminNotification($uid,$email,$ph,$owner,$total,$cart="",$triage=false)
 {
 	$msg = "New online order\n\n";
 	$msg .= AuthUtilities::getRealName($email)." (".$email.")\n";
@@ -101,8 +102,13 @@ public static function adminNotification($uid,$email,$ph,$owner,$total,$cart="")
 
 	$msg .= "\nOrder Summary:\n";
 	$msg .= $cart;
+
+    $subject = 'New Online Order';
+    if ($triage) {
+        $subject = 'NO ONE GOT THIS ONLINE ORDER';
+    }
 	
-	self::sendEmail(self::ADMIN_EMAIL,"New Online Order",$msg);
+	self::sendEmail(self::ADMIN_EMAIL,$subject,$msg);
 }
 
 public static function mgrNotification($addresses,$email,$ph,$owner,$total,$notes="",$cart="")

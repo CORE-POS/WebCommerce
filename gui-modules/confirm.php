@@ -223,8 +223,7 @@ class confirm extends BasicPage {
 
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
-                $cart = Notices::customerConfirmation($empno,$email,$final_amount);
-                Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart);
+                $cart = Notices::customerConfirmation($empno,$email,$final_amount,$notes);
 
                 $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
                     as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
@@ -234,8 +233,12 @@ class confirm extends BasicPage {
                 $addr = array();
                 while($addrW = $db->fetch_row($addrR))
                     $addr[] = $addrW[0];
-                if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) 
+                if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) {
                     Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$notes,$cart);
+                    Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,false);
+                } else {
+                    Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,true);
+                }
             }
         }
 
