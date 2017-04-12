@@ -4,7 +4,9 @@
     "require": {
         "phpmailer/phpmailer": "~5.2",
         "adodb/adodb-php": "dev-master",
-        "core-pos/sql-manager": "dev-master"
+        "core-pos/sql-manager": "dev-master",
+        "domisys/image_barcode2": "^3.0",
+        "paypal/merchant-sdk-php": "^3.11"
     },
     "license": "GPLv2",
     "authors": [
