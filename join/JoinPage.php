@@ -100,12 +100,12 @@ class JoinPage extends BasicPage
         <tr>
             <th>Payment Options</th>
             <td align="left" colspan="5">
-                <label><input type="radio" name="plan" value="1" checked />
+                <label><input type="radio" name="plan" value=2" checked />
+                Full $100 today</label>
+                <br />
+                <label><input type="radio" name="plan" value="1" />
                 $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
-                <br />
-                <label><input type="radio" name="plan" value=2" />
-                Full $100 today</label>
             </td>
         </tr>
         <tr>
