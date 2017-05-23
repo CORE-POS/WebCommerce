@@ -25,6 +25,8 @@
 use PayPal\CoreComponentTypes\BasicAmountType;
 use PayPal\EBLBaseComponents\AddressType;
 use PayPal\EBLBaseComponents\BillingAgreementDetailsType;
+use PayPal\EBLBaseComponents\BillingPeriodDetailsType;
+use PayPal\EBLBaseComponents\CreateRecurringPaymentsProfileRequestDetailsType;
 use PayPal\EBLBaseComponents\PaymentDetailsItemType;
 use PayPal\EBLBaseComponents\PaymentDetailsType;
 use PayPal\EBLBaseComponents\SetExpressCheckoutRequestDetailsType;
@@ -83,7 +85,7 @@ class PayPalSDK extends RemoteProcessor
         return $token;
     }
 
-    public function finalizeRecurringPayment($token, $amount, $tax=0)
+    public function finalizeRecurringPayment($token, $description, $amount, $tax=0)
     {
         $currencyCode = 'USD';
         $RPProfileDetails = new RecurringPaymentsProfileDetailsType();
@@ -95,7 +97,7 @@ class PayPalSDK extends RemoteProcessor
 
         $paymentBillingPeriod = new BillingPeriodDetailsType();
         $paymentBillingPeriod->BillingFrequency = 4;
-        $paymentBillingPeriod->BillingPeriod = 'Month';
+        $paymentBillingPeriod->BillingPeriod = 'Day';
         $paymentBillingPeriod->TotalBillingCycles = 1;
         $paymentBillingPeriod->Amount = new BasicAmountType($currencyCode, $amount);
         $paymentBillingPeriod->ShippingAmount = new BasicAmountType($currencyCode, 0);
