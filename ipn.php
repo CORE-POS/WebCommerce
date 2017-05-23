@@ -11,7 +11,7 @@ $fp = fopen(__DIR__ . '/ipn.log', 'a');
 if ($ipn->validate()) {
     fwrite($fp, date('r') . ": Valid IPN message\n"); 
     foreach ($ipn->getRawData() as $key => $val) {
-        fwrite($fp, "\t{$key}: {$value}\n");
+        fwrite($fp, "\t{$key}: {$val}\n");
     }
 } else {
     fwrite($fp, date('r') . ': Invalid IPN message' . "\n");
