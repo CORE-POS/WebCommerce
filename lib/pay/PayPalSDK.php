@@ -76,6 +76,12 @@ class PayPalSDK extends RemoteProcessor
         return $config;
     }
 
+    /**
+      Get a SetExpressCheckout token with a Billing Agreement attached
+      @return [string] token
+      
+      After calling this, redirect to paypal
+    */
     public function startRecurringPayment($amount, $description, $tax=0, $email='')
     {
         $billingAgreement = new BillingAgreementDetailsType('RecurringPayments');
@@ -85,6 +91,12 @@ class PayPalSDK extends RemoteProcessor
         return $token;
     }
 
+    /**
+      Use a SetExpressCheckout token with Billing Agreement to create a 
+      Recurring Payments Profile
+
+      Call this after returning from PayPal
+    */
     public function finalizeRecurringPayment($token, $description, $amount, $tax=0)
     {
         $currencyCode = 'USD';
@@ -121,6 +133,9 @@ class PayPalSDK extends RemoteProcessor
         try {
             /* wrap API method calls on the service object with a try catch */
             $createRPProfileResponse = $paypalService->CreateRecurringPaymentsProfile($createRPProfileReq);
+            $fp = fopen(__DIR__ . '/rp.log', 'a');
+            fwrite($fp, date('r') . ': ' . print_r($createRPProfileResponse, true) . "\n");
+            fclose($fp);
             if ($createRPProfileResponse->Ack == 'Success') {
                 return $createRPProfileResponse->CreateRecurringPaymentsProfileResponseDetails->ProfileID;
             }
