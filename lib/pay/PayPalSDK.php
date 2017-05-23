@@ -57,7 +57,9 @@ class PayPalSDK extends RemoteProcessor
     public $cancelable = true;
 
     private $PAYPAL_LIVE_URL       = 'https://api-3t.paypal.com/nvp';
+    private $PAYPAL_TEST_URL       = 'https://api-3t.sandbox.paypal.com/nvp';
     private $PAYPAL_LIVE_RD        = 'https://www.paypal.com/webscr';
+    private $PAYPAL_TEST_RD        = 'https://www.sandbox.paypal.com/webscr';
 
     private function getConfig()
     {
@@ -72,18 +74,17 @@ class PayPalSDK extends RemoteProcessor
         return $config;
     }
 
-    public function recurringPayment($amount, $description, $tax=0, $email='')
+    public function startRecurringPayment($amount, $description, $tax=0, $email='')
     {
         $billingAgreement = new BillingAgreementDetailsType('RecurringPayments');
         $billingAgreement->BillingAgreementDescription = $description;
         $token = $this->initializePayment($amount, $tax, $email, $billingAgreement);
-        if ($token === false) {
-            return false;
-        }
 
-        // all of this may need to happen AFTER returning from
-        // PayPal on the initial payment
+        return $token;
+    }
 
+    public function finalizeRecurringPayment($token, $amount, $tax=0)
+    {
         $currencyCode = 'USD';
         $RPProfileDetails = new RecurringPaymentsProfileDetailsType();
         $RPProfileDetails->BillingStartDate = date('Y-m-d');
@@ -92,9 +93,9 @@ class PayPalSDK extends RemoteProcessor
         $activationDetails->InitialAmount = new BasicAmountType($currencyCode, $amount);
         $activationDetails->FailedInitialAmountAction = 'CancelOnFailure';
 
-        $paymentBillingPeriod =  new BillingPeriodDetailsType();
+        $paymentBillingPeriod = new BillingPeriodDetailsType();
         $paymentBillingPeriod->BillingFrequency = 4;
-        $paymentBillingPeriod->BillingPeriod = 'Monthly';
+        $paymentBillingPeriod->BillingPeriod = 'Month';
         $paymentBillingPeriod->TotalBillingCycles = 1;
         $paymentBillingPeriod->Amount = new BasicAmountType($currencyCode, $amount);
         $paymentBillingPeriod->ShippingAmount = new BasicAmountType($currencyCode, 0);
@@ -119,7 +120,7 @@ class PayPalSDK extends RemoteProcessor
             /* wrap API method calls on the service object with a try catch */
             $createRPProfileResponse = $paypalService->CreateRecurringPaymentsProfile($createRPProfileReq);
             if ($createRPProfileResponse->Ack == 'Success') {
-                return true;
+                return $createRPProfileResponse->CreateRecurringPaymentsProfileResponseDetails->ProfileID;
             }
         } catch (Exception $ex) {
         }
@@ -146,6 +147,9 @@ class PayPalSDK extends RemoteProcessor
         $paymentDetails->TaxTotal = new BasicAmountType($currencyCode, $tax);
         $paymentDetails->OrderTotal = new BasicAmountType($currencyCode, $amount + $tax);
         $paymentDetails->PaymentAction = 'Sale';
+        if ($billingAgreement) {
+            $paymentDetails->NotifyURL = 'http://store.wholefoods.coop/ipn.php';
+        }
 
         $setECReqDetails = new SetExpressCheckoutRequestDetailsType();
         $setECReqDetails->BuyerEmail = $email;
@@ -164,7 +168,7 @@ class PayPalSDK extends RemoteProcessor
         $setECReq = new SetExpressCheckoutReq();
         $setECReq->SetExpressCheckoutRequest = $setECReqType;
 
-        $paypalService = new PayPalAPIInterfaceServiceService(Configuration::getAcctAndConfig());
+        $paypalService = new PayPalAPIInterfaceServiceService($this->getConfig());
         try {
             /* wrap API method calls on the service object with a try catch */
             $setECResponse = $paypalService->SetExpressCheckout($setECReq);
@@ -197,16 +201,16 @@ class PayPalSDK extends RemoteProcessor
         $getExpressCheckoutDetailsRequest = new GetExpressCheckoutDetailsRequestType($identifier);
         $getExpressCheckoutReq = new GetExpressCheckoutDetailsReq();
         $getExpressCheckoutReq->GetExpressCheckoutDetailsRequest = $getExpressCheckoutDetailsRequest;
-        $paypalService = new PayPalAPIInterfaceServiceService(Configuration::getAcctAndConfig());
+        $paypalService = new PayPalAPIInterfaceServiceService($this->getConfig());
         try {
             /* wrap API method calls on the service object with a try catch */
             $getECResponse = $paypalService->GetExpressCheckoutDetails($getExpressCheckoutReq);
 
             $DoECRequestDetails = new DoExpressCheckoutPaymentRequestDetailsType();
-            $DoECRequestDetails->PayerID = $getECResponse->PayerID;
+            $DoECRequestDetails->PayerID = $getECResponse->GetExpressCheckoutDetailsResponseDetails->PayerInfo->PayerID;
             $DoECRequestDetails->Token = $identifier;
             $DoECRequestDetails->PaymentAction = 'Sale';
-            $DoECRequestDetails->PaymentDetails[0] = $getECResponse->PaymentDetails[0];
+            $DoECRequestDetails->PaymentDetails[0] = $getECResponse->GetExpressCheckoutDetailsResponseDetails->PaymentDetails[0];
 
             $DoECRequest = new DoExpressCheckoutPaymentRequestType();
             $DoECRequest->DoExpressCheckoutPaymentRequestDetails = $DoECRequestDetails;
@@ -235,4 +239,3 @@ class PayPalSDK extends RemoteProcessor
 
 }
 
-?>
