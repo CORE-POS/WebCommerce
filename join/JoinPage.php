@@ -106,6 +106,7 @@ class JoinPage extends BasicPage
                 <label><input type="radio" name="plan" value="1" />
                 $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
+                <!--<br /><label><input type="radio" name="plan" value="3" />Testing option</label>-->
             </td>
         </tr>
         <tr>
@@ -221,22 +222,34 @@ class JoinPage extends BasicPage
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $proc = new $pay_class();
         if (isset($_REQUEST[$proc->postback_field_name])) {
-            $this->entries = $_SESSION['userInfo'];
-            $this->mode = 'confirm';
+            // skip over the separate confirm step. just finalize the payment.
+            //$this->entries = $_SESSION['userInfo'];
+            //$this->mode = 'confirm';
             $this->token = $_REQUEST[$proc->postback_field_name];
-            return true;
-        } elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
-            $done = $proc->finalizePayment($_REQUEST['_token']);
+            //return true;
+        //} elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
             $this->entries = $_SESSION['userInfo'];
+            $db = Database::pDataConnect();
+            if ($this->entries['plan'] == 3) {
+                $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 1);
+            }
+            $done = $proc->finalizePayment($this->token);
+
+            if ($this->entries['plan'] == 3) {
+                $prep = $db->prepare_statement('INSERT INTO PaymentProfiles (profileID, cardNo, email) VALUES (?, ?, ?)');
+                $db->exec_statement($prep, array($profileID, $this->entries['card_no'], $this->entries['email']));
+                $this->mode = 'receipt';
+                return true;
+            }
+
             unset($_SESSION['userInfo']);
             $this->mode = 'done';
-            $db = Database::pDataConnect();
             $prep = $db->prepare_statement('
                 UPDATE custdata
                 SET FirstName=?,
                     LastName=?
                 WHERE CardNo=?');
-            $dbc->exec_statement($prep, array($this->entries['fn'], $this->entries['ln'], $this->entries['card_no']));
+            $db->exec_statement($prep, array($this->entries['fn'], $this->entries['ln'], $this->entries['card_no']));
 
             $created = AuthLogin::createLogin($this->entries['email'],
                 $this->entries['passwd'],
@@ -444,7 +457,11 @@ class JoinPage extends BasicPage
                     $PAYMENT_URL_FAILURE = substr($PAYMENT_URL_FAILURE, 0, strlen($PAYMENT_URL_FAILURE)-9);
                 }
                 $PAYMENT_URL_FAILURE .= 'cancel/';
-                $init = $proc->initializePayment($amount, '0.00', $this->entries['email']);
+                if ($this->entries['plan'] == 3) {
+                    $init = $proc->startRecurringPayment(1, 'WFC Equity Payment Plan', '0.00', $this->entries['email']);
+                } else {
+                    $init = $proc->initializePayment($amount, '0.00', $this->entries['email']);
+                }
                 if ($init === false) {
                     $this->msgs .= 'Error: cannot process payment at this time.';
                     return true;
