@@ -222,13 +222,13 @@ class JoinPage extends BasicPage
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $proc = new $pay_class();
         if (isset($_REQUEST[$proc->postback_field_name])) {
-            // skip over the separate confirm step. just finalize the payment.
-            //$this->entries = $_SESSION['userInfo'];
-            //$this->mode = 'confirm';
-            $this->token = $_REQUEST[$proc->postback_field_name];
-            //return true;
-        //} elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
             $this->entries = $_SESSION['userInfo'];
+            $this->mode = 'confirm';
+            $this->token = $_REQUEST[$proc->postback_field_name];
+            return true;
+        } elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
+            $this->entries = $_SESSION['userInfo'];
+            $this->token = $_REQUEST['_token'];
             $db = Database::pDataConnect();
             if ($this->entries['plan'] == 3) {
                 $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 1);
