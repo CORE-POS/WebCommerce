@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "7ee3c7d661a63407047df5d45b837e35",
-    "content-hash": "68d290d2383444e318a38562c6d1c06c",
+    "hash": "8bd6217bbe654659957c826214d67eba",
+    "content-hash": "1c654e4556ebeb4c71feff34bc32f79b",
     "packages": [
         {
             "name": "adodb/adodb-php",
@@ -98,6 +98,36 @@
                 "issues": "https://github.com/CORE-POS/SqlManager/issues"
             },
             "time": "2014-12-23 16:26:36"
+        },
+        {
+            "name": "corepos/common-bundle",
+            "version": "2.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CORE-POS/Common-Bundle.git",
+                "reference": "09f40081b14b52f36c6607e1a594e82bc4d34f51"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CORE-POS/Common-Bundle/zipball/09f40081b14b52f36c6607e1a594e82bc4d34f51",
+                "reference": "09f40081b14b52f36c6607e1a594e82bc4d34f51",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "COREPOS\\common\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPLv2"
+            ],
+            "description": "Common libraries for CORE-POS",
+            "time": "2017-04-26 15:55:16"
         },
         {
             "name": "doctrine/annotations",

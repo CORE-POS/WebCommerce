@@ -6,7 +6,8 @@
         "adodb/adodb-php": "dev-master",
         "core-pos/sql-manager": "dev-master",
         "domisys/image_barcode2": "^3.0",
-        "paypal/merchant-sdk-php": "^3.11"
+        "paypal/merchant-sdk-php": "^3.11",
+        "corepos/common-bundle": "^2.3"
     },
     "license": "GPLv2",
     "authors": [
