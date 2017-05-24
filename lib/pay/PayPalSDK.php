@@ -101,16 +101,14 @@ class PayPalSDK extends RemoteProcessor
     {
         $currencyCode = 'USD';
         $RPProfileDetails = new RecurringPaymentsProfileDetailsType();
-        $RPProfileDetails->BillingStartDate = date('Y-m-d');
+        $RPProfileDetails->BillingStartDate = date(DATE_ATOM, strtotime('+1 day'));
 
         $activationDetails = new ActivationDetailsType();
-        $activationDetails->InitialAmount = new BasicAmountType($currencyCode, $amount);
-        $activationDetails->FailedInitialAmountAction = 'CancelOnFailure';
 
         $paymentBillingPeriod = new BillingPeriodDetailsType();
-        $paymentBillingPeriod->BillingFrequency = 4;
+        $paymentBillingPeriod->BillingFrequency = 1;
         $paymentBillingPeriod->BillingPeriod = 'Day';
-        $paymentBillingPeriod->TotalBillingCycles = 1;
+        $paymentBillingPeriod->TotalBillingCycles = 4;
         $paymentBillingPeriod->Amount = new BasicAmountType($currencyCode, $amount);
         $paymentBillingPeriod->ShippingAmount = new BasicAmountType($currencyCode, 0);
         $paymentBillingPeriod->TaxAmount = new BasicAmountType($currencyCode, $tax);
