@@ -8,15 +8,29 @@ if (!class_exists('PhpAutoLoader')) {
 
 $ipn = new PPIPNMessage(null, array('mode' => 'live'));
 $fp = fopen(__DIR__ . '/ipn.log', 'a');
+$payment = array(
+    'recurring_payment_id' => '',
+    'product_name' => '',
+    'amount' => '',
+    'payment_status',
+    'txn_type',
+);
 if ($ipn->validate()) {
     fwrite($fp, date('r') . ": Valid IPN message\n"); 
     foreach ($ipn->getRawData() as $key => $val) {
+        if (isset($payment[$key])) {
+            $payment[$key] = $val;
+        }
         fwrite($fp, "\t{$key}: {$val}\n");
     }
 } else {
     fwrite($fp, date('r') . ': Invalid IPN message' . "\n");
 }
 fclose($fp);
+
+if ($payment['txn_type'] == 'recurring_payment' && $payment['payment_status'] == 'Completed' && $payment['amount']) {
+    addEquityPayment($payment['recurring_payment_id'], $payment['amount']);
+}
 
 /**
   Run an equity transaction for the notified payment
