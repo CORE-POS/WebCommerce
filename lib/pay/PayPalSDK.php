@@ -101,13 +101,13 @@ class PayPalSDK extends RemoteProcessor
     {
         $currencyCode = 'USD';
         $RPProfileDetails = new RecurringPaymentsProfileDetailsType();
-        $RPProfileDetails->BillingStartDate = date(DATE_ATOM, strtotime('+1 day'));
+        $RPProfileDetails->BillingStartDate = date(DATE_ATOM, strtotime('+1 month'));
 
         $activationDetails = new ActivationDetailsType();
 
         $paymentBillingPeriod = new BillingPeriodDetailsType();
         $paymentBillingPeriod->BillingFrequency = 1;
-        $paymentBillingPeriod->BillingPeriod = 'Day';
+        $paymentBillingPeriod->BillingPeriod = 'Month';
         $paymentBillingPeriod->TotalBillingCycles = 4;
         $paymentBillingPeriod->Amount = new BasicAmountType($currencyCode, $amount);
         $paymentBillingPeriod->ShippingAmount = new BasicAmountType($currencyCode, 0);
@@ -131,9 +131,6 @@ class PayPalSDK extends RemoteProcessor
         try {
             /* wrap API method calls on the service object with a try catch */
             $createRPProfileResponse = $paypalService->CreateRecurringPaymentsProfile($createRPProfileReq);
-            $fp = fopen(__DIR__ . '/rp.log', 'a');
-            fwrite($fp, date('r') . ': ' . print_r($createRPProfileResponse, true) . "\n");
-            fclose($fp);
             if ($createRPProfileResponse->Ack == 'Success') {
                 return $createRPProfileResponse->CreateRecurringPaymentsProfileResponseDetails->ProfileID;
             }
