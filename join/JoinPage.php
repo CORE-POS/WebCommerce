@@ -106,7 +106,7 @@ class JoinPage extends BasicPage
                 <label><input type="radio" name="plan" value="1" />
                 $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
-                <!--<br /><label><input type="radio" name="plan" value="3" />Testing option</label>-->
+                <!--<br /><label><input type="radio" name="plan" value="3" />$20 today; $20 automatically billed monthly for the next 4 months</label>-->
             </td>
         </tr>
         <tr>
@@ -231,7 +231,7 @@ class JoinPage extends BasicPage
             $this->token = $_REQUEST['_token'];
             $db = Database::pDataConnect();
             if ($this->entries['plan'] == 3) {
-                $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 1);
+                $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 20);
             }
             $done = $proc->finalizePayment($this->token);
 
@@ -458,7 +458,7 @@ class JoinPage extends BasicPage
                 }
                 $PAYMENT_URL_FAILURE .= 'cancel/';
                 if ($this->entries['plan'] == 3) {
-                    $init = $proc->startRecurringPayment(1, 'WFC Equity Payment Plan', '0.00', $this->entries['email']);
+                    $init = $proc->startRecurringPayment(20, 'WFC Equity Payment Plan', '0.00', $this->entries['email']);
                 } else {
                     $init = $proc->initializePayment($amount, '0.00', $this->entries['email']);
                 }
