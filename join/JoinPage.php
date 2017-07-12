@@ -222,11 +222,19 @@ class JoinPage extends BasicPage
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $proc = new $pay_class();
         if (isset($_REQUEST[$proc->postback_field_name])) {
+            if (!isset($_SESSION['userInfo']) || !is_array($_SESSION['userInfo'])) {
+                $this->msgs = '<div class="errorMsg">Sorry, your session has expired</div>';
+                return true;
+            }
             $this->entries = $_SESSION['userInfo'];
             $this->mode = 'confirm';
             $this->token = $_REQUEST[$proc->postback_field_name];
             return true;
         } elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
+            if (!isset($_SESSION['userInfo']) || !is_array($_SESSION['userInfo'])) {
+                $this->msgs = '<div class="errorMsg">Sorry, your session has expired</div>';
+                return true;
+            }
             $this->entries = $_SESSION['userInfo'];
             $this->token = $_REQUEST['_token'];
             $db = Database::pDataConnect();
