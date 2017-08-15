@@ -175,6 +175,61 @@ public static function addItem($strupc, $strdescription, $strtransType, $strtran
 	return True;
 }
 
+public static function addDTrans($emp_no, $reg_no, $trans_no, $trans_id, $cols)
+{
+    $vals = array(
+        'datetime' => date('Y-m-d H:i:s'),
+        'register_no' => $reg_no,
+        'emp_no' => $emp_no,
+        'trans_no' => $trans_no,
+        'upc'= > '',
+        'description'= > '',
+        'trans_type' => 'I',
+        'trans_subtype' => '',
+        'trans_status' => '',
+        'department' => 0,
+        'quantity' => 0,
+        'scale' => 0,
+        'cost' => 0,
+        'unitPrice' => 0,
+        'total' => 0,
+        'regPrice' => 0,
+        'tax' => 0,
+        'foodstamp' => 0,
+        'discount' => 0,
+        'memDiscount' => 0,
+        'discountable' => 0,
+        'discounttype' => 0,
+        'voided' => 0,
+        'percentDiscount' => 0,
+        'ItemQtty' => 0,
+        'volDiscType' => 0,
+        'volume' => 0,
+        'VolSpecial' => 0,
+        'mixMatch' => '',
+        'matched' => 0,
+        'memType' => 0,
+        'staff' => 0,
+        'numflag' => 0,
+        'charflag' => '',
+        'card_no' => 0,
+    );
+    foreach (array_keys($vals) as $k) {
+        if (isset($cols[$k])) {
+            $vals[$i] = $cols[$k];
+        }
+    }
+    $insQ = 'INSERT INTO dtransactions (' . implode(',', array_keys($vals)) . ') VALUES (';
+    foreach ($vals as $v) {
+        $insQ .= '?,';
+    }
+    $insQ = substr($insQ, 0, strlen($insQ)-1) . ')';
+    $dbc = Database::pDataConnect();
+    $insP = $dbc->prepare($insQ);
+    $insR = $dbc->execute($insP, array_values($vals));
+    return $insR ? true : false;
+}
+
 //________________________________end addItem()
 
 

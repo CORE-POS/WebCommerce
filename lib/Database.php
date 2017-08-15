@@ -89,6 +89,19 @@ public static function gettransno($CashierNo)
 	return $trans_no;
 }
 
+public static function getDTransNo($emp_no) 
+{
+    $dbc = Database::tDataConnect();
+    $prep = $dbc->prepare("SELECT MAX(trans_no) FROM dtransactions WHERE emp_no=? AND datetime >= CURDATE()");
+    $res = $dbc->execute($prep, array($emp_no));
+    $row = $dbc->fetchRow($res);
+    if (!$row || !$row[0]) {
+        return 1;
+    }
+
+    return $row[0] + 1;
+}
+
 // ------------------------------------------------------------------
 
 /* get a list of columns in both tables

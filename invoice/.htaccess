@@ -1,0 +1,3 @@
+RewriteEngine on
+RewriteBase /invoice/
+RewriteRule ^([0-9a-zA-z]+)$ /invoice/InvoicePage.php?webID=$1 [L]
