@@ -92,8 +92,8 @@ class LoginPage extends NoMenuPage {
     {
         echo '<h2>Registration has closed</h2>
             <br />
-            <a href="faq.php">Annual Meeting FAQ</a><br />
-            <a style="font-size:125%;" href="parkingpass.pdf">Print Parking Pass</a>';
+            <a href="faq/">Annual Meeting FAQ</a><br />
+            <a href="parkingpass.pdf">Print Parking Pass</a>';
         return true;
 		if (!empty($this->errors)){
 			echo "<blockquote><i>";
@@ -115,7 +115,7 @@ class LoginPage extends NoMenuPage {
 		</div>
 		</form>	
 		<p />
-		<a href="faq.php">Annual Meeting FAQ</a><br />
+		<a href="faq/">Annual Meeting FAQ</a><br />
 		<a href="parkingpass.pdf">Print Parking Pass</a>
 		<?php
 	}

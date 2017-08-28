@@ -15,17 +15,18 @@ class MealForm extends NoMenuPage {
 	function preprocess(){
 		global $IS4C_LOCAL;
 
+    /*
 		if ($IS4C_LOCAL->get("memberID") == ''){
 			header("Location: index.php");
 			return False;
 		}
+*/
 
 		$this->errors = "";
 		$this->choices = array(
-            1=>"Pork",
-            2=>"Ratatouille",
-            3=>"Pork (gluten-free)",
-            4=>"Ratatouille (gluten-free)",
+            1=>"King Salmon (Gluten-free)",
+            2=>"Chicken Breast",
+            3=>"Tempeh Stir Fry (Vegan & Gluten-free)",
         );
 		$this->kchoices = array(1=>"Pasta");
 		$this->data = array(
@@ -147,7 +148,7 @@ class MealForm extends NoMenuPage {
 		}?></select>
         </div>
 		<div class="form-group">
-		    <label style="width:100%;">Additional Household Members<br />or Guests Attending</label>
+		    <label style="width:100%;">Additional Adults Attending</label>
             <input type="text" name="ng" size="3" value="<?php echo $this->data['ng']; ?>" />
         </div>
 		<?php for($i=0;$i<$this->data['ng'];$i++){ 
@@ -162,7 +163,7 @@ class MealForm extends NoMenuPage {
 			echo '</select></div>';
 		}?>
 		<div class="form-group">
-		    <label>Children (12 and younger)<br />Attending</label>
+		    <label>Children (12 and younger) Attending</label>
             <input type="text" name="nc" size="3" value="<?php echo $this->data['nc']; ?>" />
         </div>
 		<?php for($i=0;$i<$this->data['nc'];$i++){ 
@@ -186,14 +187,17 @@ class MealForm extends NoMenuPage {
 
 		<div id="menudiv" class="col-sm-5 text-center">
 		<h2>Dinner Menu</h2>
-TENDER ROASTED PORK LOIN: Field Greens, Apple, Pecan and Blue Cheese with Dried Cherries and Champagne Vinaigrette Roasted Pork Loin with Herb Stuffing, Mashed Red Potatoes and Gravy
+A plated dinner including locally sourced foods with vegan, vegetarian, and gluten-free, options catered by the DECC. Beverage options include LOCAL beer and organic wine. <em>Choose one of the following</em><br />
+		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
+Oven Broiled King Salmon topped with Béarnaise Sauce, served with Frisée and Apple Salad and herb roasted red potatoes (Entrée is Gluten Free).
 		<br />
 		<i>or</i>
 		<br />
-RATATOUILLE: Vegan Polenta Cakes topped with Ratatouille and Toasted Almonds. <i>Vegan</i>.
+Boneless Breast of Chicken with a stuffing of Minnesota Wild Rice and Country Sausage topped
 		<br />
+		<i>or</i>
 		<br />
-Both meals can be prepared gluten-free upon request however the DECC is not a gluten-free facility. Select the gluten-free option to have your meal prepared this way.
+Stir fried Tempeh and Fresh Vegetables over Saffron Rice (Entrée is Vegan and Gluten Free)
 		<br />
 		<br />
 		<i>Children's Option</i>
@@ -201,12 +205,13 @@ Both meals can be prepared gluten-free upon request however the DECC is not a gl
 Pasta with Meatless Marinara Sauce served with garden vegetables. Gluten free noodles available upon request. <i>Ages 12 and under, please</i>.
 		<br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-All entrees come with gourmet green salads, dinner rolls, and dessert, gluten free dessert option will be available upon request. 
+All meals served with locally baked dinner rolls (Gluten Free dinner rolls may be requested from your server)
+        <br />
+		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
+Dessert -  Death by Chocolate (vegan dessert option will be available upon request)
         <br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
 Coffee & Water served, Milk or Tea upon request 
-		<br /><br />
-Local beer and organic and/or fair trade wine along with soda will be available at the bar. Two drink tickets come with the meal.
 		<br /><br />
 		If you have any additional questions about the menu, please contact <a href="mailto:awade@wholefoods.coop">awade@wholefoods.coop</a>.
 		<br /><br />
