@@ -85,7 +85,14 @@ class itemPage extends BasicPage {
 
 		echo '<div class="col-sm-3">';
 		echo '<span class="itemPriceNormal">';
-		printf('$%.2f',($w['discounttype']==1?$w['special_price']:$w['normal_price']));
+		$price = $w['normal_price'];
+                if ($price == 0) {
+                      $price = 'Free!<br/><span style="font-size: 14px; font-weight: normal">*Registration is still required</span>';
+                } else {
+                      $price = sprintf('$%.2f',$price);
+                }
+		$specialPrice = sprintf('$%.2f',$w['special_price']);
+		printf('<i>%s</i>',($w['discounttype']==1?$specialPrice:$price));
 		echo '</span><br />';
 		echo '<span class="itemPriceAddOn">';
 		if ($w['discounttype']==1) echo 'On Sale!';

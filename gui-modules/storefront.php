@@ -73,7 +73,7 @@ class storefront extends BasicPage {
 		$dbc = Database::pDataConnect();
 		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 		if ($empno===False) $empno=-999;
-	
+
 		$q = "SELECT p.upc,p.normal_price,
 			CASE WHEN p.discounttype IN (1) then p.special_price
 				ELSE 0
@@ -83,7 +83,7 @@ class storefront extends BasicPage {
             p.special_price, p.discounttype
 			FROM products AS p INNER JOIN productUser
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
-			AS l ON p.upc=l.upc AND l.emp_no=? 
+			AS l ON p.upc=l.upc AND l.emp_no=?
 			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc ";
 		$args = array($empno);
 		if ($super != -1)
@@ -107,21 +107,27 @@ class storefront extends BasicPage {
 			$q .= "AND u.brand=? ";
 			$args[] = $brand;
 		}
-		$q .= "ORDER BY u.brand,u.description";
+		$q .= "ORDER BY u.brand,SUBSTR(u.description,9,2),u.description";
 
 		$p = $dbc->prepare_statement($q);
 		$r = $dbc->exec_statement($p, $args);
-				
+
 		$ret = '<table class="table" cellspacing="4" cellpadding="4" id="browsetable">';
 		$ret .= '<tr><th>Brand</th><th>Product</th><th>Price</th><th>&nbsp;</th></tr>';
 		while($w = $dbc->fetch_row($r)){
+			$price = $w['normal_price'];
+			if ($price == 0) {
+				$price = 'Free!';
+			} else {
+				$price = sprintf('$%.2f',$price);
+			}
 			$ret .= sprintf('<tr><td>%s</td>
 					<td><a href="../items/%s">%s</a></td>
-					<td>$%.2f</td>
+					<td>%s</td>
 					<td>%s</td>',
 					$w['brand'],
 					$w['upc'],$w['description'],
-					($w['sale_price']==0?$w['normal_price']:$w['sale_price']),
+					($w['sale_price']==0?$price:$w['sale_price']),
 					($w['sale_price']==0?'&nbsp;':'ON SALE!')
 			);
 			if ($w['inCart'] == 0 && $empno != -999 && !($w['discounttype'] == 2 && $w['special_price'] == 0)){
