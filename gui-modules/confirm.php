@@ -96,10 +96,12 @@ class confirm extends BasicPage {
             <td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
         echo "</table><br />";
         if (!$receiptMode) {
-            $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
-            $proc = new $pay_class();
-            $ident = $_REQUEST[$proc->postback_field_name];
-            printf('<input type="hidden" name="token" value="%s" />',$ident);
+            if ($ttl > 0) {
+                $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
+                $proc = new $pay_class();
+                $ident = $_REQUEST[$proc->postback_field_name];
+                printf('<input type="hidden" name="token" value="%s" />',$ident);
+            }
             echo '<b>Phone Number (incl. area code)</b>: ';
             echo '<input type="text" name="ph_contact" /> (<span style="color:red;">Required</span>)<br />';
             echo '<blockquote>We require a phone number because some email providers
