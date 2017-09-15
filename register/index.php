@@ -90,11 +90,13 @@ class LoginPage extends NoMenuPage {
 
 	function main_content()
     {
+        /*
         echo '<h2>Registration has closed</h2>
             <br />
             <a href="faq/">Annual Meeting FAQ</a><br />
             <a href="parkingpass.pdf">Print Parking Pass</a>';
         return true;
+        */
 		if (!empty($this->errors)){
 			echo "<blockquote><i>";
 			echo $this->errors;
