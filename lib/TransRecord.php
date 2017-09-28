@@ -177,6 +177,7 @@ public static function addItem($strupc, $strdescription, $strtransType, $strtran
 
 public static function addDTrans($emp_no, $reg_no, $trans_no, $trans_id, $cols)
 {
+    $dbc = Database::pDataConnect();
     $vals = array(
         'datetime' => date('Y-m-d H:i:s'),
         'register_no' => $reg_no,
@@ -213,18 +214,28 @@ public static function addDTrans($emp_no, $reg_no, $trans_no, $trans_id, $cols)
         'numflag' => 0,
         'charflag' => '',
         'card_no' => 0,
+        'trans_id' => $trans_id,
+        'pos_row_id' => 0,
     );
+    $maxR = $dbc->query('SELECT MAX(pos_row_id) FROM dtransactions');
+    while ($max = $dbc->fetchRow($maxR)) {
+        $vals['pos_row_id'] = $max[0] + 1;
+    }
     foreach (array_keys($vals) as $k) {
         if (isset($cols[$k])) {
-            $vals[$i] = $cols[$k];
+            $vals[$k] = $cols[$k];
         }
     }
-    $insQ = 'INSERT INTO dtransactions (' . implode(',', array_keys($vals)) . ') VALUES (';
+    $insQ = 'INSERT INTO dtransactions (';
+    foreach (array_keys($vals) as $col) {
+        $insQ .= $col . ',';
+    }
+    $insQ = substr($insQ, 0, strlen($insQ)-1) . ')';
+    $insQ .= ' VALUES (';
     foreach ($vals as $v) {
         $insQ .= '?,';
     }
     $insQ = substr($insQ, 0, strlen($insQ)-1) . ')';
-    $dbc = Database::pDataConnect();
     $insP = $dbc->prepare($insQ);
     $insR = $dbc->execute($insP, array_values($vals));
     return $insR ? true : false;

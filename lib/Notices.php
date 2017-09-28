@@ -270,5 +270,19 @@ public static function giftAdminNotification($json)
 	self::sendEmail($json['email'], "Online Gift Card", $msg);
 }
 
+public static function invoiceNotification($email, $inv)
+{
+    $msg = "Invoice #: {$inv['b2bInvoiceID']}\n"
+        . "Account #: {$inv['cardNo']}\n"
+        . "Item: {$inv['description']}\n"
+        . "Amount: {$inv['amount']}\n"
+        . "Invoice Date: {$inv['createdDate']}\n"
+        . "Notes: {$inv['customerNotes']}\n"
+        . "Paid: Yes\n"
+        . "Payment Method: PayPal\n"
+        . "Payment Date: " . date('Y-m-d H:i:s') . "\n";
+    self::sendEmail($email, 'WFC Invoice Payment', $msg);
+}
+
 }
 

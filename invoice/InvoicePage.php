@@ -126,7 +126,7 @@ HTML;
 		global $IS4C_PATH;
         $dbc = Database::pDataConnect();
         $prep = $dbc->prepare("SELECT * FROM B2BInvoices WHERE uuid=?");
-        $res = $dbc->execute($prep, array($webID));
+        $res = $dbc->execute($prep, array($this->webID));
         $row = $dbc->fetchRow($res);
         echo <<<HTML
 		<div id="loginTitle">
@@ -205,7 +205,7 @@ HTML;
             $done = $proc->finalizePayment($this->token);
 
             $tNo = Database::getDTransNo(1001);
-            Database::addDTrans(1001, 30, $tNo, 1, array(
+            TransRecord::addDTrans(1001, 30, $tNo, 1, array(
                 'upc' => $row['amount'] . 'DP703',
                 'description' => substr($row['description'], 0, 30),
                 'trans_type' => 'D',
@@ -219,7 +219,7 @@ HTML;
                 'charflag' => 'B2',
                 'numflag' => $row['b2bInvoiceID'],
             ));
-            Database::addDTrans(1001, 30, $tNo, 2, array(
+            TransRecord::addDTrans(1001, 30, $tNo, 2, array(
                 'description' => 'PayPal',
                 'trans_type' => 'T',
                 'total' => -1*$row['amount'],
@@ -232,13 +232,9 @@ HTML;
                 WHERE b2bInvoiceID=?");
             $dbc->execute($paidP, array($row['b2bInvoiceID']));
 
-            /**
-              Send email notifications to customer, store staff.
-              Latter should include all signup info, possibly in a
-              click-to-apply JSON encoding.
-            Notices::joinNotification($this->entries);
-            Notices::joinAdminNotification($this->entries);
-            */
+            if ($emailAddr && filter_var($emailAddr, FILTER_VALIDATE_EMAIL)) {
+                Notices::invoiceNotification($emailAddr, $row);
+            }
             $this->mode = 'receipt';
 
 		} elseif (isset($_POST['submit'])) {
