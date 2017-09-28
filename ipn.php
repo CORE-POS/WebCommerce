@@ -12,8 +12,8 @@ $payment = array(
     'recurring_payment_id' => '',
     'product_name' => '',
     'amount' => '',
-    'payment_status',
-    'txn_type',
+    'payment_status' => '',
+    'txn_type' => '',
 );
 if ($ipn->validate()) {
     fwrite($fp, date('r') . ": Valid IPN message\n"); 
