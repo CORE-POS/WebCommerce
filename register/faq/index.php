@@ -10,6 +10,7 @@ class FAQPage extends NoMenuPage
     public function main_content()
     {
         echo <<<HTML
+<h2>FAQ</h2>
 <h3>When is the Annual Owners Meeting?</h3>
 <p>The Annual Owners Meeting is Tuesday, October 24, 2017 from 5pm to 7:45pm.
 Dinner will be served at 5:30pm.</p>
@@ -29,6 +30,32 @@ or by calling and speaking to customer service (218-728-0884, press 1). You must
 <p>Registration for the meeting costs $20 per adult and $5 per child (12 and under). Owners will
 receive a $20 gift card upon arrival to the meeting.
 </p>
+<h2>Agenda</h2>
+<h3>Dinner is Served</h3>
+<p>5:30 PM</p>
+<h3>Guest Speakers</h3>
+<p>
+    <ul>
+        <li>Ashley Grim - Damiano Center Kids Cafe</li>
+        <li>Lucie Amundsen - Locally Laid Egg Company</li>
+    </ul>
+</p>
+<h3>Business Meeting</h3>
+<p>6:30 - 7:15 PM &nbsp;&nbsp;<i>child care available</i>
+    <ul>
+        <li>Welcome & Introduction</li>
+        <li>Proof of notice of meeting</li>
+        <li>Report on number of Owners present</li>
+        <li>Reading or waiver of reading of Minutes of 2016 meeting/approval of 2016 Minutes</li>
+        <li>State of the Co-op Reports from Management and Board</li>
+        <li>Remarks for the good and welfare of the Co-op</li>
+        <li>Announcement of Results of Board Election</li>
+    </ul>
+</p>
+<h3>Door Prize Drawings</h3>
+<p>Must be present to win.</p>
+<h3></h3>
+<p></p>
 HTML;
     }
 }
