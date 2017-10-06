@@ -59,9 +59,10 @@ class JoinPage extends BasicPage
         your picture ID to the Co-op location of your choice and picking up your Owner card and other materials.
         </p>
         <p class="text-left">
-        Need financial assistance?  You may qualify for the 
-        <a href="http://wholefoods.coop/wp/wp-content/uploads/2014/08/ran-Skinner-Brochure-2014.pdf">Fran 
-        Skinner Memorial Matching Fund</a>.
+        Through the
+        <a href="http://wholefoods.coop/cms/wp-content/uploads/2017/04/Fran-Skinner-Brochure-2016.pdf">
+        Fran Skinner Memorial Matching Fund</a>.
+        eligible shoppers can join for just $20. Please visit our Customer Service Counter to sign up for this program.
         </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 		<table class="table" cellspacing="4" cellpadding="4">
