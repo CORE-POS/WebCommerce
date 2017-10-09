@@ -3,7 +3,7 @@ $IS4C_PATH="";
 if (!class_exists('PhpAutoLoader')) {
     require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
-include('ini.php');
+include(__DIR__ . '/../ini.php');
 
 class FAQPage extends NoMenuPage 
 {
