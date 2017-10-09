@@ -15,7 +15,8 @@ class PaypalResultPage extends NoMenuPage {
 				WHERE token=?");
 			$fetchR = $dbc->exec_statement($fetchQ, array($_REQUEST['token']));
 			if ($dbc->num_rows($fetchR) > 0){
-				$cn = array_pop($dbc->fetch_row($fetchR));
+				$fetchW = $dbc->fetch_row($fetchR);
+                $cn = $fetchW['card_no'];
 				$IS4C_LOCAL->set("memberID",$cn);
 
 				$clearQ = $dbc->prepare_statement("DELETE FROM tokenCache
