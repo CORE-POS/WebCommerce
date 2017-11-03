@@ -220,8 +220,9 @@ HTML;
                 'numflag' => $row['b2bInvoiceID'],
             ));
             TransRecord::addDTrans(1001, 30, $tNo, 2, array(
-                'description' => 'PayPal',
+                'description' => 'Pay Pal',
                 'trans_type' => 'T',
+                'trans_subtype' => 'PP',
                 'total' => -1*$row['amount'],
                 'card_no' => $row['cardNo'],
             ));
