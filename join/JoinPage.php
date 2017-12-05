@@ -54,8 +54,10 @@ class JoinPage extends BasicPage
         <h2>Join the Co-op</h2>
         <p class="text-left">
         Become an <a href="http://wholefoods.coop/ownership/becoming-an-owner/">Owner</a> of Whole Foods Co-op today.
-        Ownership is a $100 investment, not an annual fee. You may pay the full amount immediately or pay $20 now and the remaining $80
-        at any time in any increment(s) over the next year. After 48 hours, you can activate your ownership by bringing 
+        Ownership is a $100 investment, not an annual fee. You may pay the full amount immediately or pay $20 now 
+        and an additional $20 each month for the next four months.
+        <!--and the remaining $80 at any time in any increment(s) over the next year. -->
+        After 48 hours, you can activate your ownership by bringing 
         your picture ID to the Co-op location of your choice and picking up your Owner card and other materials.
         </p>
         <p class="text-left">
@@ -104,10 +106,10 @@ class JoinPage extends BasicPage
                 <label><input type="radio" name="plan" value=2" checked />
                 Full $100 today</label>
                 <br />
-                <label><input type="radio" name="plan" value="1" />
+                <!--<label><input type="radio" name="plan" value="1" />
                 $20 today; remaining $80 due by 
-                <?php echo date('F j, Y', strtotime('+1 year')); ?></label>
-                <!--<br /><label><input type="radio" name="plan" value="3" />$20 today; $20 automatically billed monthly for the next 4 months</label>-->
+                <?php echo date('F j, Y', strtotime('+1 year')); ?></label> -->
+                <br /><label><input type="radio" name="plan" value="3" />$20 today; $20 automatically billed monthly for the next 4 months</label>
             </td>
         </tr>
         <tr>
@@ -394,7 +396,7 @@ class JoinPage extends BasicPage
 				$errors = true;
 			}
 
-			if ($this->entries['plan'] != 1 && $this->entries['plan'] != 2) {
+			if ($this->entries['plan'] != 1 && $this->entries['plan'] != 2 && $this->entries['plan'] != 3) {
 				$this->msgs .= '<div class="errorMsg">';
 				$this->msgs .= 'Invalid payment choice.';
 				$this->msgs .= '</div>';
@@ -486,7 +488,7 @@ class JoinPage extends BasicPage
 }
 
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
-    new JoinPage();
+    new JoinPage('Join the Co-op');
 }
 
 ?>
