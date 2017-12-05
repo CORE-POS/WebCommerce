@@ -280,7 +280,7 @@ class storefront extends BasicPage {
 }
 
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
-    new storefront();
+    new storefront('Browse Store');
 }
 
 ?>
