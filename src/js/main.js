@@ -211,4 +211,3 @@ WFC.fluidVideo = function(){
 	
 });
 
-window.console.log('wtf');
