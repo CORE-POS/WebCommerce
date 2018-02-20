@@ -5,6 +5,8 @@ use PayPal\IPN\PPIPNMessage;
 if (!class_exists('PhpAutoLoader')) {
     require(__DIR__ . '/vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
+$IS4C_PATH = __DIR__ . '/';
+include(__DIR__ . '/ini.php');
 
 $ipn = new PPIPNMessage(null, array('mode' => 'live'));
 $fp = fopen(__DIR__ . '/ipn.log', 'a');
@@ -37,36 +39,39 @@ if ($payment['txn_type'] == 'recurring_payment' && $payment['payment_status'] ==
 */
 function addEquityPayment($profileID, $amount)
 {
+    $fp = fopen(__DIR__ . '/ipn.log', 'a');
+    fwrite($fp, "Adding payment for {$profileID}\n");
     $dbc = Database::pDataConnect();
     $prep = $dbc->prepare_statement('SELECT cardNo, email FROM PaymentProfiles WHERE profileID=?');
     $res = $dbc->exec_statement($prep, array($profileID));
     $row = $dbc->fetch_row($res);
     if (!$row) {
+        fwrite($fp, "Could not find profile {$profileID}");
+        fclose($fp);
         return false;
     }
     $card_no = $row['cardNo'];
-    $email = $row['email'];
-    AuthUtilities::doLogin($email);
-    $empno = AuthUtilities::getUID($email);
-    TransRecord::addOpenRing($amount, 991, 'Class B Equity');
-    $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
-    $proc = new $pay_class();
-    TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$amount);
-
-    $endP = $dbc->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
-        localtemptrans AS l WHERE emp_no=?");
-    $endR = $dbc->exec_statement($endP,array($empno));
-
-    $pendingCols = Database::localMatchingColumns($dbc, 'localtemptrans', 'pendingtrans');
-    $endP = $dbc->prepare_statement("INSERT INTO pendingtrans ($pendingCols) 
-                                    SELECT $pendingCols 
-                                    FROM localtemptrans AS l 
-                                    WHERE l.emp_no=?");
-
-    $endR = $dbc->exec_statement($endP,array($empno));
-    if ($endR !== false) {
-        $clearP = $dbc->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
-        $dbc->exec_statement($clearP,array($empno));
-    }
+    $tNo = Database::getDTransNo(1001);
+    TransRecord::addDTrans(1001, 50, $tNo, 1, array(
+        'upc' => $amount . 'DP991',
+        'description' => 'Class B Equity',
+        'trans_type' => 'D',
+        'department' => 991,
+        'quantity' => 1,
+        'regPrice' => $amount,
+        'total' => $amount,
+        'unitPrice' => $amount,
+        'ItemQtty' => 1,
+        'card_no' => $card_no,
+    ));
+    TransRecord::addDTrans(1001, 50, $tNo, 2, array(
+        'description' => 'Pay Pal',
+        'trans_type' => 'T',
+        'trans_subtype' => 'PP',
+        'total' => -1*$amount,
+        'card_no' => $card_no,
+    ));
+    fwrite($fp, "Finished payment for {$profileID}");
+    fclose($fp);
 }
 
