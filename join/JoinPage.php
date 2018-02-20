@@ -63,7 +63,7 @@ class JoinPage extends BasicPage
         <p class="text-left">
         Through the
         <a href="http://wholefoods.coop/cms/wp-content/uploads/2017/04/Fran-Skinner-Brochure-2016.pdf">
-        Fran Skinner Memorial Matching Fund</a>.
+        Fran Skinner Memorial Matching Fund</a>
         eligible shoppers can join for just $20. Please visit our Customer Service Counter to sign up for this program.
         </p>
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
@@ -250,7 +250,6 @@ class JoinPage extends BasicPage
                 $prep = $db->prepare_statement('INSERT INTO PaymentProfiles (profileID, cardNo, email) VALUES (?, ?, ?)');
                 $db->exec_statement($prep, array($profileID, $this->entries['card_no'], $this->entries['email']));
                 $this->mode = 'receipt';
-                return true;
             }
 
             unset($_SESSION['userInfo']);
