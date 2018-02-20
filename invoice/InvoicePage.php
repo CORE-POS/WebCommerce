@@ -58,6 +58,8 @@ class InvoicePage extends BasicPage
         }
         $row = $dbc->fetchRow($res);
         $row['amount'] = sprintf('%.2f', $row['amount']);
+        $row['customerNotes'] = nl2br($row['customerNotes']);
+        $row['description'] = nl2br($row['description']);
         
         echo <<<HTML
         <style type="text/css">
