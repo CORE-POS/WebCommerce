@@ -122,7 +122,7 @@ class confirm extends BasicPage {
             }
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-            if ($proc->cancelable) {
+            if ($ttl > 0 && $proc->cancelable) {
                 echo '<input type="submit" name="backbtn" value="Go Back" />';
             }
         } else {
