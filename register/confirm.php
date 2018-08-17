@@ -66,7 +66,7 @@ class ConfirmPage extends NoMenuPage {
 				
 				$PAYPAL_URL_SUCCESS = "http://store.wholefoods.coop/register/ppfinish.php";
 				$PAYPAL_URL_FAILURE = "http://store.wholefoods.coop/register/cancel.php";
-				$ppinit = PayPal::SetExpressCheckout($amt,0,$amtW['email']);
+				$ppinit = PayPalMod::SetExpressCheckout($amt,0,$amtW['email']);
 				if ($ppinit) {
 					// cache member ID by paypal token in case
 					// session expires
