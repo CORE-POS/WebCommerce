@@ -80,7 +80,7 @@ class itemPage extends BasicPage {
             echo "<img src=\"{$url}\" class=\"itemImg\" />";
         }
 		echo '<p />';
-		echo $w['long_text'];
+		echo nl2br($w['long_text']);
 		echo '</div>';
 
 		echo '<div class="col-sm-3">';
