@@ -62,7 +62,7 @@ class JoinPage extends BasicPage
         </p>
         <p class="text-left">
         Through the
-        <a href="http://wholefoods.coop/cms/wp-content/uploads/2017/04/Fran-Skinner-Brochure-2016.pdf">
+        <a href="http://wholefoods.coop/cms/wp-content/uploads/2018/05/Ownership_Access_Postcard_05_2018.pdf">
         Fran Skinner Memorial Matching Fund</a>
         eligible shoppers can join for just $20. Please visit our Customer Service Counter to sign up for this program.
         </p>
