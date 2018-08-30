@@ -24,9 +24,8 @@ class MealForm extends NoMenuPage {
 
 		$this->errors = "";
 		$this->choices = array(
-            1=>"King Salmon (Gluten-free)",
-            2=>"Chicken Breast",
-            3=>"Tempeh Stir Fry (Vegan & Gluten-free)",
+            1=>"Acorn Squash (Vegan)",
+            2=>"Chicken",
         );
 		$this->kchoices = array(1=>"Pasta");
 		$this->data = array(
@@ -187,31 +186,27 @@ class MealForm extends NoMenuPage {
 
 		<div id="menudiv" class="col-sm-5 text-center">
 		<h2>Dinner Menu</h2>
-A plated dinner including locally sourced foods with vegan, vegetarian, and gluten-free, options catered by the DECC. Beverage options include LOCAL beer and organic wine. <em>Choose one of the following</em><br />
+A plated dinner including locally sourced foods with vegan, vegetarian, and gluten-free, options catered by the DECC. <em>Choose one of the following</em><br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Oven Broiled King Salmon topped with Béarnaise Sauce, served with Frisée and Apple Salad and herb roasted red potatoes (Entrée is Gluten Free).
+Baked Local Acorn Squash with Minnesota Wild Rice stuffing
 		<br />
 		<i>or</i>
 		<br />
-Boneless Breast of Chicken with a stuffing of Minnesota Wild Rice and Country Sausage topped
-		<br />
-		<i>or</i>
-		<br />
-Stir fried Tempeh and Fresh Vegetables over Saffron Rice (Entrée is Vegan and Gluten Free)
+Chicken (MN sourced) with roasted tomatoes (Bay Produce - Superior, WI) and pesto (made with basil from The DECC rooftop gardens)
 		<br />
 		<br />
 		<i>Children's Option</i>
 		<br />
-Pasta with Meatless Marinara Sauce served with garden vegetables. Gluten free noodles available upon request. <i>Ages 12 and under, please</i>.
+Pasta with Meatless Marinara Sauce. Served with Local Roasted Root vegetables. Gluten-free noodles available upon request. <i>Ages 12 and under please</i>.
 		<br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-All meals served with locally baked dinner rolls (Gluten Free dinner rolls may be requested from your server)
+Both entrees come with locally sourced salads (Future Farms – Baldwin, WI) locally baked bread (Great Harvest - Duluth, MN) herb roasted red potatoes and roasted root vegetables (Minnesota).
         <br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Dessert -  Death by Chocolate (vegan dessert option will be available upon request)
+Dessert is a locally sourced Apple Crisp (Bayfield, WI) from The Exchange Bakery (Duluth, MN) or a Gluten Free Berry Tart from Valley’s Own (Burnsville, MN).
         <br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Coffee & Water served, Milk or Tea upon request 
+Soda, organic and/or Fair Trade wine and local beer by Bent Paddle Brewing Co. (Duluth, MN) will be available at the bar. Two drink tickets come with each adult meal.
 		<br /><br />
 		If you have any additional questions about the menu, please contact <a href="mailto:awade@wholefoods.coop">awade@wholefoods.coop</a>.
 		<br /><br />

@@ -22,9 +22,8 @@ class ConfirmPage extends NoMenuPage {
 		$this->errors = "";
 		$this->choices = array(
             0=>"Children's Plate",
-            1=>"King Salmon (Gluten-free)",
-            2=>"Chicken Breast",
-            3=>"Tempeh Stir Fry (Vegan & Gluten-free)",
+            1=>"Acorn Squash (Vegan)",
+            2=>"Chicken",
         );
 		$this->data = array(
 		'fnln'=>'',
