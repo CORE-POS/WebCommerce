@@ -12,7 +12,7 @@ class ConfirmPage extends NoMenuPage {
 	var $choices;
 
 	function preprocess(){
-		global $IS4C_LOCAL,$IS4C_PATH,$PAYPAL_URL_SUCCESS,$PAYPAL_URL_FAILURE;
+		global $IS4C_LOCAL,$IS4C_PATH,$PAYMENT_URL_SUCCESS,$PAYMENT_URL_FAILURE;
 
 		if ($IS4C_LOCAL->get("memberID") == ''){
 			header("Location: index.php");
@@ -63,15 +63,17 @@ class ConfirmPage extends NoMenuPage {
 			}
 			else {
 				
-				$PAYPAL_URL_SUCCESS = "http://store.wholefoods.coop/register/ppfinish.php";
-				$PAYPAL_URL_FAILURE = "http://store.wholefoods.coop/register/cancel.php";
-				$ppinit = PayPalMod::SetExpressCheckout($amt,0,$amtW['email']);
+                $ppmod = new PayPalMod();
+				$PAYMENT_URL_SUCCESS = "http://store.wholefoods.coop/register/ppfinish.php";
+				$PAYMENT_URL_FAILURE = "http://store.wholefoods.coop/register/cancel.php";
+				$ppinit = $ppmod->SetExpressCheckout($amt,0,$amtW['email']);
 				if ($ppinit) {
 					// cache member ID by paypal token in case
 					// session expires
 					$q = $dbc->prepare_statement("INSERT INTO tokenCache (card_no,token,tdate)
 						VALUES (?,?,".$dbc->now().")");
 					$r = $dbc->exec_statement($q, array($IS4C_LOCAL->get('memberID'), $ppinit));
+                    $ppmod->redirectToProcess($ppinit);
 					return False;
 				}
 				else

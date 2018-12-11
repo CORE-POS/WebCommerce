@@ -24,8 +24,9 @@ class PaypalResultPage extends NoMenuPage {
 				$clearR = $dbc->exec_statement($clearQ, array($_REQUEST['token']));
 			}
 			
-			$pp1 = PayPalMod::GetExpressCheckoutDetails($_REQUEST['token']);
-			$pp2 = PayPalMod::DoExpressCheckoutPayment($pp1['TOKEN'],
+            $ppmod = new PayPalMod();
+			$pp1 = $ppmod->GetExpressCheckoutDetails($_REQUEST['token']);
+			$pp2 = $ppmod->DoExpressCheckoutPayment($pp1['TOKEN'],
 				$pp1['PAYERID'],
 				$pp1['PAYMENTREQUEST_0_AMT']);
 
