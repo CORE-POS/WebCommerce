@@ -244,30 +244,34 @@ public static function giftNotification($json)
         $msg .= 'Your card will be mailed to:' . "\n";
         $msg .= $json['sname'] . "\n";
         $msg .= $json['addr1'] . "\n";
-        $msg .= $json['addr2'] . "\n";
         $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
     }
 
 	self::sendEmail($json['email'], "Whole Foods Co-op Gift Card", $msg);
 }
 
-public static function giftAdminNotification($json)
+public static function giftAdminNotification($json, $email)
 {
 	$msg = sprintf("New \$%.2f Whole Foods Co-op gift card purchase\n\n", $json['amt']);
     $msg .= 'Name: ' . $json['name'] . "\n";
     $msg .= 'Phone: ' . $json['ph'] . "\n";
     $msg .= 'E-mail: ' . $json['email'] . "\n";
+    $msg .= 'Owner #: ' . ($json['owner'] ? $json['owner'] : 'n/a') . "\n";
     if ($json['store'] == 1) {
-        $msg .= "The customer will pick up the card at Hillside";
+        $msg .= "The customer will pick up the card at Hillside\n";
+    } elseif ($json['store'] == 2) {
+        $msg .= "The customer will pick up the card at Denfeld\n";
     } elseif ($json['store'] == 99) {
         $msg .= 'The card should be mailed to:' . "\n";
         $msg .= $json['sname'] . "\n";
         $msg .= $json['addr1'] . "\n";
-        $msg .= $json['addr2'] . "\n";
         $msg .= $json['city'] . ', ' . $json['state'] . ' ' . $json['zip'] . "\n";
     }
+    if ($json['notes']) {
+        $msg .= 'Customer notes: ' . $json['notes'] . "\n";
+    }
 
-	self::sendEmail($json['email'], "Online Gift Card", $msg);
+	self::sendEmail($email, "Online Gift Card", $msg);
 }
 
 public static function invoiceNotification($email, $inv)
