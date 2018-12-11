@@ -79,7 +79,7 @@ public static function addItem($strupc, $strdescription, $strtransType, $strtran
 	$intregisterno = $IS4C_LOCAL->get("laneno");
 
     if (isset($_SESSION['emp_no'])) {
-        $intemno = $_SESSION['emp_no'];
+        $intempno = $_SESSION['emp_no'];
         $owner = 0;
     } else {
         $name = AuthLogin::checkLogin();
