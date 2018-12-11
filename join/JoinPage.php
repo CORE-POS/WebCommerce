@@ -245,6 +245,14 @@ class JoinPage extends BasicPage
                 $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 20);
             }
             $done = $proc->finalizePayment($this->token);
+            if (!$done) {
+                $this->mode = 'form';
+				$this->msgs .= '<div class="errorMsg">';
+                $this->msgs .= 'Sorry, there was an error processing your payment. Please try again in a few minutes';
+                $this->msgs .= '</div>';
+
+                return true;
+            }
 
             if ($this->entries['plan'] == 3) {
                 $prep = $db->prepare_statement('INSERT INTO PaymentProfiles (profileID, cardNo, email) VALUES (?, ?, ?)');
