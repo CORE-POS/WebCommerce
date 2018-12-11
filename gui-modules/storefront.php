@@ -107,6 +107,8 @@ class storefront extends BasicPage {
 			$q .= "AND u.brand=? ";
 			$args[] = $brand;
 		}
+        // this is a TEST wfc-u class, to test noauto
+        $q .= "AND p.upc <> 99010118 ";
 		$q .= "ORDER BY u.brand,SUBSTR(u.description,9,2),u.description";
 
 		$p = $dbc->prepare_statement($q);
