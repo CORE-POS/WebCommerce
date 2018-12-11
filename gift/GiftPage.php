@@ -35,6 +35,38 @@ class GiftPage extends BasicPage
     private $mode = 'form';
     private $token = '';
 
+    // suppress normal menu
+	function top_menu()
+    {
+        return '';
+    }
+
+    function switchHeader()
+    {
+        if (date('Ymd') <= 20181130) {
+            return 'Owners: Buy Gift Cards, get Co-op Cash';
+        }
+
+        return 'Purchase a Gift Card';
+    }
+
+    function switchBody()
+    {
+        if (date('Ymd') <= 20181130) {
+            return '
+                Gift giving just got easier! Now through November 30th, for every $100.00 in Whole Foods Co-op gift cards purchased you will receive $20.00 in Co-op Cash for yourself.
+                This deal is just for co-op owners. Not an owner?
+                <a href="../join/">Join Today</a>!<br /><br />
+                Co-op Cash is redeemable from December 1, 2018 through December 31, 2018.
+                Purchase amount can be placed on multiple separate gift cards, however there is a $500.00 limit.
+                Gift cards do not expire.
+                Gift cards can be picked up at either location.
+            ';
+        }
+
+        return 'Gift cards purchased online can be picked up at either location or mailed for a $1 fee.';
+    }
+
 	function main_content()
     {
 		global $IS4C_PATH;
@@ -49,73 +81,98 @@ class GiftPage extends BasicPage
         input.medium {
             width: 12em;
         }
+        #hero {
+            background-image: url('/src/img/giftcard.jpg');
+        }
+        div.post-wrap {
+            padding-top: 0px !important;
+        }
+        article#post-0 {
+            padding-top: 15px !important;
+        }
         </style>
 		<div id="loginTitle">
-        <h2>Purchase a Gift Card</h2>
+        <h2><?php echo $this->switchHeader(); ?></h2>
         <p class="text-left">
+        <!--
         Gift cards may be purchased online in any amount between $5 and $500. Gift cards may be picked up in
-        store or mailed to the designated address. <strong>There is a $1 fee for shipping on mailed cards</strong>.
+        store or mailed to the designated address. <strong>There is a $1 fee for shipping on mailed cards</strong>.-->
+        <?php echo $this->switchBody(); ?>
         </p>
+        <hr />
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-		<table class="table" cellspacing="4" cellpadding="4">
-        <tr>
-            <th>Amount</th>
-            <td colspan="5"><input type="number" min="5" max="500" step="0.01" name="amt" required value="<?php echo $this->entries['amt']; ?>" /></td>
-		</tr>
-        <tr>
-            <th>Your Name</th>
-            <td colspan="5"><input type="text" required name="name" value="<?php echo $this->entries['name']; ?>" /></td>
-		</tr>
-		<tr>
-            <th>Phone Number</th>
-            <td><input type="tel" class="medium" required name="ph" value="<?php echo $this->entries['ph']; ?>" /></td>
-            <th>E-mail address</th>
-            <td colspan="3"><input type="email" required name="email" value="<?php echo $this->entries['email']; ?>" /></td>
-		</tr>
-        <tr>
-            <th>Delivery</th>
-            <td colspan="5">
-                <select name="store" required>
-                    <option value="99">Mail to the address below ($1 fee)</option>
-                    <option value="1">Pick up at Hillside (610 E 4th St, Duluth, MN 55805)</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <th>Shipping Name</th>
-            <td colspan="5"><input type="text" name="sname" value="<?php echo $this->entries['sname']; ?>" /></td>
-		</tr>
-		<tr>
-            <th>Street Address</th>
-            <td><input type="text" class="medium" name="addr1" value="<?php echo $this->entries['addr1']; ?>" /></td>
-            <th>Apt. #</th>
-            <td colspan="3"><input type="text" name="addr2" placeholder="Optional" value="<?php echo $this->entries['addr2']; ?>" /></td>
-		</tr>
-		<tr>
-            <th>City</th>
-            <td><input type="text" class="medium" name="city" value="<?php echo $this->entries['city']; ?>" /></td>
-            <th>State</th>
-            <td><input type="text" name="state" value="<?php echo $this->entries['state']; ?>" /></td>
-            <th>Zip Code</th>
-            <td><input type="text" name="zip" value="<?php echo $this->entries['zip']; ?>" /></td>
-		</tr>
-        <tr>
-            <th>Notes</th>
-            <td colspan="5"><textarea name="notes"><?php echo $this->entries['notes']; ?></textarea></td>
-        <tr>
-            <th colspan="6" align="center" style="text-align:center;">
+        <div class="text-left form-group">
+            <label>Gift Card Amount</label><br />
+            <div class="input-group">
+                <span class="input-group-addon">$</span>
+                <input type="number" name="amt" min="5" max="500" step="1" />
+            </div>
+        </div>
+        <div class="text-left form-group">
+            <label>Your Name</label>
+            <input type="text" required name="name" value="<?php echo $this->entries['name']; ?>" />
+        </div>
+        <!--
+        <div class="text-left form-group">
+            <label>Owner Number</label>
+            <input type="text" name="owner" placeholder="optional" value="<?php echo $this->entries['owner']; ?>" />
+        </div>
+        -->
+        <div class="text-left form-group">
+            <label>Phone Number</label><br />
+            <input type="tel" class="medium" required name="ph" value="<?php echo $this->entries['ph']; ?>" />
+        </div>
+        <div class="text-left form-group">
+            <label>E-mail address</label>
+            <input type="email" required name="email" value="<?php echo $this->entries['email']; ?>" />
+        </div>
+        <div class="text-left form-group">
+            <label>Store</label>
+            <select name="store" required
+                onchange="if (this.value==99) { $('.address-info').show(); } else { $('.address-info').hide(); }">
+                <option value="">Select one...</option>
+                <option value="99">Mail to the address below ($1 fee)</option>
+                <option value="1">Pick up at Hillside (610 E 4th St, Duluth, MN 55805)</option>
+                <option value="2">Pick up at Denfeld (4426 Grand Ave, Duluth, MN 55807)</option>
+            </select>
+        </div>
+        <div class="text-left form-group address-info collapse">
+            <label>Shipping Name</label>
+            <input type="text" name="sname" placeholder="If different from above" value="<?php echo $this->entries['sname']; ?>" />
+        </div>
+        <div class="text-left form-group address-info collapse">
+            <label>Street Address</label>
+            <input type="text" name="addr1" value="<?php echo $this->entries['addr1']; ?>" />
+        </div>
+        <div class="text-left form-group address-info collapse">
+            <label>City</label>
+            <input type="text" name="city" value="<?php echo $this->entries['city']; ?>" />
+        </div>
+        <div class="text-left form-group address-info collapse">
+            <label>State</label>
+            <input type="text" name="state" value="<?php echo $this->entries['state']; ?>" />
+        </div>
+        <div class="text-left form-group address-info collapse">
+            <label>Zip Code</label>
+            <input type="text" name="zip" value="<?php echo $this->entries['zip']; ?>" />
+        </div>
+        <div class="text-left form-group">
+            <label>Notes</label>
+            <textarea name="notes" rows="5"
+                placeholder="If you would like to split the amount across multiple gift cards, for example two $50 cards instead of one $100 card please specify that here."><?php echo $this->entries['notes']; ?></textarea>
+        </div>
+        <div class="text-left form-group">
             <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif"> 
             <input type="hidden" name="submit" value="submit" />
-            </th>
-		</tr>
-		</table>
+        </div>
 		</form>
 		</div>
         <hr />
         <div style="font-size: 90%;">
         <h4>The Fine Print</h4>
         Mailed gift card are sent via USPS. We'll make every effort to mail them by the next business day but cannot guarantee any
-        specific delivery date. With in store pickup cards should typically be available within a few minutes of ordering. Gift
+        specific delivery date.
+        With in store pickup cards should typically be available within a couple hours of ordering. Gift
         card purchases are not eligible for refunds or returns.
         </div>
 		<?php
@@ -146,14 +203,19 @@ class GiftPage extends BasicPage
 		global $IS4C_PATH;
         ?>
 		<div id="loginTitle">
-        Thanks for your purchase. Your <?php printf('$%.2f', $this->entries['amt']); ?> gift card will be mailed to:
-        <br />
-        <?php echo $this->entries['sname']; ?><br />
-        <?php echo $this->entries['addr1']; ?><br />
-        <?php echo $this->entries['addr2']; ?><br />
-        <?php echo $this->entries['city'] . ', ' . $this->entries['state'] . ' ' . $this->entries['zip']; ?><br />
-        </div>
+        Thanks for your purchase. Your <?php printf('$%.2f', $this->entries['amt']); ?> gift card will be
         <?php
+        if ($this->entries['store'] == 99) {
+            echo " mailed to:<br />";
+            echo $this->entries['sname']. '<br />';
+            echo $this->entries['addr1']. '<br />';
+            echo $this->entries['city'] . ', ' . $this->entries['state'] . ' ' . $this->entries['zip'] . '<br />';
+        } else if ($this->entries['store'] == 1) {
+            echo ' available for pick up at the Hillside store (610 E 4th St, Duluth, MN 55805)<br />';
+        } else {
+            echo ' available for pick up at the Denfeld store (4426 Grand Ave, Duluth, MN 55807)<br />';
+        }
+        echo '</div>';
     }
 
 	function preprocess()
@@ -166,7 +228,6 @@ class GiftPage extends BasicPage
 			'name'=>(isset($_REQUEST['name'])?$_REQUEST['name']:''),
 			'sname'=>(isset($_REQUEST['sname'])?$_REQUEST['sname']:''),
 			'addr1'=>(isset($_REQUEST['addr1'])?$_REQUEST['addr1']:''),
-			'addr2'=>(isset($_REQUEST['addr2'])?$_REQUEST['addr2']:''),
 			'city'=>(isset($_REQUEST['city'])?$_REQUEST['city']:''),
 			'state'=>(isset($_REQUEST['state'])?$_REQUEST['state']:''),
 			'zip'=>(isset($_REQUEST['zip'])?$_REQUEST['zip']:''),
@@ -175,10 +236,12 @@ class GiftPage extends BasicPage
 			'email'=>(isset($_REQUEST['email'])?$_REQUEST['email']:''),
 			'amt'=>(isset($_REQUEST['amt'])?$_REQUEST['amt']:''),
 			'notes'=>(isset($_REQUEST['notes'])?$_REQUEST['notes']:''),
+			'owner'=>(isset($_REQUEST['owner'])?$_REQUEST['owner']:''),
 		);
         $shipping = $this->entries['store'] == 99 ? 1 : 0;
 
 		$dbc = Database::pDataConnect();
+        $db = $dbc;
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $proc = new $pay_class();
         if (isset($_REQUEST[$proc->postback_field_name])) {
@@ -188,13 +251,20 @@ class GiftPage extends BasicPage
             return true;
         } elseif (isset($_REQUEST['_token']) && isset($_REQUEST['finalize'])) {
             $done = $proc->finalizePayment($_REQUEST['_token']);
+            if (!$done) {
+                $this->mode = 'form';
+				$this->msgs .= '<div class="errorMsg">';
+                $this->msgs .= 'Sorry, there was an error processing your payment. Please try again in a few minutes';
+                $this->msgs .= '</div>';
+
+                return true;
+            }
             $this->mode = 'done';
             $this->entries = $_SESSION['giftInfo'];
             unset($_SESSION['giftInfo']);
 
             $final_amount = $this->entries['amt'];
             $_SESSION['emp_no'] = 1001;
-            $db->query('LOCK TABLES localtemptrans WRITE');
             TransRecord::addOpenRing($final_amount, 903, 'Gift Card');
             if ($shipping == 1) {
                 TransRecord::addOpenRing(1, 800, 'Shipping');
@@ -203,26 +273,25 @@ class GiftPage extends BasicPage
             unset($_SESSION['emp_no']);
 
             if (!RemoteProcessor::LIVE_MODE) {
-                $testP = $db->prepare_statement('UPDATE localtemptrans SET register_no=99 WHERE emp_no=?');
-                $testR = $db->exec_statement($testP, array(1001));
+                $testP = $dbc->prepare_statement('UPDATE localtemptrans SET register_no=99 WHERE emp_no=?');
+                $testR = $dbc->exec_statement($testP, array(1001));
             }
             // rotate data
-            $endP = $db->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
+            $endP = $dbc->prepare_statement("INSERT INTO localtrans SELECT l.* FROM
                 localtemptrans AS l WHERE emp_no=?");
-            $endR = $db->exec_statement($endP,array(1001));
+            $endR = $dbc->exec_statement($endP,array(1001));
 
-            $pendingCols = Database::localMatchingColumns($db, 'localtemptrans', 'pendingtrans');
-            $endP = $db->prepare_statement("INSERT INTO pendingtrans ($pendingCols) 
+            $pendingCols = Database::localMatchingColumns($dbc, 'localtemptrans', 'pendingtrans');
+            $endP = $dbc->prepare_statement("INSERT INTO pendingtrans ($pendingCols) 
                                             SELECT $pendingCols 
                                             FROM localtemptrans AS l 
                                             WHERE l.emp_no=?");
 
-            $endR = $db->exec_statement($endP,array(1001));
+            $endR = $dbc->exec_statement($endP,array(1001));
             if ($endR !== false) {
-                $clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
-                $db->exec_statement($clearP,array(1001));
+                $clearP = $dbc->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
+                $dbc->exec_statement($clearP,array(1001));
             }
-            $db->query('UNLOCK TABLES');
 
             /**
               Send email notifications to customer, store staff.
@@ -230,7 +299,15 @@ class GiftPage extends BasicPage
               click-to-apply JSON encoding.
             */
             Notices::giftNotification($this->entries);
-            Notices::giftAdminNotification($this->entries);
+            Notices::giftAdminNotification($this->entries, 'it@wholefoods.coop');
+            if ($this->entries['store'] == 1 || $this->entries['store'] == 99) {
+                Notices::giftAdminNotification($this->entries, 'csc@wholefoods.coop');
+            } elseif ($this->entries['store'] == 2) {
+                Notices::giftAdminNotification($this->entries, 'dcsc@wholefoods.coop');
+            } else {
+                Notices::giftAdminNotification($this->entries, 'csc@wholefoods.coop');
+                Notices::giftAdminNotification($this->entries, 'dcsc@wholefoods.coop');
+            }
             $this->mode = 'receipt';
 
 		} elseif (isset($_REQUEST['submit'])) {
@@ -297,7 +374,7 @@ class GiftPage extends BasicPage
 
 			if (empty($this->entries['store'])) {
 				$this->msgs .= '<div class="errorMsg">';
-				$this->msgs .= 'Store where you\'ll collect ID card is required';
+				$this->msgs .= 'Store where you\'ll pick up the card is required';
 				$this->msgs .= '</div>';
 				$errors = true;
 			}
@@ -322,9 +399,14 @@ class GiftPage extends BasicPage
 
                 $_SESSION['giftInfo'] = $this->entries;
 
+                $proto = 'http://';
+                if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+                    $proto = 'https://';
+                }
+
                 $amount = $this->entries['amt'] + $shipping;
-                $PAYMENT_URL_SUCCESS = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
-                $PAYMENT_URL_FAILURE = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+                $PAYMENT_URL_SUCCESS = $proto . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+                $PAYMENT_URL_FAILURE = $proto. $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
                 if (substr($PAYMENT_URL_FAILURE, -9) == 'index.php') {
                     $PAYMENT_URL_FAILURE = substr($PAYMENT_URL_FAILURE, 0, strlen($PAYMENT_URL_FAILURE)-9);
                 }
