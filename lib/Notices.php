@@ -257,6 +257,10 @@ public static function giftAdminNotification($json, $email)
     $msg .= 'Phone: ' . $json['ph'] . "\n";
     $msg .= 'E-mail: ' . $json['email'] . "\n";
     $msg .= 'Owner #: ' . ($json['owner'] ? $json['owner'] : 'n/a') . "\n";
+    $uid = uniqid('gc', TRUE);
+    $json['uniqid'] = $uid;
+    $msg .= '<a href="http://key/git/IS4C/fannie/modules/plugins2.0/GiftCardTracker/GiftCardTracker.php?json=';
+    $msg .= base64_encode(json_encode($json)) . "&newgc=$uid\">Complete Gift Card Request</a>\n";
     if ($json['store'] == 1) {
         $msg .= "The customer will pick up the card at Hillside\n";
     } elseif ($json['store'] == 2) {
@@ -289,4 +293,3 @@ public static function invoiceNotification($email, $inv)
 }
 
 }
-
