@@ -264,6 +264,7 @@ class GiftPage extends BasicPage
             unset($_SESSION['giftInfo']);
 
             $final_amount = $this->entries['amt'];
+            $shipping = $this->entries['store'] == 99 ? 1 : 0;
             $_SESSION['emp_no'] = 1001;
             TransRecord::addOpenRing($final_amount, 903, 'Gift Card');
             if ($shipping == 1) {
