@@ -59,6 +59,8 @@ class InvoicePage extends BasicPage
         $row = $dbc->fetchRow($res);
         $row['amount'] = sprintf('%.2f', $row['amount']);
         $row['customerNotes'] = nl2br($row['customerNotes']);
+        $url = '@(http)?(s)?(://)?(([a-zA-Z])([-\w]+\.)+([^\s\.]+[^\s]*)+[^,.\s])@';
+        $row['customerNotes'] = preg_replace($url, '<a href="http$2://$4" target="_blank" title="$0">$0</a>', $row['customerNotes']);
         $row['description'] = nl2br($row['description']);
         
         echo <<<HTML
