@@ -245,6 +245,10 @@ class GiftPage extends BasicPage
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $proc = new $pay_class();
         if (isset($_REQUEST[$proc->postback_field_name])) {
+            if (!isset($_SESSION['giftInfo']) || !is_array($_SESSION['giftInfo'])) {
+                $this->msgs = '<div class="errorMsg">Sorry, your session has expired</div>';
+                return true;
+            }
             $this->entries = $_SESSION['giftInfo'];
             $this->mode = 'confirm';
             $this->token = $_REQUEST[$proc->postback_field_name];
