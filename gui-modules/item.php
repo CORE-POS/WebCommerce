@@ -86,7 +86,11 @@ class itemPage extends BasicPage {
 		echo '<div class="col-sm-3">';
 		echo '<span class="itemPriceNormal">';
 		$price = $w['normal_price'];
-                if ($price == 0) {
+                // first if statement below created due to printed gazette error. Remove 
+                // after 2019 Fall classes have passed
+                if (in_array($w['upc'], array(99091710, 99101519, 99111919))) {
+                      $price = 'Free!';
+                } elseif ($price == 0) {
                       $price = 'Free!<br/><span style="font-size: 14px; font-weight: normal">*Registration is still required</span>';
                 } else {
                       $price = sprintf('$%.2f',$price);
