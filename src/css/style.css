@@ -1116,6 +1116,9 @@ nav li {
 	#brand img {
 		display: none !important;
 	}
+    .no-print {
+		display: none !important;
+    }
 }
 
 #brand-nav nav li {
