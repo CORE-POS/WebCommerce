@@ -4,3 +4,5 @@ lib/pp-api-credentials.php
 log/*
 api
 /vendor/
+.well-known
+ipn.log
