@@ -97,7 +97,7 @@ class PayPalSDK extends RemoteProcessor
 
       Call this after returning from PayPal
     */
-    public function finalizeRecurringPayment($token, $description, $amount, $tax=0)
+    public function finalizeRecurringPayment($token, $description, $amount, $tax=0, $cycles=4)
     {
         $currencyCode = 'USD';
         $RPProfileDetails = new RecurringPaymentsProfileDetailsType();
@@ -108,7 +108,7 @@ class PayPalSDK extends RemoteProcessor
         $paymentBillingPeriod = new BillingPeriodDetailsType();
         $paymentBillingPeriod->BillingFrequency = 1;
         $paymentBillingPeriod->BillingPeriod = 'Month';
-        $paymentBillingPeriod->TotalBillingCycles = 4;
+        $paymentBillingPeriod->TotalBillingCycles = $cycles; 
         $paymentBillingPeriod->Amount = new BasicAmountType($currencyCode, $amount);
         $paymentBillingPeriod->ShippingAmount = new BasicAmountType($currencyCode, 0);
         $paymentBillingPeriod->TaxAmount = new BasicAmountType($currencyCode, $tax);

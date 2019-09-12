@@ -6,3 +6,4 @@ api
 /vendor/
 .well-known
 ipn.log
+join/config.json

@@ -1,0 +1,33 @@
+{
+    "householdSize": 3,
+    "stores": [
+        { "id": 1, "label": "Hillside (610 E 4th St, Duluth, MN 55805)" },
+        { "id": 2, "label": "Denfeld (4426 Grand Ave, Duluth, MN 55807)" }
+    ],
+    "paymentOptions": {
+        "single": [
+            { 
+                "id": 2,
+                "amount": 100,
+                "rings": [
+                    { "deptID": 992, "name": "Class A Equity", "amount": 20 },
+                    { "deptID": 991, "name": "Class B Equity", "amount": 80 }
+                ]
+            }
+        ],
+        "recurring": [
+            { 
+                "id": 3,
+                "amount": 20,
+                "quantity": 5,
+                "startRings": [
+                    { "deptID": 992, "name": "Class A Equity", "amount": 20 }
+                ],
+                "recurRings": [
+                    { "deptID": 991, "name": "Class B Equity", "amount": 20 }
+                ],
+                "name": "WFC Equity Payment Plan"
+            }
+        ]
+    }
+}

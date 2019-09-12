@@ -28,12 +28,82 @@ if (!class_exists('PhpAutoLoader')) {
     require(dirname(__FILE__) . '/../vendor-code/PhpAutoLoader/PhpAutoLoader.php');
 }
 
-class JoinPage extends BasicPage 
+class JoinPage extends NoMenuPage 
 {
 	private $entries;
 	private $msgs = '';
     private $mode = 'form';
     private $token = '';
+
+    private function getPlan($id)
+    {
+        foreach ($this->config['paymentOptions']['single'] as $p) {
+            if ($p['id'] == $id) {
+                $p['recurring'] = false;
+                return $p;
+            }
+        }
+        foreach ($this->config['paymentOptions']['recurring'] as $p) {
+            if ($p['id'] == $id) {
+                $p['recurring'] = true;
+                return $p;
+            }
+        }
+
+        return false;
+    }
+
+    private function paymentOptsHTML()
+    {
+        $ret = '';
+        $first = true;
+        foreach ($this->config["paymentOptions"]["single"] as $p) {
+            $ret .= sprintf('<label><input type="radio" name="plan" value="%d" %s />
+                        Full $%d today</label><br />',
+                        $p['id'], ($first ? 'checked' : ''), $p['amount']);
+            $first = false;
+        }
+        foreach ($this->config['paymentOptions']['recurring'] as $p) {
+            $ret .= sprintf('<label><input type="radio" name="plan" value="%d" %s />
+                        $%d today; $20 automatically billed monthly for the next %d months
+                        </label><br />',
+                        $p['id'], ($first ? 'checked' : ''),
+                        $p['amount'], $p['amount'], ($p['quantity'] - 1));
+        }
+
+        return $ret;
+    }
+
+    private function houseHoldHTML()
+    {
+        $ret = '';
+        for ($i=0; $i<$this->config['householdSize']; $i++) {
+            $ret .= <<<HTML
+<tr>
+    <th>First Name</th>
+    <td colspan="1"><input type="text" class="medium" name="hhf[]" value="{$this->entries['houseHold'][$i][0]}" /></td>
+    <th>Last Name</th>
+    <td colspan="3"><input type="text" name="hhl[]" value="{$this->entries['houseHold'][$i][1]}" /></td>
+</tr>
+HTML;
+        }
+
+        return $ret;
+    }
+
+    private function storesHTML()
+    {
+        $ret = '';
+        foreach ($this->config['stores'] as $s) {
+            $ret .= sprintf('<option value="%d">%s</option>',
+                $s['id'], $s['label']);
+        }
+        if (count($this->config['stores']) > 1) {
+            $ret = '<option value="">Choose as store</option>' . $ret;
+        }
+
+        return $ret;
+    }
 
 	function main_content()
     {
@@ -44,6 +114,9 @@ class JoinPage extends BasicPage
             return $this->receipt_content();
         }
 		echo $this->msgs;
+        $paymentOpts = $this->paymentOptsHTML();
+        $houseHold = $this->houseHoldHTML();
+        $storeOpts = $this->storesHTML();
 		?>
         <style type="text/css">
         input.medium {
@@ -103,27 +176,36 @@ class JoinPage extends BasicPage
         <tr>
             <th>Payment Options</th>
             <td align="left" colspan="5">
-                <label><input type="radio" name="plan" value=2" checked />
+                <?php echo $paymentOpts; ?>
+                <!--<label><input type="radio" name="plan" value=2" checked />
                 Full $100 today</label>
-                <br />
+                <br /> -->
                 <!--<label><input type="radio" name="plan" value="1" />
                 $20 today; remaining $80 due by 
                 <?php echo date('F j, Y', strtotime('+1 year')); ?></label> -->
+                <!--
                 <br /><label><input type="radio" name="plan" value="3" />$20 today; $20 automatically billed monthly for the next 4 months</label>
+                -->
             </td>
         </tr>
         <tr>
             <th>I want to pick up my Owner ID card at:</th>
             <td colspan="5">
                 <select name="store" required>
+                    <?php echo $storeOpts; ?>
+                    <!--
                     <option value="">Choose a store</option>
                     <option value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>
                     <option value="2">Denfeld (4426 Grand Ave, Duluth, MN 55807)</option>
+                    -->
                 </select>
             </td>
         </tr>
         <tr>
-            <th class="text-center" style="text-align: center;" colspan="6">Include up to three additional members of your household</th>
+            <th class="text-center" style="text-align: center;" colspan="6">
+                Include up to  <?php echo $this->config['householdSize']; ?> additional members of your household</th>
+            <?php echo $houseHold; ?>
+        <?php /*
         <tr>
             <th>First Name</th>
             <td colspan="1"><input type="text" class="medium" name="hhf[]" value="<?php echo $this->entries['houseHold'][0][0]; ?>" /></td>
@@ -142,6 +224,7 @@ class JoinPage extends BasicPage
             <th>Last Name</th>
             <td colspan="3"><input type="text" name="hhl[]" value="<?php echo $this->entries['houseHold'][2][1]; ?>" /></td>
         </tr>
+        */ ?>
         <tr>
             <th>
             <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif" align="left" style="margin-right:7px;">
@@ -193,6 +276,7 @@ class JoinPage extends BasicPage
         if (session_id() === '') {
             session_start();
         }
+        $this->config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
 		$this->entries = array(
 			'fn'=>(isset($_REQUEST['fn'])?$_REQUEST['fn']:''),
 			'ln'=>(isset($_REQUEST['ln'])?$_REQUEST['ln']:''),
@@ -211,11 +295,11 @@ class JoinPage extends BasicPage
         if (isset($_REQUEST['hhf']) && isset($_REQUEST['hhl'])) {
             $hhf = $_REQUEST['hhf'];
             $hhl = $_REQUEST['hhl'];
-            for ($i=0; $i<count($hhf) && $i<3; $i++) {
+            for ($i=0; $i<count($hhf) && $i<$this->config['householdSize']; $i++) {
                 $this->entries['houseHold'][] = array($hhf[$i], $hhl[$i]);
             }
         }
-        for ($i=0; $i<3; $i++) {
+        for ($i=0; $i<$this->config['householdSize']; $i++) {
             if (!isset($this->entries['houseHold'][$i])) {
                 $this->entries['houseHold'][$i] = array('', '');
             }
@@ -239,10 +323,11 @@ class JoinPage extends BasicPage
                 return true;
             }
             $this->entries = $_SESSION['userInfo'];
+            $planInfo = $_SESSION['plan'];
             $this->token = $_REQUEST['_token'];
             $db = Database::pDataConnect();
-            if ($this->entries['plan'] == 3) {
-                $profileID = $proc->finalizeRecurringPayment($this->token, 'WFC Equity Payment Plan', 20);
+            if ($planInfo['recurring']) {
+                $profileID = $proc->finalizeRecurringPayment($this->token, $planInfo['name'], $planInfo['amount'], 0, $plan['quantity'] - 1);
             }
             $done = $proc->finalizePayment($this->token);
             if (!$done) {
@@ -254,13 +339,14 @@ class JoinPage extends BasicPage
                 return true;
             }
 
-            if ($this->entries['plan'] == 3) {
+            if ($planInfo['recurring']) {
                 $prep = $db->prepare_statement('INSERT INTO PaymentProfiles (profileID, cardNo, email) VALUES (?, ?, ?)');
                 $db->exec_statement($prep, array($profileID, $this->entries['card_no'], $this->entries['email']));
                 $this->mode = 'receipt';
             }
 
             unset($_SESSION['userInfo']);
+            unset($_SESSION['plan']);
             $this->mode = 'done';
             $prep = $db->prepare_statement('
                 UPDATE custdata
@@ -275,10 +361,10 @@ class JoinPage extends BasicPage
                 $this->entries['card_no']);
             AuthUtilities::doLogin($this->entries['email']);
             $empno = AuthUtilities::getUID($this->entries['email']);
-            $final_amount = $this->entries['plan'] == 2 ? 100.00 : 20.00;
-            TransRecord::addOpenRing(20.00, 992, 'Class A Equity');
-            if ($final_amount == 100.00) {
-                TransRecord::addOpenRing(80.00, 991, 'Class B Equity');
+            $final_amount = $planInfo['amount'];
+            $rings = $planInfo['recurring'] ? $planInfo['startRings'] : $planInfo['rings'];
+            foreach ($rings as $r) {
+                TransRecord::addOpenRing($r['amount'], $r['deptID'], $r['name']);
             }
             TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$final_amount);
 
@@ -403,12 +489,14 @@ class JoinPage extends BasicPage
 				$errors = true;
 			}
 
-			if ($this->entries['plan'] != 1 && $this->entries['plan'] != 2 && $this->entries['plan'] != 3) {
+            $planInfo = $this->getPlan($this->entries['plan']);
+            if ($planInfo === false) {
 				$this->msgs .= '<div class="errorMsg">';
 				$this->msgs .= 'Invalid payment choice.';
 				$this->msgs .= '</div>';
 				$errors = true;
 			}
+            $_SESSION['plan'] = $planInfo;
 
 			if (!$errors) {
 
@@ -468,15 +556,15 @@ class JoinPage extends BasicPage
                 $this->entries['card_no'] = $card_no;
                 $_SESSION['userInfo'] = $this->entries;
 
-                $amount = ($this->entries['plan'] == 2) ? '100.00' : '20.00';
+                $amount = $planInfo['amount'];
                 $PAYMENT_URL_SUCCESS = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
                 $PAYMENT_URL_FAILURE = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
                 if (substr($PAYMENT_URL_FAILURE, -9) == 'index.php') {
                     $PAYMENT_URL_FAILURE = substr($PAYMENT_URL_FAILURE, 0, strlen($PAYMENT_URL_FAILURE)-9);
                 }
                 $PAYMENT_URL_FAILURE .= 'cancel/';
-                if ($this->entries['plan'] == 3) {
-                    $init = $proc->startRecurringPayment(20, 'WFC Equity Payment Plan', '0.00', $this->entries['email']);
+                if ($planInfo['recurring']) {
+                    $init = $proc->startRecurringPayment($amount, $planInfo['name'], '0.00', $this->entries['email']);
                 } else {
                     $init = $proc->initializePayment($amount, '0.00', $this->entries['email']);
                 }

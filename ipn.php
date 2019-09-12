@@ -41,6 +41,9 @@ function addEquityPayment($profileID, $amount)
 {
     $fp = fopen(__DIR__ . '/ipn.log', 'a');
     fwrite($fp, "Adding payment for {$profileID}\n");
+    $config = json_decode(file_get_contents(__DIR__ . '/join/config.json'), true);
+    $plans = $config['paymentOptions']['recurring'];
+    $planInfo = $plans[0]; // todo - save in payment profiles
     $dbc = Database::pDataConnect();
     $prep = $dbc->prepare_statement('SELECT cardNo, email FROM PaymentProfiles WHERE profileID=?');
     $res = $dbc->exec_statement($prep, array($profileID));
@@ -52,23 +55,29 @@ function addEquityPayment($profileID, $amount)
     }
     $card_no = $row['cardNo'];
     $tNo = Database::getDTransNo(1001);
-    TransRecord::addDTrans(1001, 50, $tNo, 1, array(
-        'upc' => $amount . 'DP991',
-        'description' => 'Class B Equity',
-        'trans_type' => 'D',
-        'department' => 991,
-        'quantity' => 1,
-        'regPrice' => $amount,
-        'total' => $amount,
-        'unitPrice' => $amount,
-        'ItemQtty' => 1,
-        'card_no' => $card_no,
-    ));
-    TransRecord::addDTrans(1001, 50, $tNo, 2, array(
+    $tID = 1;
+    $total = 0;
+    foreach ($planInfo['recurRings'] as $r) {
+        TransRecord::addDTrans(1001, 50, $tNo, $tID, array(
+            'upc' => $r['amount'] . 'DP' . $r['deptID'],
+            'description' => $r['name'],
+            'trans_type' => 'D',
+            'department' => $r['deptID'],
+            'quantity' => 1,
+            'regPrice' => $r['amount'],
+            'total' => $r['amount'],
+            'unitPrice' => $r['amount'],
+            'ItemQtty' => 1,
+            'card_no' => $card_no,
+        ));
+        $tID++;
+        $total += $r['amount'];
+    }
+    TransRecord::addDTrans(1001, 50, $tNo, $tID, array(
         'description' => 'Pay Pal',
         'trans_type' => 'T',
         'trans_subtype' => 'PP',
-        'total' => -1*$amount,
+        'total' => -1*$total,
         'card_no' => $card_no,
     ));
     fwrite($fp, "Finished payment for {$profileID}");
