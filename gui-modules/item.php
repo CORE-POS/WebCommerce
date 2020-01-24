@@ -56,7 +56,7 @@ class itemPage extends BasicPage {
 		$dbc = Database::pDataConnect();
 		$q = $dbc->prepare_statement("SELECT p.upc,p.normal_price,p.special_price,
 			p.discounttype,u.description,u.brand,u.long_text,
-			p.inUse,u.soldOut,u.photo,
+			p.inUse,u.soldOut,u.photo,u.narrow,
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o
@@ -86,15 +86,16 @@ class itemPage extends BasicPage {
 		echo '<div class="col-sm-3">';
 		echo '<span class="itemPriceNormal">';
 		$price = $w['normal_price'];
-                // first if statement below created due to printed gazette error. Remove 
-                // after 2019 Fall classes have passed
-                if (in_array($w['upc'], array(99091710, 99101519, 99111919))) {
-                      $price = 'Free!';
-                } elseif ($price == 0) {
-                      $price = 'Free!<br/><span style="font-size: 14px; font-weight: normal">*Registration is still required</span>';
-                } else {
-                      $price = sprintf('$%.2f',$price);
-                }
+        // u.narrow = class is free to access discount owners
+        $access = ($w['narrow'] == 1) ? true : false;
+        $description = $w['description'];
+        if (strpos(strtolower($description), 'yoga') !== false) {
+              $price = 'Free!';
+        } elseif ($price == 0) {
+              $price = 'Free!<br/><span style="font-size: 14px; font-weight: normal">*Registration is still required</span>';
+        } else {
+              $price = sprintf('$%.2f',$price);
+        }
 		$specialPrice = sprintf('$%.2f',$w['special_price']);
 		printf('<i>%s</i>',($w['discounttype']==1?$specialPrice:$price));
 		echo '</span><br />';
@@ -103,6 +104,13 @@ class itemPage extends BasicPage {
 		else if ($w['discounttype']==2)
 			printf('Owner price: $%.2f',$w['special_price']);
 		echo '</span>';
+        if ($access) {
+            echo "<br /><br />";
+            //echo "<div style=\"font-size: 14px; font-weight: normal;\"><i>Access Discount Owners: FREE</i></div>";
+            echo "<div style=\"font-size: 14px; font-weight: normal;\"><i>FREE to Access Discount members</i></div>";
+            echo "<div style=\"font-size: 14px; font-weight: normal;\"><i>* Please call or visit either location to 
+                register for this class using access discount</i></div>";
+        }
 		echo '<br /><br />';
 		if ($w['inUse'] == 0 || $w['available'] <= 0 || $w['soldOut'] == 1){
 			echo 'This product is expired, out of stock, or otherwise

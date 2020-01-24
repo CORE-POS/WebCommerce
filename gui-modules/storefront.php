@@ -109,6 +109,9 @@ class storefront extends BasicPage {
 		}
         // this is a TEST wfc-u class, to test noauto
         $q .= "AND p.upc <> 99010118 ";
+        //if ($empno!=-999) {
+        //    $q .= "AND p.description NOT LIKE '%yoga%'";
+        //}
 		$q .= "ORDER BY u.brand,SUBSTR(u.description,9,2),u.description";
 
 		$p = $dbc->prepare_statement($q);
@@ -132,17 +135,23 @@ class storefront extends BasicPage {
 					($w['sale_price']==0?$price:$w['sale_price']),
 					($w['sale_price']==0?'&nbsp;':'ON SALE!')
 			);
-			if ($w['inCart'] == 0 && $empno != -999 && !($w['discounttype'] == 2 && $w['special_price'] == 0)){
+			if ($w['inCart'] == 0 && $empno != -999 && !($w['discounttype'] == 2 && $w['special_price'] == 0) && strpos($w['description'], 'Yoga') == false){
 					$ret .= sprintf('<td id="btn%s">
 						<input type="submit" value="Add to cart" onclick="addItem(\'%s\');" />
 						</td></tr>',
 						$w['upc'],$w['upc']);
 			}
-			else if ($empno != -999){
+			else if ($empno != -999 && strpos($w['description'], 'Yoga') == false){
 					$ret .= sprintf('<td id="btn%s">
 						<a href="cart.php">In Cart</a>
 						</td></tr>',
 						$w['upc']);
+			}
+			else if ($empno != -999 && strpos($w['description'], 'Yoga') != false){
+					$ret .= '<td>
+						<i style="color: #EE5D1A; font-weigth: bold">class is first come, first serve</i>
+						</td></tr>';
+					
 			}
 			else $ret .= '<td></td></tr>';
 		}
