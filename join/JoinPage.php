@@ -68,7 +68,7 @@ class JoinPage extends NoMenuPage
                         $%d today; $20 automatically billed monthly for the next %d months
                         </label><br />',
                         $p['id'], ($first ? 'checked' : ''),
-                        $p['amount'], $p['amount'], ($p['quantity'] - 1));
+                        $p['amount'], ($p['quantity'] - 1));
         }
 
         return $ret;
