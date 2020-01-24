@@ -172,7 +172,7 @@ class manageAccount extends BasicPage {
                 } else {
                     $row = $dbc->fetch_row($result);
 
-                    $owner = $row['personNum'] == 1 ? $row['CardNo'] : 9;
+                    $owner = $row['CardNo'];
 
                     $upP = $dbc->prepare_statement('UPDATE Users SET owner=? WHERE name=?');
                     $dbc->exec_statement($upP,array($owner, $this->logged_in_user));
