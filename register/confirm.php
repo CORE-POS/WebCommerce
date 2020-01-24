@@ -23,7 +23,11 @@ class ConfirmPage extends NoMenuPage {
 		$this->choices = array(
             0=>"Children's Plate",
             1=>"Acorn Squash (Vegan)",
-            2=>"Chicken",
+            2=>"Acorn Squash (Vegan, Gluten-Free)",
+            3=>"Chicken",
+            4=>"Chicken (Gluten-Free)",
+            5=>"Children's Plate",
+            6=>"Children's Plate (Gluten-Free)",
         );
 		$this->data = array(
 		'fnln'=>'',
@@ -31,7 +35,8 @@ class ConfirmPage extends NoMenuPage {
 		'ph'=>'',
 		'ng'=>0,
 		'nc'=>0,
-		'mc0'=>''
+		'mc0'=>'',
+		'kc0'=>'',
 		);
 		$dbc = Database::pDataConnect();
 		$args = array($IS4C_LOCAL->get('memberID'));

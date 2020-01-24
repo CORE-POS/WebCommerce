@@ -14,7 +14,11 @@ class DonePage extends NoMenuPage {
 		$this->choices = array(
             0=>"Children's Plate",
             1=>"Acorn Squash (Vegan)",
-            2=>"Chicken",
+            2=>"Acorn Squash (Vegan, Gluten-Free)",
+            3=>"Chicken",
+            4=>"Chicken (Gluten-Free)",
+            5=>"Children's Plate",
+            6=>"Children's Plate (Gluten-Free)",
         );
 		$dbc = Database::pDataConnect();
 		$regQ = $dbc->prepare_statement("SELECT name,email,phone,guest_count,child_count FROM

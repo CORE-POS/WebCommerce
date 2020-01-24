@@ -14,8 +14,8 @@ class LoginPage extends NoMenuPage {
 		global $IS4C_LOCAL;
 		
 		/* disabled 
-        */
 		return True;
+        */
 
 		$this->data = array('ln'=>'','cardno'=>'');
 		$this->errors = "";
@@ -91,12 +91,12 @@ class LoginPage extends NoMenuPage {
 	function main_content()
     {
         ?>
-<p>Please join us for the 2018 Annual Owners Meeting and Dinner!</p>
-<p>Enjoy socializing with fellow WFC-Owners, Board and Staff.  Hear from Steve Alves, producer/director of the film <i>Food for Change</i>. Learn about the state of the co-op and the results of the 2018 election.</p>
+<p>Please join us for the 2019 Annual Owners Meeting and Dinner!</p>
+<p>Enjoy socializing with fellow WFC-Owners, Board and Staff.  Learn about the state of the co-op and the results of the 2019 election.</p>
 <p>This year we're pleased to offer a plated dinner highlighting locally sourced food and beverages with vegan, vegetarian and gluten-free options.</p>
-<p>The event is at 5pm on Tuesday, October 16th at the Duluth Entertainment and Convention Center.  
-Space is limited; registration and pre-payment is required for all attendees.  Register by October 7th.</p>
-<!--<p>To begin the registration, enter the following information:</p>-->
+<p>The event is at 5pm on Tuesday, October 29th at the Duluth Entertainment and Convention Center.  
+Space is limited; registration and pre-payment is required for all attendees.</p>
+<p>To begin the registration, enter the following information:</p>
         <?php
         echo '<h2>Registration has closed</h2>
             <br />

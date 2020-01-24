@@ -25,9 +25,11 @@ class MealForm extends NoMenuPage {
 		$this->errors = "";
 		$this->choices = array(
             1=>"Acorn Squash (Vegan)",
-            2=>"Chicken",
+            2=>"Acorn Squash (Vegan, Gluten-Free)",
+            3=>"Chicken",
+            4=>"Chicken (Gluten-Free)",
         );
-		$this->kchoices = array(1=>"Pasta");
+		$this->kchoices = array(5=>"Pasta", 6=>'Gluten-Free Pasta');
 		$this->data = array(
 		'fnln'=>'',
 		'email'=>'',
@@ -100,8 +102,8 @@ class MealForm extends NoMenuPage {
 				for($i=1;$i<count($meals);$i++){
 					$dbc->exec_statement($mealsQ, array($IS4C_LOCAL->get('memberID'),'GUEST',$meals[$i]));
 				}
-				for ($i=0;$i<$kids;$i++){
-					$dbc->exec_statement($mealsQ, array($IS4C_LOCAL->get('memberID'),'CHILD',0));
+				for ($i=0;$i<count($kmeals);$i++){
+					$dbc->exec_statement($mealsQ, array($IS4C_LOCAL->get('memberID'),'CHILD',$kmeals[$i]));
 				}
 				header("Location: confirm.php");
 				return False;
@@ -188,11 +190,11 @@ class MealForm extends NoMenuPage {
 		<h2>Dinner Menu</h2>
 A plated dinner including locally sourced foods with vegan, vegetarian, and gluten-free, options catered by the DECC. <em>Choose one of the following</em><br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Baked Local Acorn Squash with Minnesota Wild Rice stuffing
+Baked Acorn Squash with MN Wild Rice, Spicy Walnuts, &amp; Pesto Sauce
 		<br />
 		<i>or</i>
 		<br />
-Chicken (MN sourced) with roasted tomatoes (Bay Produce - Superior, WI) and pesto (made with basil from The DECC rooftop gardens)
+Lemon Pepper Chicken with MN Wild Rice
 		<br />
 		<br />
 		<i>Children's Option</i>
@@ -200,15 +202,15 @@ Chicken (MN sourced) with roasted tomatoes (Bay Produce - Superior, WI) and pest
 Pasta with Meatless Marinara Sauce. Served with Local Roasted Root vegetables. Gluten-free noodles available upon request. <i>Ages 12 and under please</i>.
 		<br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Both entrees come with locally sourced salads (Future Farms – Baldwin, WI) locally baked bread (Great Harvest - Duluth, MN) herb roasted red potatoes and roasted root vegetables (Minnesota).
+Both entrees come with salads, roasted root vegetables, and dinner roll.
         <br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
-Dessert is a locally sourced Apple Crisp (Bayfield, WI) from The Exchange Bakery (Duluth, MN) or a Gluten Free Berry Tart from Valley’s Own (Burnsville, MN).
+Dessert is Death by Chocolate (vegetarian &amp; gluten-free)
         <br />
 		<img src="src/images/greyleaf.gif" alt="leaf" /><br />
 Soda, organic and/or Fair Trade wine and local beer by Bent Paddle Brewing Co. (Duluth, MN) will be available at the bar. Two drink tickets come with each adult meal.
 		<br /><br />
-		If you have any additional questions about the menu, please contact <a href="mailto:awade@wholefoods.coop">awade@wholefoods.coop</a>.
+		If you have any additional questions about the menu, please contact <a href="mailto:marketing@wholefoods.coop">marketing@wholefoods.coop</a>.
 		<br /><br />
 		<div style="font-size:85%;font-style:italic">
 		Owner and Guest meals $20/each.<br />
