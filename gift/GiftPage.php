@@ -52,15 +52,12 @@ class GiftPage extends BasicPage
 
     function switchBody()
     {
-        if (date('Ymd') <= 20181130) {
+        $dateID = date('Ymd');
+        if ($dateID >= 20191129 && $dateID <= 20191206) {
             return '
-                Gift giving just got easier! Now through November 30th, for every $100.00 in Whole Foods Co-op gift cards purchased you will receive $20.00 in Co-op Cash for yourself.
-                This deal is just for co-op owners. Not an owner?
+                ONE WEEK ONLY (11/29-12/6)! Buy $100 in Whole Foods Co-op gift cards, receive $20 in FREE Co-op Cash. Must be a Co-op Owner, maximum gift card purchase $500. Co-op Cash Vouchers valid December 8th-31st.
+                Not an owner?
                 <a href="../join/">Join Today</a>!<br /><br />
-                Co-op Cash is redeemable from December 1, 2018 through December 31, 2018.
-                Purchase amount can be placed on multiple separate gift cards, however there is a $500.00 limit.
-                Gift cards do not expire.
-                Gift cards can be picked up at either location.
             ';
         }
 
@@ -69,6 +66,7 @@ class GiftPage extends BasicPage
 
 	function main_content()
     {
+        $dateID = date('Ymd');
 		global $IS4C_PATH;
         if ($this->mode == 'confirm') {
             return $this->confirm_content();
@@ -102,7 +100,11 @@ class GiftPage extends BasicPage
         <hr />
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
         <div class="text-left form-group">
-            <label>Gift Card Amount</label><br />
+            <label>Gift Card Amount</label>
+            <?php if ($dateID >= 20191129 && $dateID <= 20191206) { ?>
+            (not including free Co-op Cash)
+            <?php } ?>
+            <br />
             <div class="input-group">
                 <span class="input-group-addon">$</span>
                 <input type="number" name="amt" min="5" max="500" step="1" />
@@ -112,12 +114,12 @@ class GiftPage extends BasicPage
             <label>Your Name</label>
             <input type="text" required name="name" value="<?php echo $this->entries['name']; ?>" />
         </div>
-        <!--
+        <?php if ($dateID >= 20191129 && $dateID <= 20191206) { ?>
         <div class="text-left form-group">
             <label>Owner Number</label>
-            <input type="text" name="owner" placeholder="optional" value="<?php echo $this->entries['owner']; ?>" />
+            <input type="text" name="owner" placeholder="only required for co-op cash deal" value="<?php echo $this->entries['owner']; ?>" />
         </div>
-        -->
+        <?php } ?>
         <div class="text-left form-group">
             <label>Phone Number</label><br />
             <input type="tel" class="medium" required name="ph" value="<?php echo $this->entries['ph']; ?>" />
@@ -174,6 +176,9 @@ class GiftPage extends BasicPage
         specific delivery date.
         With in store pickup cards should typically be available within a couple hours of ordering. Gift
         card purchases are not eligible for refunds or returns.
+        <?php if ($dateID >= 20191129 && $dateID <= 20191206) { ?>
+        Co-op Cash Vouchers not valid for purchase of gift cards and non-transferable ($20 Vouchers must be used in their entirety at the time of purchase).
+        <?php } ?>
         </div>
 		<?php
 	}
