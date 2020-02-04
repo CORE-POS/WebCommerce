@@ -33,6 +33,7 @@ class Notices
     const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@wholefoods.coop';
     const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,finance@wholefoods.coop,dcsc@wholefoods.coop';
+    const REGISTRY_EMAIL = 'registry@wholefoods.coop';
 
 public static function sendEmail($to,$subject,$msg)
 {
@@ -109,6 +110,30 @@ public static function adminNotification($uid,$email,$ph,$owner,$total,$cart="",
     }
 	
 	self::sendEmail(self::ADMIN_EMAIL,$subject,$msg);
+
+    // update the wfc-u registry
+    $date = new DateTime();
+    $now = $date->format('m-d');
+    $json = self::getcartjson($uid);
+    $parts = explode(' ', AuthUtilities::getRealName($email));
+    $json['firstName'] = $parts[0];
+    $json['lastName'] = '';
+    for ($i=1; $i<=count($parts); $i++) {
+        $json['lastName'] .= $parts[$i].' ';
+    }
+    $json['card_no'] = $owner;
+    $json['notes'] = "ONLINE-AUTO-REG [$now]";
+    if (class_exists('PHPMailer')) {
+        $mail = new PHPMailer();
+        $mail->isMail();
+        $mail->setFrom(self::ADMIN_EMAIL, 'Whole Foods Co-op');
+        $mail->addReplyTo(self::REPLY_EMAIL);
+        $mail->addAddress(self::REGISTRY_EMAIL);
+        $mail->addStringAttachment(json_encode($json), 'data.json', 'base64', 'application/json');
+        $mail->isHTML(false);
+        $mail->Body = 'blank';
+        $mail->send();
+    }
 }
 
 public static function mgrNotification($addresses,$email,$ph,$owner,$total,$notes="",$cart="")
@@ -157,6 +182,21 @@ public static function getcart($empno)
 	$ret .= sprintf("Sales tax: \$%.2f\n",$taxes);
 
 	return $ret;
+}
+
+public static function getcartjson($empno)
+{
+	$db = Database::tDataConnect();
+	$q = $db->prepare_statement("SELECT upc,quantity FROM
+		cart WHERE emp_no=?");
+	$r = $db->exec_statement($q, array($empno));
+        $json = array();
+	while($w = $db->fetch_row($r)){
+            $json['upcs'][] = $w['upc'];
+            $json['qtys'][] = $w['quantity'];
+	}
+
+	return $json;
 }
 
 public static function joinNotification($json)
