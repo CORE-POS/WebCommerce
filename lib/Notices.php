@@ -32,7 +32,7 @@ class Notices
     const REPLY_EMAIL = 'it@wholefoods.coop';
     const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@wholefoods.coop';
-    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,finance@wholefoods.coop,dcsc@wholefoods.coop';
+    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,dcsc@wholefoods.coop';
     const REGISTRY_EMAIL = 'registry@wholefoods.coop';
 
     public static function sendEmail($to,$subject,$msg)
@@ -121,8 +121,11 @@ class Notices
         for ($i=1; $i<=count($parts); $i++) {
             $json['lastName'] .= $parts[$i].' ';
         }
-        //$json['card_no'] = $owner;
+        $json['card_no'] = ($owner > 0) ? $owner : 11;
         $json['notes'] = "ONLINE-AUTO-REG [$now]";
+        $json['email'] = $email;
+        $json['phone'] = $ph;
+        $json['payment'] = 'Card';
         if (class_exists('PHPMailer')) {
             $mail = new PHPMailer();
             $mail->isMail();
