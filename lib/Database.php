@@ -75,13 +75,15 @@ public static function gettransno($CashierNo)
 	$prep1 = $connection->prepare_statement($query1);
 	$result = $connection->exec_statement($prep1,array($CashierNo,$register_no));
 	$row = $connection->fetch_array($result);
-	if ($row) return $row['maxtransno'];
+	if ($row) {
+        return $row['maxtransno'];
+    }
 
 	$prep2 = $connection->prepare_statement($query2);
 	$result = $connection->exec_statement($prep2,array($CashierNo,$register_no));
 	$row = $connection->fetch_array($result);
 	if (!$row || !$row["maxtransno"]) {
-		$trans_no = 1;
+		$trans_no = rand(1, 9999);
 	}
 	else {
 		$trans_no = $row["maxtransno"] + 1;
