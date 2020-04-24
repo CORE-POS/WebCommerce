@@ -2,7 +2,7 @@
     "name": "core-pos/web-commerce",
     "description": "Simple eCommerce that integrates with CORE-POS data",
     "require": {
-        "phpmailer/phpmailer": "~5.2",
+        "phpmailer/phpmailer": "5.2.27",
         "adodb/adodb-php": "dev-master",
         "core-pos/sql-manager": "dev-master",
         "domisys/image_barcode2": "^3.0",
