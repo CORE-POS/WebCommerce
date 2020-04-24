@@ -297,6 +297,15 @@ public static function addOpenRing($amount, $dept_no, $dept_name, $tax=0, $fs=0)
 			0, ''); 
 }
 
+public static function addComment($comment)
+{
+	return self::addItem('0', $comment, 'C', 'CM', '', 0, 0, 
+			0, 0, 0, 0, 0, 
+			0, 0, 0, 0,
+			0, 0.0, 0, 0, 0.00, 0, 0, 0, 0,
+			0, ''); 
+}
+
 //---------------------------------- insert tax line item --------------------------------------
 
 public static function addtax($amt) 
