@@ -1,0 +1,98 @@
+<?php
+
+class PhpAutoLoaderConfig
+{
+    /**
+      General configuration notes:
+
+      Directories will be searched in this order:
+      1. $plugin_directories (if using plugins)
+      2. $project_directories
+      3. $vendor_directories
+
+      Paths can be absolute or relative. Relative
+      paths will be interpretted relative to
+      this directory.
+
+      Exclude patterns should be PCRE. Patterns are
+      checked against the base names of files and
+      directories, not full paths.
+    */
+
+
+    /**
+      List of directories that contain
+      project classes
+    */
+    private static $project_directories = array();
+
+    /**
+      List of directories that contain
+      dependency classes from other projects
+    */
+    private static $vendor_directories = array();
+
+    /**
+      List of directories that contain Plugin
+      provided classes. Plugin classes are only
+      loaded if the Plugin is enabled.
+    */
+    private static $plugin_directories = array();
+
+    /**
+      List of PCRE patterns for directory names that
+      should be excluded from searches. Directories
+      named "noauto" are automatically ignored.
+    */
+    private static $exclude_directories = array();
+
+    /**
+      List of PCRE patterns for file names that
+      that should be excluded from searches. Files
+      named "index.php" are automatically ignored.
+    */
+    private static $exclude_filenames = array();
+
+    /**
+      List of files to include in global scope.
+    */
+    private static $global_includes = array();
+
+    /**
+      Cache mechanism to save list of class definition
+      files between requests rather than constantly
+      repeating searches.
+
+      Classes in key-value-storage represent available options
+    */
+    private static $caching = 'PhpAutoLoaderKvSession';
+
+    /**
+      Name of baseclass for plugins.
+    */
+    private static $plugin_class = '';
+
+    public static function getConfig()
+    {
+        return array(
+
+            'directories' => array(
+                'plugin' => self::$plugin_directories,
+                'project' => self::$project_directories,
+                'vendor' => self::$vendor_directories,
+            ),
+
+            'exclude' => array(
+                'directories' => self::$exclude_directories,
+                'files' => self::$exclude_filenames,
+            ),
+
+            'globals' => self::$global_includes,
+
+            'cache' => self::$caching,
+
+            'plugin_class' => self::$plugin_class,
+        );
+    }
+}
+

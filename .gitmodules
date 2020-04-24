@@ -1,6 +1,0 @@
-[submodule "vendor-code/PhpAutoLoader"]
-	path = vendor-code/PhpAutoLoader
-	url = https://github.com/CORE-POS/PhpAutoLoader.git
-[submodule "vendor-code/SqlManager"]
-	path = vendor-code/SqlManager
-	url = https://github.com/CORE-POS/SqlManager.git
