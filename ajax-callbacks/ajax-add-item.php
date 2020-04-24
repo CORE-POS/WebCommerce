@@ -29,7 +29,11 @@ if (!class_exists('PhpAutoLoader')) {
 if (!isset($_REQUEST['upc'])){
 	echo "0";
 } else {
-	$success = TransRecord::addUPC($_REQUEST['upc']);
+    $qty = 1;
+    if (isset($_REQUEST['qty'])) {
+        $qty = $_REQUEST['qty'];
+    }
+	$success = TransRecord::addUPC($_REQUEST['upc'], $qty);
 	if ($success)
 		echo "1";
 	else
