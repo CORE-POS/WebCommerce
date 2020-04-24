@@ -115,6 +115,10 @@ class BasicPage {
 	function top_menu(){
 		global $IS4C_PATH;
 		echo '<div id="topMenuRunner">';
+        echo '<div class="alert-danger" style="text-align: center; padding: 3px;">Orders accepted 7am - 10am; Pick up 4pm - 7pm.
+            <a href="/pickup/faq/">More info</a>.</div>';
+        echo '<div class="row">';
+        echo '<div class="col-sm-6">';
 		$user = AuthLogin::checkLogin();
 		if (!$user){
 			printf('<ul>
@@ -132,6 +136,16 @@ class BasicPage {
 				</ul>',
 				$IS4C_PATH,$IS4C_PATH,$user,$IS4C_PATH,$IS4C_PATH);
 		}
+        echo '</div>';
+        echo '<div class="col-sm-6">';
+        echo '<form action="/gui-modules/search.php" method="get">
+                <div class="form-inline">
+                <input type="text" class="form-control" name="search" />
+                <button type="submit" class="btn btn-custom">Search</button>
+                </div>
+            </form>';
+        echo '</div>';
+        echo '</div>';
 		echo '</div>';
 	}
 
