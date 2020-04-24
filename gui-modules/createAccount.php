@@ -103,7 +103,7 @@ class createAccount extends BasicPage {
 			$errors = False;
 
 			if (!AuthUtilities::isEmail($this->entries['email'])){
-				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
 				$this->msgs .= 'Not a valid e-mail address: '.$this->entries['email'];
 				$this->msgs .= '</div>';
 				$this->entries['email'] = '';
@@ -111,7 +111,7 @@ class createAccount extends BasicPage {
 			}
 
 			if ($_REQUEST['passwd'] !== $_REQUEST['passwd2']){
-				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
 				$this->msgs .= 'Passwords do not match';
 				$this->msgs .= '</div>';
 				$this->entries['passwd'] = '';
@@ -119,7 +119,7 @@ class createAccount extends BasicPage {
 			}
 
 			if (empty($_REQUEST['passwd'])){
-				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
 				$this->msgs .= 'Password is required';
 				$this->msgs .= '</div>';
 				$this->entries['passwd'] = '';
@@ -127,7 +127,7 @@ class createAccount extends BasicPage {
 			}
 
 			if (empty($this->entries['name'])){
-				$this->msgs .= '<div class="errorMsg">';
+				$this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
 				$this->msgs .= 'Name is required';
 				$this->msgs .= '</div>';
 				$this->entries['name'] = '';
@@ -152,7 +152,7 @@ class createAccount extends BasicPage {
                 $prep = $dbc->prepare_statement($query);
                 $result = $dbc->exec_statement($prep, array($num, $num, $lastname));
                 if ($result === false || $dbc->num_rows($result) == 0) {
-                    $this->msgs .= '<div class="errorMsg">';
+                    $this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
                     $this->msgs .= 'No owner account found for '.$_REQUEST['vnum'].' ('.$lastname.')';
                     $this->msgs .= '<br />';
                     $this->msgs .= 'You may omit Owner information and update your account\'s
@@ -178,7 +178,7 @@ class createAccount extends BasicPage {
 					return False;
 				}
 				else {
-					$this->msgs .= '<div class="errorMsg">';
+                    $this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
 					$this->msgs .= 'Account already exists: '.$this->entries['email'];
 					$this->msgs .= '</div>';
 					$this->entries['email'] = '';
