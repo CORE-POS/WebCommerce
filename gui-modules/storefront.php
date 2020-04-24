@@ -36,12 +36,19 @@ class storefront extends BasicPage {
 			$('#searchbox').focus();
 		});
 		function addItem(upc){
+            var qty = $('#qty'+upc).val();
+            var maxQty = $('#maxQty'+upc).val();
+            if (maxQty > 0 && qty > maxQty) {
+                $('#qty'+upc).val(maxQty);
+                alert("Maximum allowed is " + maxQty);
+                return;
+            }
 			$.ajax({
 				url: '../ajax-callbacks/ajax-add-item.php',
 				type: 'post',
-				data: 'upc='+upc,
+				data: 'upc='+upc+'&qty='+qty,
 				success: function(resp){
-					$('#btn'+upc).html('<a href="cart.php">In Cart</a>');
+					$('#btn'+upc).html('<a href="/gui-modules/cart.php">In Cart</a>');
 				}
 			});
 		}
@@ -61,6 +68,7 @@ class storefront extends BasicPage {
 
 	function itemlist(){
 		global $IS4C_LOCAL;
+        unset($_SESSION['emp_no']);
 		$super = isset($_REQUEST['sup'])?$_REQUEST['sup']:-1;
 		$sub = isset($_REQUEST['sub'])?$_REQUEST['sub']:-1;
 		$d = isset($_REQUEST['d'])?$_REQUEST['d']:-1;
@@ -78,19 +86,23 @@ class storefront extends BasicPage {
 			CASE WHEN p.discounttype IN (1) then p.special_price
 				ELSE 0
 				END as sale_price,
-			u.description,u.brand,
+            CASE WHEN u.description IS NULL OR u.description='' THEN p.description ELSE u.description END AS description,
+            CASE WHEN u.brand IS NULL OR u.brand='' THEN p.brand ELSE u.brand END AS brand,
 			CASE WHEN l.upc IS NULL THEN 0 ELSE 1 END AS inCart,
-            p.special_price, p.discounttype
+            ds.min, ds.max, ds.step,
+            p.special_price, p.discounttype, p.scale, m.superID
 			FROM products AS p INNER JOIN productUser
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
 			AS l ON p.upc=l.upc AND l.emp_no=?
-			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc ";
+            LEFT JOIN superdepts AS m ON p.department=m.dept_ID
+			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc
+            LEFT JOIN DeptScaling AS ds ON p.department=ds.dept_no ";
 		$args = array($empno);
 		if ($super != -1)
 			$q .= "INNER JOIN superdepts AS s ON p.department=s.dept_ID ";
 		if ($sub != -1)
 			$q .= "INNER JOIN subdepts AS b ON p.department=b.dept_ID ";
-		$q .= "WHERE p.inUse=1 AND u.enableOnline=1 AND u.soldOut=0 AND (o.available IS NULL or o.available > 0) ";
+		$q .= "WHERE u.enableOnline=1 AND u.soldOut=0 AND (o.available IS NULL or o.available > 0) ";
 		if ($super != -1){
 			$q .= "AND s.superID=? ";
 			$args[] = $super;
@@ -112,7 +124,12 @@ class storefront extends BasicPage {
         //if ($empno!=-999) {
         //    $q .= "AND p.description NOT LIKE '%yoga%'";
         //}
-		$q .= "ORDER BY u.brand,SUBSTR(u.description,9,2),u.description";
+        $q .= "ORDER BY
+            CASE WHEN u.brand IS NULL OR u.brand='' THEN p.brand ELSE u.brand END,
+            CASE WHEN u.description IS NULL OR u.description='' THEN p.description ELSE u.description END";
+        if ($super == -1 || $d == -1 || $brand == -1) {
+            $q .= " LIMIT 100";
+        }
 
 		$p = $dbc->prepare_statement($q);
 		$r = $dbc->exec_statement($p, $args);
@@ -124,11 +141,17 @@ class storefront extends BasicPage {
 			if ($price == 0) {
 				$price = 'Free!';
 			} else {
-				$price = sprintf('$%.2f',$price);
+				$price = sprintf('%.2f',$price);
+                if ($w['sale_price']) {
+                    $w['sale_price'] = sprintf('%.2f',$price);
+                }
 			}
+            if ($w['brand'] == 'ORGANIC') {
+                $w['brand'] = 'Organic';
+            }
 			$ret .= sprintf('<tr><td>%s</td>
 					<td><a href="../items/%s">%s</a></td>
-					<td>%s</td>
+					<td>$%s</td>
 					<td>%s</td>',
 					$w['brand'],
 					$w['upc'],$w['description'],
@@ -136,10 +159,43 @@ class storefront extends BasicPage {
 					($w['sale_price']==0?'&nbsp;':'ON SALE!')
 			);
 			if ($w['inCart'] == 0 && $empno != -999 && !($w['discounttype'] == 2 && $w['special_price'] == 0) && strpos($w['description'], 'Yoga') == false){
+                    $qty = sprintf('<div class="input-group">
+                        <span class="input-group-addon">Quantity</span>
+                        <input type="number" value="1" id="qty%s" /></div>', $w['upc']);
+                    $maxQty = 0;
+                    if ($w['scale']) {
+                        $min = 0.25;
+                        $max = 2;
+                        $step = 0.25;
+                        if ($w['min'] && $w['max'] && $w['step']) {
+                            $min = $w['min'];
+                            $max = $w['max'];
+                            $step = $w['step'];
+                        }
+                        $qty = sprintf('<div class="input-group">
+                            <span class="input-group-addon">Quantity</span>
+                            <select id="qty%s">', $w['upc']);
+                        for ($i=$max; $i>=$min; $i-=$step) {
+                            $qty .= sprintf('<option %s value="%.2f">%.2f %s</option>',
+                                ($i == 1 || ($i == $min && $i > 1) ? 'selected' : ''),
+                                $i, $i,
+                                ($i == 1 ? 'lb' : 'lbs')
+                            );
+                        }
+                        $qty .= '</select></div>';
+                    } elseif ($w['superID'] != 6) {
+                        $qty = sprintf('<div class="input-group">
+                            <span class="input-group-addon">Quantity</span>
+                            <input type="number" value="1" id="qty%s" 
+                            min="1" max="6" /></div>', $w['upc']);
+                        $maxQty = 6;
+                    }
 					$ret .= sprintf('<td id="btn%s">
+                        %s
 						<input type="submit" value="Add to cart" onclick="addItem(\'%s\');" />
 						</td></tr>',
-						$w['upc'],$w['upc']);
+						$w['upc'],$qty,$w['upc']);
+                    $ret .= sprintf('<input type="hidden" id="maxQty%s" value="%d" />', $w['upc'], $maxQty);
 			}
 			else if ($empno != -999 && strpos($w['description'], 'Yoga') == false){
 					$ret .= sprintf('<td id="btn%s">
@@ -166,8 +222,12 @@ class storefront extends BasicPage {
 
 		$ret = '<ul id="superList">';
 		$dbc = Database::pDataConnect();
-		$r = $dbc->query("SELECT superID,super_name FROM
-			superDeptNames ORDER BY super_name");
+		$r = $dbc->query("SELECT s.superID,s.super_name FROM
+			superDeptNames AS s
+            INNER JOIN superdepts AS d ON s.superID=d.superID
+            INNER JOIN products AS p ON p.department=d.dept_ID
+            GROUP BY s.superID, s.super_name
+            ORDER BY super_name");
 		$sids = array();
 		while($w = $dbc->fetch_row($r)){
 			$sids[$w['superID']] = $w['super_name'];
@@ -193,7 +253,8 @@ class storefront extends BasicPage {
 				$q = $dbc->prepare_statement("SELECT u.brand FROM products AS p
 					INNER JOIN productUser AS u ON p.upc=u.upc
 					WHERE p.department=? AND u.brand <> ''
-					AND u.brand IS NOT NULL GROUP BY u.brand");
+					AND u.brand IS NOT NULL GROUP BY u.brand
+                    ORDER BY u.brand");
 				$r = $dbc->exec_statement($q, array($d));
 			}
 
@@ -204,7 +265,10 @@ class storefront extends BasicPage {
 					$ret .= '<ul id="deptlist">';
 					$dP = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
-						WHERE s.superID=?");
+                        INNER JOIN products AS p ON p.department=d.dept_no
+						WHERE s.superID=?
+                        GROUP BY dept_no, dept_name
+                        ORDER BY dept_name");
 					$dR = $dbc->exec_statement($dP, array($super));
 					while($w = $dbc->fetch_row($dR)){
 						$ret .= sprintf('<li><a href="%s?sup=%d&d=%d">%s</a>',
@@ -242,7 +306,10 @@ class storefront extends BasicPage {
 					$ret .= '<ul id="deptlist">';
 					$p = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
-						WHERE s.superID=?");
+                        INNER JOIN products AS p ON p.department=d.dept_no
+						WHERE s.superID=?
+                        GROUP BY dept_no, dept_name
+                        ORDER BY dept_name");
 					$r = $dbc->exec_statement($p, array($super));
 					while($w = $dbc->fetch_row($r)){
 						$ret .= sprintf('<li><a href="%s?sup=%d&d=%d">%s</a></li>',

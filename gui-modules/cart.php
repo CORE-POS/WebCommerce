@@ -37,6 +37,13 @@ class cart extends BasicPage {
 		$(document).ready(function(){
 			$('#searchbox').focus();
 		});
+        function saveNotes(text) {
+            $.ajax({
+                url: '/ajax-callbacks/ajax-save-notes.php',
+                type: 'post',
+                data: 'notes=' + encodeURIComponent(text)
+            });
+        }
 		<?php
 	}
 
@@ -45,12 +52,24 @@ class cart extends BasicPage {
 		$db = Database::tDataConnect();
 		$empno = AuthUtilities::getUID(AuthLogin::checkLogin());
 
-		$q = $db->prepare_statement("SELECT * FROM cart WHERE emp_no=?");
+		$q = $db->prepare_statement("SELECT c.*, s.superID, p.scale
+            FROM cart AS c
+                LEFT JOIN products AS p ON c.upc=p.upc
+                LEFT JOIN superdepts AS s ON p.department=s.dept_ID
+            WHERE c.emp_no=?");
 		$r = $db->exec_statement($q, array($empno));
 
 		if (!RemoteProcessor::LIVE_MODE){
 			echo '<h2>This store is in test mode; orders will not be processed</h2>';
 		}
+
+        $noteP = $db->prepare_statement("SELECT notes FROM CurrentOrderNotes WHERE userID=?");
+        $noteR = $db->exec_statement($noteP, array($empno));
+        $notes = '';
+        if ($db->num_rows($noteR) > 0) {
+            $noteW = $db->fetch_row($noteR);
+            $notes = $noteW['notes'];
+        }
 		
 		echo '<blockquote><em>'.$this->notices.'</em></blockquote>';
 		echo '<form action="cart.php" method="post">';
@@ -59,16 +78,27 @@ class cart extends BasicPage {
 			<th>Total</th><th>&nbsp;</th></tr>";
 		$ttl = 0.0;
 		while($w = $db->fetch_row($r)){
+            $min = 0;
+            $max = 6;
+            $step = 1;
+            if ($w['scale']) {
+                $step = 0.25;
+            }
+            if ($w['superID'] == 6) {
+                $max = 99;
+            }
 			printf('<tr>
 				<td><input type="checkbox" name="selections[]" value="%s" /></td>
 				<td>%s %s</td>
-				<td><input type="hidden" name="upcs[]" value="%s" /><input type="text"
+				<td><input type="hidden" name="upcs[]" value="%s" /><input type="number"
+                min="%s" max="%s" step="%s"
 				size="4" name="qtys[]" value="%.2f" /><input type="hidden" name="scales[]"
 				value="%d" /><input type="hidden" name="orig[]" value="%.2f" /></td>
 				<td>$%.2f</td><td>$%.2f</td><td>%s</td></tr>',
 				$w['upc'],
 				$w['brand'],$w['description'],
-				$w['upc'],$w['quantity'],$w['scale'],$w['quantity'],
+				$w['upc'], $min, $max, $step,
+                $w['quantity'],$w['scale'],$w['quantity'],
 				$w['unitPrice'],$w['total'],
 				(empty($w['saleMsg'])?'&nbsp;':$w['saleMsg'])
 			);
@@ -87,14 +117,22 @@ class cart extends BasicPage {
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes);
 		printf('<tr><th colspan="4" align="right">Total</th>
 			<td>$%.2f</td><td>&nbsp;</td></tr>',$taxes+$ttl);
+        printf('<tr><th>Notes</th><td colspan="5">
+            <textarea onchange="saveNotes(this.value);">%s</textarea></td></tr>', $notes);
 		echo '<tr><td colspan="6" valign="top">';
 		echo '<input type="submit" name="delbtn" style="" value="Delete Selected Items" />';
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		echo '<input type="submit" name="qtybtn" value="Update Quantities" />';
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        /*
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $mod = new $pay_class();
         echo $mod->checkoutButton();
+        */
+        echo '<a class="button btn-custom pull-right" href="/gui-modules/pickup.php">Arrange Pickup</a>';
 		echo "</td></tr>";
 		echo "</table><br />";
 	}
@@ -116,12 +154,18 @@ class cart extends BasicPage {
 					$qty = number_format(round($_REQUEST['qtys'][$i]*4)/4,2);
 				if ($qty == $_REQUEST['orig'][$i]) continue;
 
-				$availP = $db->prepare_statement("SELECT available FROM productOrderLimits WHERE upc=?");
+				//$availP = $db->prepare_statement("SELECT available FROM productOrderLimits WHERE upc=?");
+				$limit = 6;
+				$availP = $db->prepare_statement("SELECT superID FROM products as p 
+                                left join superdepts AS s on p.department=s.dept_ID
+                                where p.upc=?");
 				$availR = $db->exec_statement($availP,array($upc));
-				$limit = 999;
 				if ($db->num_rows($availR) > 0) {
                     $availW = $db->fetch_row($availR);
-					$limit = $availW['available'];
+                    if ($availW['superID'] == 6) {
+                        $limit = 99;
+                    }
+					//$limit = $availW['available'];
                 }
 				if ($qty > $limit && $qty > 0){
 					$qty = $limit;
