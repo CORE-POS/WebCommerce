@@ -131,8 +131,8 @@ class cart extends BasicPage {
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $mod = new $pay_class();
         echo $mod->checkoutButton();
-        */
         echo '<a class="button btn-custom pull-right" href="/gui-modules/pickup.php">Arrange Pickup</a>';
+        */
 		echo "</td></tr>";
 		echo "</table><br />";
 	}
