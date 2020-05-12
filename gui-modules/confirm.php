@@ -63,7 +63,7 @@ class confirm extends BasicPage {
         echo "<tr><th>Item</th><th>Qty</th><th>Price</th>
             <th>Total</th><th>&nbsp;</th></tr>";
         $ttl = 0.0;
-        $pickupDate = false;
+        $pickupDate = true;
         $class = false;
         while($w = $db->fetch_row($r)){
             printf('<tr>
@@ -103,10 +103,12 @@ class confirm extends BasicPage {
                 printf('<input type="hidden" name="token" value="%s" />',$ident);
             }
             echo '<b>Phone Number (incl. area code)</b>: ';
-            echo '<input type="text" name="ph_contact" /> (<span style="color:red;">Required</span>)<br />';
+            echo '<input type="text" name="ph_contact" required /><br />';
+            /*
             echo '<blockquote>We require a phone number because some email providers
                 have trouble handling .coop email addresses. A phone number ensures
                 we can reach you if there are any questions about your order.</blockquote>';
+            */
             if ($class) {
                 echo '<b>Additional attendees</b>: ';
                 echo '<input type="text" name="attendees" /><br />';
@@ -114,11 +116,15 @@ class confirm extends BasicPage {
                     enter their name(s) so we know to put them on the list.</blockquote>';
             }
             if ($pickupDate) {
-                echo '<b>Choose order pick-up date</b>: ';
-                $date = date('Y-m-d', strtotime('+3 days'));
-                echo '<input type="date" name="pickup_date" min="' . $date . '" max="2016-11-23" /><br />';
-                echo '<blockquote>Orders are normally processed in 3-5 days. Please select a date between
-                ' . date('F j, Y', strtotime('+3 days')) . ' and November 23, 2016</blockquote>';
+                $min = date('Y-m-d', strtotime('tomorrow'));
+                $max = date('Y-m-d', strtotime('+3 days'));
+                $btwn = date('n/j', strtotime($min)) . ' and ' . date('n/j', strtotime($max));
+                echo '<b>Choose order pick-up date (between ' . $btwn . ') & time (between 4 and 7pm)</b>:<br />';
+                echo '<input type="date" name="pickup_date" min="' . $min . '" max="' . $max . '" 
+                        placeholder="YYYY-MM-DD"/>';
+                echo '<input type="time" name="time" min="16:00" max="19:00" placeholder="HH:MM" /><br />';
+                echo '<b>Vehicle make, model, & color</b>:<br />';
+                echo '<input type="text" name="vehicle" required /><br />';
             }
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -129,6 +135,9 @@ class confirm extends BasicPage {
             /* refactor idea: clear in preprocess()
                and print receipt from a different script
             */
+            
+            /* REMOVE
+
             // normalize date in case items were added long before checkout
             $dateP = $db->prepare_statement('UPDATE localtemptrans SET datetime=' . $db->now() . '
                                         WHERE emp_no=?');
@@ -143,6 +152,9 @@ class confirm extends BasicPage {
                 localtemptrans AS l WHERE emp_no=?");
             $endR = $db->exec_statement($endP,array($empno));
 
+            $noteP = $db->prepare_statement("DELETE FROM CurrentOrderNotes WHERE userID=?");
+            $noteR = $db->exec_statement($noteP, array($empno));
+
             $pendingCols = Database::localMatchingColumns($db, 'localtemptrans', 'pendingtrans');
             $endP = $db->prepare_statement("INSERT INTO pendingtrans ($pendingCols) 
                                             SELECT $pendingCols 
@@ -154,6 +166,8 @@ class confirm extends BasicPage {
                 $clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
                 $db->exec_statement($clearP,array($empno));
             }
+
+            REMOVE */
         }
     }
 
@@ -181,12 +195,18 @@ class confirm extends BasicPage {
             }
             $attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
             $pickup = isset($_REQUEST['pickup_date']) ? $_REQUEST['pickup_date'] : '';
+            $time = isset($_REQUEST['time']) ? $_REQUEST['time'] : '';
+            $vehicle = isset($_REQUEST['vehicle']) ? $_REQUEST['vehicle'] : '';
+
             $notes = '';
             if ($attend) {
                 $notes .= "Additional attendees: {$attend}\n";
             }
             if ($pickup) {
                 $notes .= "Pickup date: {$pickup}\n";
+                list($hour, $minute) = explode(':', $time, 2);
+                $hour -= 12;
+                $notes .= "Pickup time: {$hour}:{$minute}PM\n";
             }
 
             $db = Database::tDataConnect();
@@ -223,23 +243,30 @@ class confirm extends BasicPage {
                 $final_amount = '0.00';
             }
 
+            // REMOVE
+            if ($pickup) $this->mode = 1;
+
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
                 $cart = Notices::customerConfirmation($empno,$email,$final_amount,$notes);
 
-                $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
-                    as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
-                    INNER JOIN superDeptEmails AS e ON s.superID=e.superID
-                    WHERE l.emp_no=? GROUP BY e.email_address");
-                $addrR = $db->exec_statement($addrP,array($empno));
-                $addr = array();
-                while($addrW = $db->fetch_row($addrR))
-                    $addr[] = $addrW[0];
-                if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) {
-                    Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$notes,$cart);
-                    Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,false);
+                if ($pickup) {
+                    Notices::pickup($empno,$email,$pickup,$time,$vehicle,$ph);
                 } else {
-                    Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,true);
+                    $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
+                        as l INNER JOIN superdepts AS s ON l.department=s.dept_ID
+                        INNER JOIN superDeptEmails AS e ON s.superID=e.superID
+                        WHERE l.emp_no=? GROUP BY e.email_address");
+                    $addrR = $db->exec_statement($addrP,array($empno));
+                    $addr = array();
+                    while($addrW = $db->fetch_row($addrR))
+                        $addr[] = $addrW[0];
+                    if (count($addr) > 0 && RemoteProcessor::LIVE_MODE) {
+                        Notices::mgrNotification($addr,$email,$ph,$owner,$final_amount,$notes,$cart);
+                        Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,false);
+                    } else {
+                        Notices::adminNotification($empno,$email,$ph,$owner,$final_amount,$cart,true);
+                    }
                 }
             }
         }
