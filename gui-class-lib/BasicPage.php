@@ -115,8 +115,9 @@ class BasicPage {
 	function top_menu(){
 		global $IS4C_PATH;
 		echo '<div id="topMenuRunner">';
-        echo '<div class="alert-danger" style="text-align: center; padding: 3px;">Orders accepted 7am - 10am; Pick up 4pm - 7pm.
-            <a href="/pickup/faq/">More info</a>.</div>';
+        echo '<div class="alert-danger" style="text-align: center; padding: 3px;">
+Pickup service has shifted to our <a href="https://www.instacart.com/store/whole-foods-co-op/storefront">Instacart</a> site.
+            </div>';
         echo '<div class="row">';
         echo '<div class="col-sm-6">';
 		$user = AuthLogin::checkLogin();
