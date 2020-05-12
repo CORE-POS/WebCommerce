@@ -32,6 +32,7 @@ class Notices
     const REPLY_EMAIL = 'it@wholefoods.coop';
     const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@wholefoods.coop';
+    const PICKUP_EMAIL = 'pikp@wholefoods.coop';
     const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,dcsc@wholefoods.coop';
     const REGISTRY_EMAIL = 'registry@wholefoods.coop';
 
@@ -335,4 +336,46 @@ class Notices
         self::sendEmail($email, 'WFC Invoice Payment', $msg);
     }
 
+    public static function pickup($empno, $email, $pickup, $time, $vehicle, $phone)
+    {
+        $json = array(
+            'email' => $email,
+            'phone' => $phone,
+            'vehicle' => $vehicle,
+            'pDate' => $pickup,
+            'pTime' => $time,
+            'name' => AuthUtilities::getRealName($email),
+            'notes' => '',
+            'items' => array(),
+        );
+        $dbc = Database::tDataConnect();
+        $noteP = $dbc->prepare_statement("SELECT notes FROM CurrentOrderNotes WHERE userID=?");
+        $noteR = $dbc->exec_statement($noteP, array($empno));
+        while ($noteW = $dbc->fetch_row($noteR)) {
+            $json['notes'] = $noteW['notes'];
+        }
+        $cartP = $dbc->prepare_statement("SELECT upc, description, quantity, total FROM localtemptrans WHERE emp_no=?");
+        $cartR = $dbc->exec_statement($cartP, array($empno));
+        while ($cartW = $dbc->fetch_row($cartR)) {
+            $json['items'][] = array(
+                'upc' => $cartW['upc'],
+                'item' => $cartW['description'],
+                'qty' => $cartW['quantity'],
+                'ttl' => $cartW['total'],
+            );
+        }
+
+        if (class_exists('PHPMailer')) {
+            $mail = new PHPMailer();
+            $mail->isMail();
+            $mail->From = self::STORE_EMAIL;
+            $mail->FromName = 'Whole Foods Co-op';
+            $mail->addReplyTo(self::REPLY_EMAIL);
+            $mail->addAddress(self::PICKUP_EMAIL);
+            $mail->addStringAttachment(json_encode($json), 'data.json', 'base64', 'application/json');
+            $mail->isHTML(false);
+            $mail->Body = 'blank';
+            $mail->send();
+        }
+    }
 }
