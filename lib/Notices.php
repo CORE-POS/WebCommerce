@@ -41,8 +41,8 @@ class Notices
         $headers = 'From: '.self::STORE_EMAIL."\r\n";
         $headers .= 'Reply-To: '.self::REPLY_EMAIL."\r\n";
 
-        if (class_exists('PHPMailer')) {
-            $mail = new PHPMailer();
+        if (self::haveMailer()) {
+            $mail = self::getMailer();
             $mail->isMail();
             $mail->From = self::STORE_EMAIL;
             $mail->FromName = 'Whole Foods Co-op';
@@ -127,8 +127,8 @@ class Notices
         $json['email'] = $email;
         $json['phone'] = $ph;
         $json['payment'] = 'Card';
-        if (class_exists('PHPMailer')) {
-            $mail = new PHPMailer();
+        if (self::haveMailer()) {
+            $mail = self::getMailer();
             $mail->isMail();
             $mail->setFrom(self::ADMIN_EMAIL, 'Whole Foods Co-op');
             $mail->addReplyTo(self::REPLY_EMAIL);
@@ -253,8 +253,8 @@ class Notices
 
         self::sendEmail(self::JOIN_EMAIL, "New Online Ownership", $msg);
 
-        if (class_exists('PHPMailer')) {
-            $mail = new PHPMailer();
+        if (self::haveMailer()) {
+            $mail = self::getMailer();
             $mail->isMail();
             $mail->From = self::STORE_EMAIL;
             $mail->FromName = 'Whole Foods Co-op';
@@ -365,8 +365,8 @@ class Notices
             );
         }
 
-        if (class_exists('PHPMailer')) {
-            $mail = new PHPMailer();
+        if (self::haveMailer()) {
+            $mail = self::getMailer();
             $mail->isMail();
             $mail->From = self::STORE_EMAIL;
             $mail->FromName = 'Whole Foods Co-op';
@@ -377,5 +377,27 @@ class Notices
             $mail->Body = 'blank';
             $mail->send();
         }
+    }
+
+    private static function haveMailer()
+    {
+        if (class_exists('PHPMailer')) {
+            return true;
+        } elseif (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static function getMailer()
+    {
+        if (class_exists('PHPMailer')) {
+            return new PHPMailer();
+        } elseif (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+            return new PHPMailer\PHPMailer\PHPMailer();
+        }
+
+        return false;
     }
 }
