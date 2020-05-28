@@ -116,7 +116,7 @@ class BasicPage {
 		global $IS4C_PATH;
 		echo '<div id="topMenuRunner">';
         echo '<div class="alert-danger" style="text-align: center; padding: 3px;">
-Pickup service has shifted to our <a href="https://www.instacart.com/store/whole-foods-co-op/storefront">Instacart</a> site.
+Preorder garden plants from our Denfeld location (<a href="https://store.wholefoods.coop/plants/">More info</a>). Grocery pickup service has shifted to our <a href="https://www.instacart.com/store/whole-foods-co-op/storefront">Instacart</a> site.
             </div>';
         echo '<div class="row">';
         echo '<div class="col-sm-6">';
