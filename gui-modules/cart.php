@@ -127,10 +127,10 @@ class cart extends BasicPage {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-        /*
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $mod = new $pay_class();
         echo $mod->checkoutButton();
+        /*
         echo '<a class="button btn-custom pull-right" href="/gui-modules/pickup.php">Arrange Pickup</a>';
         */
 		echo "</td></tr>";
@@ -212,7 +212,7 @@ class cart extends BasicPage {
             } else {
                 $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
                 $proc = new $pay_class();
-                $init = $proc->initializePayment(round($sub+$tax, 2), round($tax, 2), $email);
+                $init = $proc->initializePayment(round($sub, 2), round($tax, 2), $email);
                 if ($init === false) {
                     echo 'Error: cannot process payment at this time.';
                 } else {
