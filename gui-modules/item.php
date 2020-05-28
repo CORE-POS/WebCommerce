@@ -139,7 +139,7 @@ class itemPage extends BasicPage {
                 no longer available to order online. Class reservations or
                 waiting lists may still be available. Call 
                 218-728-0884 and press 1 to speak to customer service
-                for more information.';
+                for more information about class reservations.';
 		}
 		else if ($empno == -999){
 			echo '<a href="' . $IS4C_PATH . 'gui-modules/loginPage.php">Login</a> or ';

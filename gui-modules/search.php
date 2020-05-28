@@ -70,7 +70,8 @@ class search extends BasicPage {
 			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc
             LEFT JOIN DeptScaling AS s ON p.department=s.dept_no ";
 		$args = array($term, $empno);
-        $q .= " WHERE MATCH(u.brand, u.description) AGAINST (?) ";
+        $q .= " WHERE MATCH(u.brand, u.description) AGAINST (?) 
+                AND u.soldOut=0 ";
         $args[] = $term;
         $q .= "ORDER BY score DESC";
         $q .= " LIMIT 100";

@@ -55,6 +55,7 @@ class confirm extends BasicPage {
         }
         else {
             echo '<blockquote>Your order has been processed</blockquote>';
+            echo "<p>When you arrive let customer service or a cashier know you have a plant order for pickup</p>";
         }
         if (!empty($this->msgs)){
             echo '<blockquote>'.$this->msgs.'</blockquote>';
@@ -123,8 +124,7 @@ class confirm extends BasicPage {
                 echo '<input type="date" name="pickup_date" min="' . $min . '" max="' . $max . '" 
                         placeholder="YYYY-MM-DD"/>';
                 echo '<input type="time" name="time" min="16:00" max="19:00" placeholder="HH:MM" /><br />';
-                echo '<b>Vehicle make, model, & color</b>:<br />';
-                echo '<input type="text" name="vehicle" required /><br />';
+                echo '<i>If none of these pickup choices work, you can still cancel your order by clicking Go Back</i><br />';
             }
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -136,8 +136,6 @@ class confirm extends BasicPage {
                and print receipt from a different script
             */
             
-            /* REMOVE
-
             // normalize date in case items were added long before checkout
             $dateP = $db->prepare_statement('UPDATE localtemptrans SET datetime=' . $db->now() . '
                                         WHERE emp_no=?');
@@ -166,8 +164,6 @@ class confirm extends BasicPage {
                 $clearP = $db->prepare_statement("DELETE FROM localtemptrans WHERE emp_no=?");
                 $db->exec_statement($clearP,array($empno));
             }
-
-            REMOVE */
         }
     }
 
@@ -207,6 +203,7 @@ class confirm extends BasicPage {
                 list($hour, $minute) = explode(':', $time, 2);
                 $hour -= 12;
                 $notes .= "Pickup time: {$hour}:{$minute}PM\n";
+                $notes .= "When you arrive let customer service or a cashier know you have a plant order for pickup\n";
             }
 
             $db = Database::tDataConnect();
@@ -242,9 +239,6 @@ class confirm extends BasicPage {
                 $this->mode=1;
                 $final_amount = '0.00';
             }
-
-            // REMOVE
-            if ($pickup) $this->mode = 1;
 
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
