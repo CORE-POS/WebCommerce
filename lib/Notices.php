@@ -33,7 +33,7 @@ class Notices
     const ADMIN_EMAIL = 'it@wholefoods.coop';
     const PLUGIN_EMAIL = 'pik@wholefoods.coop';
     const PICKUP_EMAIL = 'pikp@wholefoods.coop';
-    const JOIN_EMAIL = 'andy@wholefoods.coop,csc@wholefoods.coop,dcsc@wholefoods.coop';
+    const JOIN_EMAIL = 'andy@wholefoods.coop,hheinz@wholefoods.coop,csc@wholefoods.coop,dcsc@wholefoods.coop';
     const REGISTRY_EMAIL = 'registry@wholefoods.coop';
 
     public static function sendEmail($to,$subject,$msg)
@@ -336,7 +336,7 @@ class Notices
         self::sendEmail($email, 'WFC Invoice Payment', $msg);
     }
 
-    public static function pickup($empno, $email, $pickup, $time, $vehicle, $phone)
+    public static function pickup($empno, $email, $pickup, $time, $vehicle, $phone, $store, $preferPickup,$transno)
     {
         $json = array(
             'email' => $email,
@@ -346,6 +346,9 @@ class Notices
             'pTime' => $time,
             'name' => AuthUtilities::getRealName($email),
             'notes' => '',
+            'store' => $store,
+            'curbside' => $preferPickup,
+            'orderNo' => $empno . '-' . $transno,
             'items' => array(),
         );
         $dbc = Database::tDataConnect();
