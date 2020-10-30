@@ -62,7 +62,7 @@ class itemPage extends BasicPage {
 			CASE WHEN o.available IS NULL then 99 ELSE o.available END as available
 			FROM products AS p INNER JOIN productUser AS u
 			ON p.upc=u.upc LEFT JOIN productOrderLimits AS o
-			ON p.upc=o.upc
+                ON p.upc=o.upc AND o.storeID=" . (isset($_SESSION['storeID']) ? (int)$_SESSION['storeID'] : 0) . "
             LEFT JOIN DeptScaling AS s ON p.department=s.dept_no
             WHERE p.upc=?");
 		$r = $dbc->exec_statement($q,array($upc));
@@ -150,9 +150,9 @@ class itemPage extends BasicPage {
             echo '<a href="manageAccount.php">Verify your Account status</a>';
 		} else {
             if ($w['scale']) {
-                $min = 0.25;
-                $max = 2;
-                $step = 0.25;
+                $min = 1;
+                $max = 10;
+                $step = 1;
                 if ($w['min'] && $w['max'] && $w['step']) {
                     $min = $w['min'];
                     $max = $w['max'];

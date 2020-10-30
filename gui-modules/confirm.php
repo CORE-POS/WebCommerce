@@ -55,7 +55,7 @@ class confirm extends BasicPage {
         }
         else {
             echo '<blockquote>Your order has been processed</blockquote>';
-            echo "<p>When you arrive let customer service or a cashier know you have a plant order for pickup</p>";
+            echo "<p>When you arrive let customer service or a cashier know you have a Thanksgiving order for pickup</p>";
         }
         if (!empty($this->msgs)){
             echo '<blockquote>'.$this->msgs.'</blockquote>';
@@ -120,11 +120,37 @@ class confirm extends BasicPage {
                 $min = date('Y-m-d', strtotime('tomorrow'));
                 $max = date('Y-m-d', strtotime('+3 days'));
                 $btwn = date('n/j', strtotime($min)) . ' and ' . date('n/j', strtotime($max));
-                echo '<b>Choose order pick-up date (between ' . $btwn . ') & time (between 4 and 7pm)</b>:<br />';
-                echo '<input type="date" name="pickup_date" min="' . $min . '" max="' . $max . '" 
-                        placeholder="YYYY-MM-DD"/>';
-                echo '<input type="time" name="time" min="16:00" max="19:00" placeholder="HH:MM" /><br />';
+                echo '<b>Store</b><select required id="storeSelect" name="store" onchange="getPickupTimes();"><option value=""></option>
+                    <option ' . ($_SESSION['storeID']==2 ? 'selected': '') . ' value="2">Denfeld (4426 Grand Ave, Duluth, MN 55807)</option>
+                    <option ' . ($_SESSION['storeID']==1 ? 'selected': '') . ' value="1">Hillside (610 E 4th St, Duluth, MN 55805)</option>
+                    </select><br />';
+                echo '<b>Choose order pick-up date & time</b>:<br />';
+                echo '<label><input onchange="getPickupTimes();" required type="radio" name="pickup_date" value="2020-11-24" /> Tue, Nov. 24rd</label><br />';
+                echo '<label><input onchange="getPickupTimes();" type="radio" name="pickup_date" value="2020-11-25" /> Wed, Nov. 25rd</label><br />';
+                echo '<label><input onchange="getPickupTimes();" type="radio" name="pickup_date" value="2020-11-26" /> Thu, Nov. 26rd</label><br />';
+                echo '<select id="pTime" name="time" required>';
+                echo '<option value="">Choose store & date first...</option>';
+                echo '</select>';
+                echo '<input type="hidden" name="is_pickup" value="1" />';
+                echo '<b>Prefer curbside pickup?</b><br />';
+                echo '<label><input type="checkbox" name="preferPickup" value="1" /> Bring my order out to my car</label><br />';
                 echo '<i>If none of these pickup choices work, you can still cancel your order by clicking Go Back</i><br />';
+                echo <<<JAVASCRIPT
+<script>
+function getPickupTimes() {
+    var dt = $('input[name=pickup_date]:checked').val();
+    var store = $('#storeSelect').val();
+    if (!dt || !store) return;
+    $.ajax({
+        'url': 'PickupTimes.php',
+        'type': 'get',
+        'data': 'dt=' + dt + '&s=' + store
+    }).done(function(resp) {
+        $('#pTime').html(resp);
+    }); 
+}
+</script>
+JAVASCRIPT;
             }
             echo '<input type="submit" name="confbtn" value="Finalize Order" />';
             echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -135,7 +161,7 @@ class confirm extends BasicPage {
             /* refactor idea: clear in preprocess()
                and print receipt from a different script
             */
-            
+
             // normalize date in case items were added long before checkout
             $dateP = $db->prepare_statement('UPDATE localtemptrans SET datetime=' . $db->now() . '
                                         WHERE emp_no=?');
@@ -191,24 +217,32 @@ class confirm extends BasicPage {
             }
             $attend = isset($_REQUEST['attendees']) ? $_REQUEST['attendees'] : '';
             $pickup = isset($_REQUEST['pickup_date']) ? $_REQUEST['pickup_date'] : '';
+            $isPickup = isset($_REQUEST['is_pickup']) ? true : false;
+            $preferPickup = isset($_REQUEST['preferPickup']) ? true : false;
             $time = isset($_REQUEST['time']) ? $_REQUEST['time'] : '';
+            $store = isset($_REQUEST['store']) ? $_REQUEST['store'] : '';
             $vehicle = isset($_REQUEST['vehicle']) ? $_REQUEST['vehicle'] : '';
+
+            $email = AuthLogin::checkLogin();
+            $empno = AuthUtilities::getUID($email);
+            $transno = Database::gettransno($empno);
 
             $notes = '';
             if ($attend) {
                 $notes .= "Additional attendees: {$attend}\n";
             }
-            if ($pickup) {
+            if ($isPickup) {
+                $notes .= "Order Number: {$empno}-{$transno}\n";
                 $notes .= "Pickup date: {$pickup}\n";
-                list($hour, $minute) = explode(':', $time, 2);
-                $hour -= 12;
-                $notes .= "Pickup time: {$hour}:{$minute}PM\n";
-                $notes .= "When you arrive let customer service or a cashier know you have a plant order for pickup\n";
+                $notes .= "Pickup time: {$time}\n";
+                if ($store == 1) {
+                    $notes .= "Location: Hillside (610 E 4th St, Duluth, MN 55805)\n";
+                } else {
+                    $notes .= "Location: Denfeld (4426 Grand Ave, Duluth, MN 55807)\n";
+                }
             }
 
             $db = Database::tDataConnect();
-            $email = AuthLogin::checkLogin();
-            $empno = AuthUtilities::getUID($email);
             $owner = AuthUtilities::getOwner($email);
             $subP = $db->prepare_statement("SELECT sum(total) FROM cart WHERE emp_no=?");
             $sub = $db->exec_statement($subP,array($empno));
@@ -232,7 +266,13 @@ class confirm extends BasicPage {
                     TransRecord::addtax($taxes);
                     
                     /* add paypal tender */
-                    TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*$final_amount);
+                    TransRecord::addtender($proc->tender_name, $proc->tender_code, -1*($final_amount+$taxes));
+                    TransRecord::addComment('STORE ' . $store);
+                    if ($isPickup) {
+                        $dateID = date('Ymd', strtotime($pickup));
+                        $slotP = $db->prepare_statement('UPDATE PickupSlots SET slots = slots - 1 WHERE dateID=? AND storeID=? AND time=?');
+                        $db->exec_statement($slotP, array($dateID, $store, $time));
+                    }
                 }
             } else if (floor($sub * 100) == 0) {
                 // items totalled $0. No paypal to process.
@@ -240,12 +280,13 @@ class confirm extends BasicPage {
                 $final_amount = '0.00';
             }
 
+            $this->mode = 1;
             if ($this->mode == 1) {
                 /* purchase succeeded - send notices */
                 $cart = Notices::customerConfirmation($empno,$email,$final_amount,$notes);
 
-                if ($pickup) {
-                    Notices::pickup($empno,$email,$pickup,$time,$vehicle,$ph);
+                if ($isPickup) {
+                    Notices::pickup($empno,$email,$pickup,$time,$vehicle,$ph, $store,$preferPickup,$transno);
                 } else {
                     $addrP = $db->prepare_statement("SELECT e.email_address FROM localtemptrans
                         as l INNER JOIN superdepts AS s ON l.department=s.dept_ID

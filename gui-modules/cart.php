@@ -79,7 +79,7 @@ class cart extends BasicPage {
 		$ttl = 0.0;
 		while($w = $db->fetch_row($r)){
             $min = 0;
-            $max = 6;
+            $max = 10;
             $step = 1;
             if ($w['scale']) {
                 $step = 0.25;
@@ -129,7 +129,10 @@ class cart extends BasicPage {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         $pay_class = RemoteProcessor::CURRENT_PROCESSOR;
         $mod = new $pay_class();
-        echo $mod->checkoutButton();
+        //if ($_SERVER['REMOTE_ADDR']) {
+         //   echo '<a href="confirm.php">DEMO CHECKOUT</a>';
+            echo $mod->checkoutButton();
+        //}
         /*
         echo '<a class="button btn-custom pull-right" href="/gui-modules/pickup.php">Arrange Pickup</a>';
         */
@@ -155,7 +158,7 @@ class cart extends BasicPage {
 				if ($qty == $_REQUEST['orig'][$i]) continue;
 
 				//$availP = $db->prepare_statement("SELECT available FROM productOrderLimits WHERE upc=?");
-				$limit = 6;
+				$limit = 10;
 				$availP = $db->prepare_statement("SELECT superID FROM products as p 
                                 left join superdepts AS s on p.department=s.dept_ID
                                 where p.upc=?");

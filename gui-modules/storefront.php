@@ -95,7 +95,7 @@ class storefront extends BasicPage {
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
 			AS l ON p.upc=l.upc AND l.emp_no=?
             LEFT JOIN superdepts AS m ON p.department=m.dept_ID
-			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc
+			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc AND o.storeID=" . (isset($_SESSION['storeID']) ? (int)$_SESSION['storeID'] : 0) . "
             LEFT JOIN DeptScaling AS ds ON p.department=ds.dept_no ";
 		$args = array($empno);
 		if ($super != -1)
@@ -108,8 +108,15 @@ class storefront extends BasicPage {
 			$args[] = $super;
 		}
 		if ($d != -1){
-			$q .= "AND p.department=? ";
-			$args[] = $d;
+            if ($d == 83) {
+                $q .= " AND p.upc IN ('0021822000000', '0021821000000', '0021820000000', '0021819000000') ";
+            } elseif ($d == 82) {
+                $q .= " AND p.upc NOT IN ('0021822000000', '0021821000000', '0021820000000', '0021819000000') AND p.department=? ";
+                $args[] = $d;
+            } else {
+                $q .= "AND p.department=? ";
+                $args[] = $d;
+            }
 		}
 		if ($sub != -1){
 			$q .= "AND b.subdept_no=? ";
@@ -134,7 +141,22 @@ class storefront extends BasicPage {
 		$p = $dbc->prepare_statement($q);
 		$r = $dbc->exec_statement($p, $args);
 
-		$ret = '<table class="table" cellspacing="4" cellpadding="4" id="browsetable">';
+        $ret = '<b>Pickup Location</b>: <select name="store" onchange="window.location=\'https://store.wholefoods.coop/gui-modules/setStore.php?id=\' + this.value;">';
+        $opts = array('Choose a store',
+            'Hillside (610 E 4th St, Duluth, MN 55805)',
+            'Denfeld (4426 Grand Ave, Duluth, MN 55807)',
+        );
+        foreach ($opts as $id => $o) {
+            $ret .= sprintf('<option %s value=%d>%s</option>',
+                    ($id == $_SESSION['storeID'] ? 'selected' : ''), $id, $o);
+        }
+        $ret .= '</select>';
+        if (!$_SESSION['storeID']) {
+            $ret .= '<p>Please choose a location first<p>';
+            return $ret;
+        }
+
+		$ret .= '<table class="table" cellspacing="4" cellpadding="4" id="browsetable">';
 		$ret .= '<tr><th>Brand</th><th>Product</th><th>Price</th><th>&nbsp;</th></tr>';
 		while($w = $dbc->fetch_row($r)){
 			$price = $w['normal_price'];
@@ -164,9 +186,9 @@ class storefront extends BasicPage {
                         <input type="number" value="1" id="qty%s" /></div>', $w['upc']);
                     $maxQty = 0;
                     if ($w['scale']) {
-                        $min = 0.25;
-                        $max = 2;
-                        $step = 0.25;
+                        $min = 1;
+                        $max = 10;
+                        $step = 1;
                         if ($w['min'] && $w['max'] && $w['step']) {
                             $min = $w['min'];
                             $max = $w['max'];
@@ -187,8 +209,8 @@ class storefront extends BasicPage {
                         $qty = sprintf('<div class="input-group">
                             <span class="input-group-addon">Quantity</span>
                             <input type="number" value="1" id="qty%s" 
-                            min="1" max="6" /></div>', $w['upc']);
-                        $maxQty = 6;
+                            min="1" max="10" /></div>', $w['upc']);
+                        $maxQty = 10;
                     }
 					$ret .= sprintf('<td id="btn%s">
                         %s
@@ -253,6 +275,7 @@ class storefront extends BasicPage {
 				$q = $dbc->prepare_statement("SELECT u.brand FROM products AS p
 					INNER JOIN productUser AS u ON p.upc=u.upc
 					WHERE p.department=? AND u.brand <> ''
+                    AND u.enableOnline=1
 					AND u.brand IS NOT NULL GROUP BY u.brand
                     ORDER BY u.brand");
 				$r = $dbc->exec_statement($q, array($d));
@@ -263,11 +286,18 @@ class storefront extends BasicPage {
 					$_SERVER['PHP_SELF'],$id,$name);
 				if ($id == $super){
 					$ret .= '<ul id="deptlist">';
-					$dP = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
+					$dP = $dbc->prepare_statement("SELECT 
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 83 ELSE dept_no END AS dept_no,
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 'Thanksgiving Meals' ELSE dept_name END AS dept_name
+                        FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
                         INNER JOIN products AS p ON p.department=d.dept_no
+                        INNER JOIN productUser AS u ON p.upc=u.upc
 						WHERE s.superID=?
-                        GROUP BY dept_no, dept_name
+                            AND u.enableOnline=1
+                        GROUP BY
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 83 ELSE dept_no END,
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 'Thanksgiving Meals' ELSE dept_name END
                         ORDER BY dept_name");
 					$dR = $dbc->exec_statement($dP, array($super));
 					while($w = $dbc->fetch_row($dR)){
@@ -304,11 +334,18 @@ class storefront extends BasicPage {
 					$_SERVER['PHP_SELF'],$id,$name);
 				if ($id == $super){
 					$ret .= '<ul id="deptlist">';
-					$p = $dbc->prepare_statement("SELECT dept_no,dept_name FROM departments
+					$p = $dbc->prepare_statement("SELECT
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 83 ELSE dept_no END AS dept_no,
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 'Thanksgiving Meals' ELSE dept_name END AS dept_name
+                        FROM departments
 						as d INNER JOIN superdepts as s ON d.dept_no=s.dept_ID
                         INNER JOIN products AS p ON p.department=d.dept_no
+                        INNER JOIN productUser AS u ON p.upc=u.upc
 						WHERE s.superID=?
-                        GROUP BY dept_no, dept_name
+                            AND u.enableOnline=1
+                        GROUP BY
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 83 ELSE dept_no END,
+                            CASE WHEN p.upc in ('0021822000000', '0021821000000', '0021820000000', '0021819000000') THEN 'Thanksgiving Meals' ELSE dept_name END
                         ORDER BY dept_name");
 					$r = $dbc->exec_statement($p, array($super));
 					while($w = $dbc->fetch_row($r)){

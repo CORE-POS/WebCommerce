@@ -132,7 +132,13 @@ class createAccount extends BasicPage {
 				$this->msgs .= '</div>';
 				$this->entries['name'] = '';
 				$errors = True;
-			}
+			} elseif (!strpos($this->entries['name'], ' ')) {
+				$this->msgs .= '<div class="alert alert-danger errorMsg" style="text-align:center;">';
+				$this->msgs .= 'Full name is required';
+				$this->msgs .= '</div>';
+				$this->entries['name'] = '';
+				$errors = True;
+            }
 
 			if (isset($_REQUEST['vln']) && !empty($_REQUEST['vln']) && isset($_REQUEST['vnum']) && !empty($_REQUEST['vnum'])) {
                 $lastname = $_REQUEST['vln'];

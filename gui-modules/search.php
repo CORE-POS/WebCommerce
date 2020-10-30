@@ -67,7 +67,7 @@ class search extends BasicPage {
 			AS u ON p.upc=u.upc LEFT JOIN ".$IS4C_LOCAL->get("tDatabase").".localtemptrans
 			AS l ON p.upc=l.upc AND l.emp_no=?
             LEFT JOIN superdepts AS m ON p.department=m.dept_ID
-			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc
+			LEFT JOIN productOrderLimits AS o ON p.upc=o.upc AND o.storeID=" . (isset($_SESSION['storeID']) ? (int)$_SESSION['storeID'] : 0) . "
             LEFT JOIN DeptScaling AS s ON p.department=s.dept_no ";
 		$args = array($term, $empno);
         $q .= " WHERE MATCH(u.brand, u.description) AGAINST (?) 
@@ -107,9 +107,9 @@ class search extends BasicPage {
                         <input type="number" value="1" id="qty%s" /></div>', $w['upc']);
                     $maxQty = 0;
                     if ($w['scale']) {
-                        $min = 0.25;
-                        $max = 2;
-                        $step = 0.25;
+                        $min = 1;
+                        $max = 10;
+                        $step = 1;
                         if ($w['min'] && $w['max'] && $w['step']) {
                             $min = $w['min'];
                             $max = $w['max'];
@@ -130,8 +130,8 @@ class search extends BasicPage {
                         $qty = sprintf('<div class="input-group">
                             <span class="input-group-addon">Quantity</span>
                             <input type="number" value="1" id="qty%s" 
-                            min="1" max="6" /></div>', $w['upc']);
-                        $maxQty = 6;
+                            min="1" max="10" /></div>', $w['upc']);
+                        $maxQty = 10;
                     }
 					$ret .= sprintf('<td id="btn%s">
                         %s
